@@ -1,0 +1,21 @@
+{
+  "node_id": "nodeA",
+  "recorded_at": "2026-05-27T03:45:00Z",
+  "temperature": 24.8,
+  "humidity": 61.5,
+  "headcount": 3,
+  "pmv": 0.2,
+  "crisis_mode": false,
+  "air_quality": 42.0,
+  "hvac_state": {
+    "mode": "cool",
+    "fan": "auto",
+    "setpoint": 24
+  },
+  "battery_voltage": 4.02,
+  "firmware_version": "demo-0.1.0",
+  "raw_sensor_summary": {
+    "pir_motion": true,
+    "co2_estimate": 680
+  }
+}

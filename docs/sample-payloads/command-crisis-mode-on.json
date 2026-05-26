@@ -1,0 +1,7 @@
+{
+  "command": "SET_CRISIS_MODE",
+  "enabled": true,
+  "target_pmv_limit": 1.0,
+  "reason": "grid_crisis_demo"
+}
+

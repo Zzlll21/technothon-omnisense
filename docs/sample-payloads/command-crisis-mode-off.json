@@ -1,0 +1,7 @@
+{
+  "command": "SET_CRISIS_MODE",
+  "enabled": false,
+  "target_pmv_limit": 0.5,
+  "reason": "demo_reset"
+}
+

@@ -21,6 +21,9 @@ supabase/
   schema.sql                 Database schema for manual Supabase setup
 .env.example                 Root reference for all environment variables
 README.md                    Project overview and setup notes
+docs/
+  mqtt-contract.md           MQTT topic and JSON payload contract
+  sample-payloads/           Example telemetry and command payloads
 ```
 
 ## Local Setup
@@ -51,6 +54,7 @@ Implemented:
 - Safe placeholder environment templates
 - README setup notes
 - Supabase `sensor_readings` schema for telemetry storage
+- MQTT topic and JSON payload contract documentation
 
 ## Supabase Schema Setup
 
@@ -71,7 +75,6 @@ insert into public.sensor_readings (
   temperature,
   humidity,
   headcount,
-  occupancy,
   pmv,
   crisis_mode,
   hvac_state,
@@ -81,7 +84,6 @@ insert into public.sensor_readings (
   'demo-1',
   24.8,
   61.5,
-  3,
   3,
   0.2,
   false,

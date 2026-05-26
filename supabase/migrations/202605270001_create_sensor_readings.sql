@@ -10,7 +10,6 @@ create table if not exists public.sensor_readings (
   temperature numeric null,
   humidity numeric null,
   headcount integer null check (headcount is null or headcount >= 0),
-  occupancy integer null check (occupancy is null or occupancy >= 0),
   pmv numeric null,
   crisis_mode boolean not null default false,
   hvac_state jsonb null,
@@ -43,10 +42,7 @@ comment on column public.sensor_readings.humidity is
   'Relative humidity percentage.';
 
 comment on column public.sensor_readings.headcount is
-  'Estimated number of people detected near the node.';
-
-comment on column public.sensor_readings.occupancy is
-  'Occupancy value for dashboard display. It may mirror headcount in the subscriber later.';
+  'Estimated number of people detected near the node. Dashboard occupied status is derived from headcount > 0.';
 
 comment on column public.sensor_readings.pmv is
   'Predicted mean vote comfort score, if available.';
@@ -62,4 +58,3 @@ comment on column public.sensor_readings.air_quality is
 
 comment on column public.sensor_readings.raw_payload is
   'Original MQTT JSON payload preserved for debugging and demo traceability.';
-
