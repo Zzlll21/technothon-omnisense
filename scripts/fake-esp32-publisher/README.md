@@ -1,12 +1,29 @@
 # Fake ESP32 Publisher
 
-Placeholder for a script that will publish fake ESP32 telemetry to the MQTT broker during local development and demos.
+Node.js script that publishes fake ESP32 telemetry to the MQTT broker during local development and demos.
 
-Planned responsibilities:
+It publishes to:
 
-- Publish fake telemetry to `omnisense/node/{node_id}/telemetry`
-- Send values on a configurable interval
-- Provide a fallback when physical ESP32 hardware is unavailable
+```text
+omnisense/node/demo-1/telemetry
+```
 
-No fake publishing logic is implemented yet.
+The payload follows `docs/mqtt-contract.md` and uses `headcount` only. Dashboard/backend occupied status can be derived from `headcount > 0`.
 
+## Setup
+
+```powershell
+npm install
+Copy-Item .env.example .env
+npm start
+```
+
+Fill in `.env` with your MQTT broker settings before running. Do not commit `.env`.
+
+## Behavior
+
+- Sends one payload immediately after connecting.
+- Sends another payload every `FAKE_PUBLISH_INTERVAL_MS`.
+- Cycles through normal, warm/high-PMV, and crisis-like readings.
+- Logs every JSON payload it publishes.
+- Stops cleanly with Ctrl+C.

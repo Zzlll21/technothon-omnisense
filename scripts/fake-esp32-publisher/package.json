@@ -1,0 +1,14 @@
+{
+  "name": "omnisense-fake-esp32-publisher",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Fake ESP32 MQTT telemetry publisher for the OmniSense hackathon prototype.",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "mqtt": "^5.10.4"
+  }
+}
+
