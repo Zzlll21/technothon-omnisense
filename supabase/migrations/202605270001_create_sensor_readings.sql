@@ -1,4 +1,4 @@
--- OmniSense Smart HVAC prototype database schema.
+-- OmniSense Smart HVAC prototype telemetry table.
 -- Copy this file into the Supabase SQL Editor and run it manually.
 
 create extension if not exists "pgcrypto";
