@@ -19,6 +19,7 @@ npm start
 ```
 
 Fill in `.env` with your MQTT broker settings before running. Do not commit `.env`.
+`npm start` loads this file with Node's `--env-file=.env` option.
 
 ## Behavior
 

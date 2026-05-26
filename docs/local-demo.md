@@ -23,6 +23,7 @@ FAKE_PUBLISH_INTERVAL_MS=3000
 ```
 
 Leave `MQTT_USERNAME` and `MQTT_PASSWORD` blank for a local broker with no authentication. Use real credentials only in your local `.env` file.
+`npm start` loads `.env` with Node's `--env-file=.env` option.
 
 ## Verify With MQTT Client
 

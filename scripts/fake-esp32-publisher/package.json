@@ -5,10 +5,9 @@
   "description": "Fake ESP32 MQTT telemetry publisher for the OmniSense hackathon prototype.",
   "type": "module",
   "scripts": {
-    "start": "node index.js"
+    "start": "node --env-file=.env index.js"
   },
   "dependencies": {
     "mqtt": "^5.10.4"
   }
 }
-

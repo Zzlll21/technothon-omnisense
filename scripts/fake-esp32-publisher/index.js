@@ -20,9 +20,19 @@ const telemetryTopic = telemetryTopicTemplate.replace("{node_id}", NODE_ID);
 
 const username = optionalEnv("MQTT_USERNAME");
 const password = optionalEnv("MQTT_PASSWORD");
+const clientId = "omnisense-fake-demo-1";
+
+console.log("Fake ESP32 MQTT publisher starting...");
+console.log(`Broker URL: ${sanitizeBrokerUrl(brokerUrl)}`);
+console.log(`MQTT username: ${username ?? "(not set)"}`);
+console.log(`MQTT password set: ${password ? "yes" : "no"}`);
+console.log(`MQTT clientId: ${clientId}`);
+console.log("MQTT protocol: 3.1.1");
+
 const client = mqtt.connect(brokerUrl, {
   clean: true,
-  clientId: `omnisense-fake-esp32-${NODE_ID}-${Date.now()}`,
+  clientId,
+  protocolVersion: 4,
   reconnectPeriod: 2000,
   ...(username ? { username } : {}),
   ...(password ? { password } : {})
@@ -31,23 +41,32 @@ const client = mqtt.connect(brokerUrl, {
 let publishTimer = null;
 let readingNumber = 0;
 
-client.on("connect", () => {
-  console.log(`Connected to MQTT broker: ${brokerUrl}`);
+client.on("connect", (packet) => {
+  console.log(
+    `MQTT connect: connected to ${sanitizeBrokerUrl(brokerUrl)} with clientId ${clientId}.`
+  );
+  if (packet?.sessionPresent !== undefined) {
+    console.log(`MQTT connect: sessionPresent=${packet.sessionPresent}`);
+  }
   console.log(`Publishing fake telemetry to: ${telemetryTopic}`);
   publishReading();
   publishTimer = setInterval(publishReading, publishIntervalMs);
 });
 
 client.on("reconnect", () => {
-  console.log("Reconnecting to MQTT broker...");
+  console.log(`MQTT reconnect: reconnecting to ${sanitizeBrokerUrl(brokerUrl)}...`);
 });
 
 client.on("error", (error) => {
-  console.error(`MQTT error: ${error.message}`);
+  console.error(`MQTT error: ${formatMqttError(error)}`);
+});
+
+client.on("offline", () => {
+  console.log("MQTT offline: client is offline and waiting to reconnect.");
 });
 
 client.on("close", () => {
-  console.log("MQTT connection closed.");
+  console.log("MQTT close: connection closed.");
 });
 
 process.on("SIGINT", shutdown);
@@ -193,6 +212,36 @@ function stripQuotes(value) {
   return value;
 }
 
+function sanitizeBrokerUrl(value) {
+  try {
+    const url = new URL(value);
+    if (url.username) {
+      url.username = "****";
+    }
+    if (url.password) {
+      url.password = "****";
+    }
+
+    return url.toString();
+  } catch {
+    return value.replace(/\/\/([^:@/\s]+):([^@/\s]+)@/, "//****:****@");
+  }
+}
+
+function formatMqttError(error) {
+  if (!error) {
+    return "unknown error";
+  }
+
+  const details = [
+    error.code ? `code=${error.code}` : null,
+    error.errno ? `errno=${error.errno}` : null,
+    error.message ? `message=${error.message}` : String(error)
+  ].filter(Boolean);
+
+  return details.join(" ");
+}
+
 function requiredEnv(name) {
   const value = optionalEnv(name);
   if (!value) {
@@ -227,4 +276,3 @@ function parsePositiveInteger(value, name) {
 function round(value) {
   return Math.round(value * 10) / 10;
 }
-
