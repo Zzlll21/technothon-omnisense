@@ -1,6 +1,25 @@
 # Local Demo Notes
 
-These notes cover the fake ESP32 MQTT publisher only. The MQTT subscriber, Supabase inserts, dashboard, and crisis command handling are not implemented yet.
+These notes cover the fake ESP32 MQTT publisher and MQTT subscriber. Supabase inserts, dashboard, and crisis command handling are not implemented yet.
+
+## MQTT Subscriber Setup
+
+From `services/mqtt-subscriber`:
+
+```powershell
+npm install
+Copy-Item .env.example .env
+npm start
+```
+
+Fill in `.env` with the same MQTT broker settings used by the fake publisher.
+`npm start` loads `.env` with Node's `--env-file=.env` option.
+
+The subscriber listens on:
+
+```text
+omnisense/node/+/telemetry
+```
 
 ## Fake Publisher Setup
 
@@ -26,6 +45,14 @@ Leave `MQTT_USERNAME` and `MQTT_PASSWORD` blank for a local broker with no authe
 `npm start` loads `.env` with Node's `--env-file=.env` option.
 
 ## Verify With MQTT Client
+
+To test the app-to-app MQTT path, run the subscriber in one terminal and the fake publisher in another terminal. The subscriber should log messages from:
+
+```text
+omnisense/node/demo-1/telemetry
+```
+
+You can also inspect messages directly with an MQTT client.
 
 Subscribe to the demo telemetry topic:
 

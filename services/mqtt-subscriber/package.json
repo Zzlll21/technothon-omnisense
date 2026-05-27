@@ -1,0 +1,14 @@
+{
+  "name": "omnisense-mqtt-subscriber",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MQTT telemetry subscriber for the OmniSense hackathon prototype.",
+  "type": "module",
+  "scripts": {
+    "start": "node --env-file=.env index.js"
+  },
+  "dependencies": {
+    "mqtt": "^5.10.4"
+  }
+}
+
