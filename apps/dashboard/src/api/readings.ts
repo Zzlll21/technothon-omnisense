@@ -1,4 +1,4 @@
-import { supabase } from "../lib/supabase";
+import { supabase, supabaseConfigError } from "../lib/supabase";
 import type { QueryState, ReadingHistoryOptions, SensorReading } from "../types/readings";
 
 const READING_COLUMNS = [
@@ -18,6 +18,10 @@ const READING_COLUMNS = [
 export async function fetchLatestReadingsByNode(
   scanLimit = 500
 ): Promise<QueryState<SensorReading[]>> {
+  if (!supabase) {
+    return errorState([], supabaseConfigError ?? "Supabase client is not configured.");
+  }
+
   const { data, error } = await supabase
     .from("sensor_readings")
     .select(READING_COLUMNS)
@@ -55,6 +59,10 @@ export async function fetchRecentHistoryForNode(
   nodeId: string,
   options: ReadingHistoryOptions = {}
 ): Promise<QueryState<SensorReading[]>> {
+  if (!supabase) {
+    return errorState([], supabaseConfigError ?? "Supabase client is not configured.");
+  }
+
   const limit = options.limit ?? 100;
   const ascending = options.ascending ?? true;
 

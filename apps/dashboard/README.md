@@ -2,7 +2,7 @@
 
 React dashboard workspace for reading OmniSense telemetry from Supabase.
 
-Ticket 8 adds data access helpers only. Full dashboard UI, charts, heatmap, and crisis mode controls are not implemented yet.
+Ticket 9 adds a simple overview page for latest readings. Charts, heatmap, and crisis mode controls are not implemented yet.
 
 ## Environment
 
@@ -20,6 +20,14 @@ VITE_SUPABASE_PUBLISHABLE_KEY=your-supabase-publishable-key
 ```
 
 Never put `SUPABASE_SERVICE_ROLE_KEY` or an `sb_secret` key in dashboard files.
+
+Create the dashboard env file inside `apps/dashboard`:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+After editing `.env`, restart `npm run dev` or `npm run preview`. Vite only reads env files when the server starts.
 
 ## Data Helpers
 
@@ -47,10 +55,23 @@ Both helpers return a simple state object:
 ```powershell
 npm install
 Copy-Item .env.example .env
+npm run dev
+```
+
+For a production-style preview:
+
+```powershell
+npm run build
+npm run preview
+```
+
+For a quick static check:
+
+```powershell
 npm run typecheck
 ```
 
-There is not a runnable dashboard screen yet.
+Open the local Vite URL printed by `npm run dev` or `npm run preview`.
 
 ## Supabase RLS
 
