@@ -2,6 +2,37 @@
 
 These notes cover the fake ESP32 MQTT publisher and MQTT subscriber through Supabase inserts. Dashboard and crisis command handling are not implemented yet.
 
+## Dashboard Read Helpers
+
+Ticket 8 adds Supabase read helpers under `apps/dashboard/src`, but no dashboard UI yet.
+
+From `apps/dashboard`:
+
+```powershell
+npm install
+Copy-Item .env.example .env
+npm run typecheck
+```
+
+Fill `.env` with frontend-safe Supabase values:
+
+```text
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
+
+You may use `VITE_SUPABASE_PUBLISHABLE_KEY` instead of `VITE_SUPABASE_ANON_KEY` if your Supabase project provides one. Never use `SUPABASE_SERVICE_ROLE_KEY` or an `sb_secret` key in dashboard code.
+
+If reads fail because row-level security is enabled, add a SELECT policy for the frontend role. For a demo-only setup:
+
+```sql
+create policy "Allow public read access for demo"
+on public.sensor_readings
+for select
+to anon
+using (true);
+```
+
 ## MQTT Subscriber Setup
 
 From `services/mqtt-subscriber`:

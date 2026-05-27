@@ -1,0 +1,17 @@
+{
+  "name": "omnisense-dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "description": "React dashboard workspace for the OmniSense hackathon prototype.",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.2"
+  }
+}
+

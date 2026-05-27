@@ -1,13 +1,69 @@
 # Dashboard App
 
-Placeholder for the React dashboard.
+React dashboard workspace for reading OmniSense telemetry from Supabase.
 
-Planned responsibilities:
+Ticket 8 adds data access helpers only. Full dashboard UI, charts, heatmap, and crisis mode controls are not implemented yet.
 
-- Show latest sensor values
-- Show historical charts
-- Show room heatmap
-- Trigger crisis mode through a backend API
+## Environment
 
-No dashboard functionality is implemented yet.
+Use frontend-safe Supabase credentials only:
 
+```text
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
+
+If your Supabase project provides a publishable key instead of an anon key, use:
+
+```text
+VITE_SUPABASE_PUBLISHABLE_KEY=your-supabase-publishable-key
+```
+
+Never put `SUPABASE_SERVICE_ROLE_KEY` or an `sb_secret` key in dashboard files.
+
+## Data Helpers
+
+- `src/lib/supabase.ts` creates the browser Supabase client from `VITE_` env vars.
+- `src/api/readings.ts` exports:
+  - `fetchLatestReadingsByNode()` for the newest reading per node.
+  - `fetchRecentHistoryForNode(nodeId, options)` for recent rows for one node.
+  - `createReadingsLoadingState()` for a simple loading state before async calls finish.
+
+`fetchRecentHistoryForNode()` fetches the newest rows first, then returns ascending order by default for chart-friendly history.
+
+Both helpers return a simple state object:
+
+```ts
+{
+  status: "success" | "error",
+  data: [],
+  error: string | null,
+  isEmpty: boolean
+}
+```
+
+## Local Setup
+
+```powershell
+npm install
+Copy-Item .env.example .env
+npm run typecheck
+```
+
+There is not a runnable dashboard screen yet.
+
+## Supabase RLS
+
+If reads fail with a row-level security error, add a SELECT policy for the frontend anon or publishable role instead of using the service role key in the browser.
+
+Example demo-only policy:
+
+```sql
+create policy "Allow public read access for demo"
+on public.sensor_readings
+for select
+to anon
+using (true);
+```
+
+Use a stricter policy before production.
