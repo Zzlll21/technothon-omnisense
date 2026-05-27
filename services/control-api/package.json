@@ -1,0 +1,13 @@
+{
+  "name": "omnisense-control-api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Minimal control API for publishing OmniSense MQTT commands.",
+  "type": "module",
+  "scripts": {
+    "start": "node --env-file=.env index.js"
+  },
+  "dependencies": {
+    "mqtt": "^5.10.4"
+  }
+}

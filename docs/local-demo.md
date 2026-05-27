@@ -1,10 +1,10 @@
 # Local Demo Notes
 
-These notes cover the fake ESP32 MQTT publisher and MQTT subscriber through Supabase inserts. Dashboard and crisis command handling are not implemented yet.
+These notes cover the fake ESP32 MQTT publisher, MQTT subscriber, Supabase inserts, dashboard reads, and the backend crisis command API.
 
-## Dashboard Read Helpers
+## Dashboard Setup
 
-Ticket 8 adds Supabase read helpers under `apps/dashboard/src`, but no dashboard UI yet.
+The dashboard reads Supabase telemetry and calls the backend control API through `VITE_API_BASE_URL`.
 
 From `apps/dashboard`:
 
@@ -19,6 +19,7 @@ Fill `.env` with frontend-safe Supabase values:
 ```text
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+VITE_API_BASE_URL=http://localhost:3001
 ```
 
 You may use `VITE_SUPABASE_PUBLISHABLE_KEY` instead of `VITE_SUPABASE_ANON_KEY` if your Supabase project provides one. Never use `SUPABASE_SERVICE_ROLE_KEY` or an `sb_secret` key in dashboard code.
@@ -31,6 +32,88 @@ on public.sensor_readings
 for select
 to anon
 using (true);
+```
+
+## Control API Setup
+
+From `services/control-api`:
+
+```powershell
+npm install
+Copy-Item .env.example .env
+npm start
+```
+
+Fill in `.env` with backend-only MQTT values:
+
+```text
+MQTT_BROKER_URL=mqtts://e30385d740794e6ab456cd2a6456ba78.s1.eu.hivemq.cloud:8883
+MQTT_USERNAME=<from HiveMQ Access Credentials>
+MQTT_PASSWORD=<from HiveMQ Access Credentials>
+MQTT_COMMAND_TOPIC_TEMPLATE=omnisense/node/{node_id}/command
+PORT=3001
+```
+
+Use real credentials only in your local `.env` file. Do not commit or paste the real password into repository files.
+
+The control API exposes:
+
+```text
+POST http://localhost:3001/api/crisis
+```
+
+Example body:
+
+```json
+{
+  "node_id": "demo-1",
+  "enabled": true,
+  "target_pmv_limit": 1.0,
+  "reason": "dashboard_demo"
+}
+```
+
+It publishes this MQTT payload:
+
+```json
+{
+  "command": "SET_CRISIS_MODE",
+  "enabled": true,
+  "target_pmv_limit": 1.0,
+  "reason": "dashboard_demo"
+}
+```
+
+to:
+
+```text
+omnisense/node/demo-1/command
+```
+
+To verify with MQTTX, subscribe to:
+
+```text
+omnisense/node/demo-1/command
+```
+
+Then send:
+
+```powershell
+Invoke-RestMethod `
+  -Method Post `
+  -Uri http://localhost:3001/api/crisis `
+  -ContentType "application/json" `
+  -Body '{"node_id":"demo-1","enabled":true,"target_pmv_limit":1.0,"reason":"dashboard_demo"}'
+```
+
+Send `enabled:false` to verify the off command:
+
+```powershell
+Invoke-RestMethod `
+  -Method Post `
+  -Uri http://localhost:3001/api/crisis `
+  -ContentType "application/json" `
+  -Body '{"node_id":"demo-1","enabled":false,"target_pmv_limit":1.0,"reason":"dashboard_demo"}'
 ```
 
 ## MQTT Subscriber Setup
