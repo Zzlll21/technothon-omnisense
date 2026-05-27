@@ -31,14 +31,13 @@ The `{node_id}` path value should match the `node_id` field in telemetry payload
 
 ## Telemetry Payload
 
-Use `recorded_at` as the timestamp field so it maps directly to the `sensor_readings.recorded_at` database column.
+Use `recorded_at` as the timestamp field so it maps directly to the `sensor_readings.recorded_at` database column. If `recorded_at` is missing, the future database insert should use the database insert time.
 
 Required fields:
 
 | Field | Type | Notes |
 | --- | --- | --- |
 | `node_id` | string | Node identifier, for example `nodeA`. |
-| `recorded_at` | string | ISO 8601 timestamp, for example `2026-05-27T03:45:00Z`. |
 | `temperature` | number | Temperature in degrees Celsius. |
 | `humidity` | number | Relative humidity percentage. |
 | `headcount` | integer | Estimated people count near the node. Dashboard/backend occupied status is derived from `headcount > 0`. |
@@ -51,6 +50,7 @@ Optional fields:
 | --- | --- | --- |
 | `air_quality` | number | Optional air quality reading if a sensor is available. |
 | `hvac_state` | object | Flexible HVAC state, such as mode, fan, and setpoint. |
+| `recorded_at` | string | ISO 8601 timestamp, for example `2026-05-27T03:45:00Z`. If omitted, database insert time should be used later. |
 | `battery_voltage` | number | ESP32 battery voltage if available. |
 | `firmware_version` | string | Firmware version string. |
 | `raw_sensor_summary` | object | Small debugging summary from firmware or fake publisher. |

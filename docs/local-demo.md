@@ -34,17 +34,17 @@ npm start
 Required environment variables:
 
 ```text
-MQTT_BROKER_URL=mqtt://localhost:1883
-MQTT_USERNAME=
-MQTT_PASSWORD=
+MQTT_BROKER_URL=mqtts://e30385d740794e6ab456cd2a6456ba78.s1.eu.hivemq.cloud:8883
+MQTT_USERNAME=<from HiveMQ Access Credentials>
+MQTT_PASSWORD=<from HiveMQ Access Credentials>
 MQTT_TELEMETRY_TOPIC_TEMPLATE=omnisense/node/{node_id}/telemetry
 FAKE_PUBLISH_INTERVAL_MS=3000
 ```
 
-Leave `MQTT_USERNAME` and `MQTT_PASSWORD` blank for a local broker with no authentication. Use real credentials only in your local `.env` file.
+Use real credentials only in your local `.env` file. Do not commit or paste the real password into repository files.
 `npm start` loads `.env` with Node's `--env-file=.env` option.
 
-## Verify With MQTT Client
+## Verify With MQTTX
 
 To test the app-to-app MQTT path, run the subscriber in one terminal and the fake publisher in another terminal. The subscriber should log messages from:
 
@@ -52,18 +52,47 @@ To test the app-to-app MQTT path, run the subscriber in one terminal and the fak
 omnisense/node/demo-1/telemetry
 ```
 
-You can also inspect messages directly with an MQTT client.
+You can also inspect and publish messages directly with MQTTX.
 
-Subscribe to the demo telemetry topic:
+MQTTX connection settings:
 
-```bash
-mosquitto_sub -h localhost -p 1883 -t "omnisense/node/demo-1/telemetry" -v
+```text
+Host: e30385d740794e6ab456cd2a6456ba78.s1.eu.hivemq.cloud
+Port: 8883
+SSL/TLS: ON
+Username: from HiveMQ Access Credentials
+Password: from HiveMQ Access Credentials
 ```
 
-If your broker requires credentials:
+To test validation, publish invalid JSON in MQTTX to `omnisense/node/demo-1/telemetry` and confirm the subscriber rejects it without exiting:
 
-```bash
-mosquitto_sub -h localhost -p 1883 -u "<username>" -P "<password>" -t "omnisense/node/demo-1/telemetry" -v
+```text
+{bad json
+```
+
+To test a missing field, publish this payload in MQTTX to `omnisense/node/demo-1/telemetry`:
+
+```json
+{
+  "node_id": "demo-1",
+  "humidity": 55,
+  "headcount": 2,
+  "pmv": 0.1,
+  "crisis_mode": false
+}
+```
+
+To test topic `node_id` precedence, publish this mismatched payload in MQTTX to `omnisense/node/demo-1/telemetry` and confirm the subscriber uses `demo-1`:
+
+```json
+{
+  "node_id": "wrong-node",
+  "temperature": 24.5,
+  "humidity": 55,
+  "headcount": 2,
+  "pmv": 0.1,
+  "crisis_mode": false
+}
 ```
 
 Expected topic:

@@ -1,4 +1,5 @@
 import mqtt from "mqtt";
+import { validateTelemetryMessage } from "./validateTelemetry.js";
 
 const brokerUrl = requiredEnv("MQTT_BROKER_URL");
 const username = optionalEnv("MQTT_USERNAME");
@@ -46,23 +47,23 @@ client.on("connect", (packet) => {
 client.on("message", (topic, message) => {
   console.log(`MQTT message received: topic=${topic}`);
 
-  const topicNodeId = parseNodeIdFromTopic(topic);
-  console.log(`Parsed node_id from topic: ${topicNodeId ?? "(not found)"}`);
+  const result = validateTelemetryMessage(topic, message.toString("utf8"));
 
-  let payload;
-  try {
-    payload = JSON.parse(message.toString("utf8"));
-  } catch (error) {
-    console.error(`Invalid telemetry JSON on ${topic}: ${error.message}`);
-    console.error(`Raw message: ${message.toString("utf8")}`);
+  for (const warning of result.warnings) {
+    console.warn(`Telemetry warning: ${warning}`);
+  }
+
+  if (!result.ok) {
+    console.error(`Telemetry rejected on ${topic}:`);
+    for (const error of result.errors) {
+      console.error(`- ${error}`);
+    }
     return;
   }
 
-  const payloadNodeId = typeof payload.node_id === "string" ? payload.node_id : undefined;
-  const nodeId = topicNodeId ?? payloadNodeId ?? "(unknown)";
-  console.log(`Parsed node_id: ${nodeId}`);
-  console.log("Parsed telemetry payload:");
-  console.log(JSON.stringify(payload, null, 2));
+  console.log(`Normalized node_id: ${result.value.node_id}`);
+  console.log("Normalized telemetry:");
+  console.log(JSON.stringify(result.value, null, 2));
 });
 
 client.on("reconnect", () => {
@@ -90,11 +91,6 @@ function shutdown() {
     console.log("MQTT subscriber stopped.");
     process.exit(0);
   });
-}
-
-function parseNodeIdFromTopic(topic) {
-  const match = topic.match(/^omnisense\/node\/([^/]+)\/telemetry$/);
-  return match?.[1];
 }
 
 function requiredEnv(name) {
@@ -148,4 +144,3 @@ function formatMqttError(error) {
 
   return details.join(" ");
 }
-
