@@ -72,7 +72,8 @@ button {
   text-transform: uppercase;
 }
 
-.readings-section {
+.readings-section,
+.history-section {
   padding-top: 28px;
 }
 
@@ -231,6 +232,97 @@ button {
   overflow-wrap: anywhere;
 }
 
+.history-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.select-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #607080;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.node-select {
+  min-width: 180px;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid #bcc9d6;
+  border-radius: 6px;
+  color: #17212b;
+  background: #ffffff;
+  font: inherit;
+}
+
+.chart-panel {
+  padding: 18px;
+  border: 1px solid #dce3ea;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 12px 30px rgb(23 33 43 / 0.06);
+}
+
+.mini-chart-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.mini-chart-card {
+  min-height: 340px;
+  padding: 16px;
+  border: 1px solid #e2e8ee;
+  border-radius: 8px;
+  background: #fbfcfd;
+}
+
+.mini-chart-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.mini-chart-header h3 {
+  margin: 0;
+  font-size: 1.02rem;
+  letter-spacing: 0;
+}
+
+.mini-chart-header strong {
+  max-width: 45%;
+  color: #17212b;
+  font-size: 1.08rem;
+  line-height: 1.25;
+  text-align: right;
+}
+
+.mini-chart-svg {
+  width: 100%;
+  height: 250px;
+  display: block;
+}
+
+.mini-chart-empty {
+  display: grid;
+  min-height: 230px;
+  place-items: center;
+  color: #607080;
+  text-align: center;
+  border: 1px dashed #cbd6df;
+  border-radius: 6px;
+}
+
+.chart-note {
+  margin-top: 12px;
+}
+
 @media (max-width: 700px) {
   .app-shell {
     width: min(100% - 24px, 1180px);
@@ -254,5 +346,18 @@ button {
   .metric-grid {
     grid-template-columns: 1fr;
   }
-}
 
+  .history-controls {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .node-select {
+    width: 100%;
+  }
+
+  .mini-chart-grid {
+    grid-template-columns: 1fr;
+  }
+}

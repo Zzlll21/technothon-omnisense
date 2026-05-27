@@ -1,3 +1,4 @@
+import { HistoryChart } from "../components/HistoryChart";
 import { LatestReadings } from "../components/LatestReadings";
 
 export function Dashboard() {
@@ -12,7 +13,7 @@ export function Dashboard() {
       </header>
 
       <LatestReadings />
+      <HistoryChart />
     </main>
   );
 }
-

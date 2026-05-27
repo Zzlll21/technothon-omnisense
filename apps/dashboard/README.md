@@ -2,7 +2,7 @@
 
 React dashboard workspace for reading OmniSense telemetry from Supabase.
 
-Ticket 9 adds a simple overview page for latest readings. Charts, heatmap, and crisis mode controls are not implemented yet.
+The dashboard shows latest readings and recent historical trends. Heatmap and crisis mode controls are not implemented yet.
 
 ## Environment
 
@@ -38,6 +38,7 @@ After editing `.env`, restart `npm run dev` or `npm run preview`. Vite only read
   - `createReadingsLoadingState()` for a simple loading state before async calls finish.
 
 `fetchRecentHistoryForNode()` fetches the newest rows first, then returns ascending order by default for chart-friendly history.
+The history section uses a lightweight inline SVG chart to plot temperature, humidity, PMV, headcount, and optional air quality for the selected node.
 
 Both helpers return a simple state object:
 
