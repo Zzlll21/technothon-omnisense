@@ -117,7 +117,6 @@ Invoke-RestMethod `
 
 ## Not Implemented Here
 
-- Dashboard crisis button UI
 - ESP32 command handling
 - Supabase writes
 - Telemetry validation changes

@@ -9,7 +9,7 @@ This guide covers only what the ESP32 firmware needs to implement. The ESP32 sho
 Use the HiveMQ Cloud broker settings provided by the team:
 
 ```text
-Host: e30385d740794e6ab456cd2a6456ba78.s1.eu.hivemq.cloud
+Host: your-hivemq-cloud-host
 Port: 8883
 SSL/TLS: ON
 Username: from HiveMQ Access Credentials
@@ -161,4 +161,3 @@ Database insertion is handled by the `mqtt-subscriber` backend:
 ```text
 ESP32 -> MQTT broker -> mqtt-subscriber backend -> Supabase sensor_readings
 ```
-

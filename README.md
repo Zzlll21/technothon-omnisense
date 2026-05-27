@@ -1,122 +1,173 @@
 # OmniSense Smart HVAC Prototype
 
-Hackathon prototype architecture:
+Hackathon prototype pipeline:
 
 ```text
-ESP32 or fake publisher -> MQTT broker -> MQTT subscriber -> Supabase -> React dashboard
+fake ESP32 publisher -> HiveMQ Cloud MQTT -> mqtt-subscriber -> Supabase -> React dashboard
+                                                   dashboard -> control-api -> HiveMQ MQTT command
 ```
 
-This repository currently contains the initial project structure and safe configuration templates only. MQTT handling, database inserts, dashboard screens, and crisis mode are intentionally not implemented yet.
+The local demo uses cloud MQTT and Supabase, with four local processes:
+
+- `services/mqtt-subscriber`: receives telemetry and inserts valid rows into Supabase.
+- `services/control-api`: accepts dashboard crisis-mode requests and publishes MQTT commands.
+- `scripts/fake-esp32-publisher`: simulates ESP32 telemetry for `demo-1`.
+- `apps/dashboard`: shows overview cards, historical charts, room comfort map, and crisis controls.
+
+## Prerequisites
+
+- Git
+- Node.js 20+ with npm
+- HiveMQ Cloud broker
+- Supabase project
+- MQTTX for MQTT testing
+
+On Windows PowerShell, use `npm.cmd` if `npm.ps1` is blocked.
 
 ## Project Structure
 
 ```text
-apps/
-  dashboard/                 React dashboard placeholder
-services/
-  mqtt-subscriber/           MQTT-to-Supabase subscriber placeholder
-scripts/
-  fake-esp32-publisher/      Fake ESP32 telemetry publisher placeholder
-supabase/
-  schema.sql                 Database schema for manual Supabase setup
-.env.example                 Root reference for all environment variables
-README.md                    Project overview and setup notes
-docs/
-  mqtt-contract.md           MQTT topic and JSON payload contract
-  sample-payloads/           Example telemetry and command payloads
+apps/dashboard/                 React dashboard
+services/mqtt-subscriber/       MQTT telemetry -> Supabase backend
+services/control-api/           Dashboard control API -> MQTT command backend
+scripts/fake-esp32-publisher/   Fake ESP32 telemetry publisher
+supabase/schema.sql             Manual Supabase schema setup
+docs/local-demo.md              Full demo-day runbook
+docs/mqtt-contract.md           MQTT topic and JSON payload contract
 ```
 
-## Local Setup
+## Fresh Clone Setup
 
-1. Copy the relevant `.env.example` file for the part you are working on.
-2. Rename the copy to `.env`.
-3. Fill in local MQTT and Supabase values.
-4. Keep `.env` files private. They are ignored by git.
+Install dependencies in each runnable workspace:
 
-For quick reference:
+```powershell
+cd services\mqtt-subscriber
+npm install
 
-- Backend subscriber config: `services/mqtt-subscriber/.env.example`
-- Dashboard config: `apps/dashboard/.env.example`
-- Fake publisher config: `scripts/fake-esp32-publisher/.env.example`
-- Full variable reference: `.env.example`
+cd ..\control-api
+npm install
 
-## Environment Notes
+cd ..\..\scripts\fake-esp32-publisher
+npm install
 
-- Frontend variables use the `VITE_` prefix because they may be exposed to browser code.
-- Backend secrets, especially `SUPABASE_SERVICE_ROLE_KEY`, belong only in backend/service `.env` files.
-- Do not place service-role keys or MQTT passwords in frontend `.env` files.
+cd ..\..\apps\dashboard
+npm install
+```
 
-## Current Status
+From the repo root, copy env templates:
 
-Implemented:
+```powershell
+Copy-Item services\mqtt-subscriber\.env.example services\mqtt-subscriber\.env
+Copy-Item services\control-api\.env.example services\control-api\.env
+Copy-Item scripts\fake-esp32-publisher\.env.example scripts\fake-esp32-publisher\.env
+Copy-Item apps\dashboard\.env.example apps\dashboard\.env
+```
 
-- Minimal repository structure
-- Safe placeholder environment templates
-- README setup notes
-- Supabase `sensor_readings` schema for telemetry storage
-- MQTT topic and JSON payload contract documentation
+Never commit `.env` files. They are ignored by git.
 
-## Supabase Schema Setup
+## Environment Files
 
-To create the telemetry table manually:
+Backend-only files:
 
-1. Open your Supabase project.
-2. Go to SQL Editor.
-3. Copy the contents of `supabase/schema.sql`.
-4. Run the SQL.
+- `services/mqtt-subscriber/.env`
+- `services/control-api/.env`
+- `scripts/fake-esp32-publisher/.env`
 
-The migration version is also available at `supabase/migrations/202605270001_create_sensor_readings.sql`.
+These may contain MQTT credentials. `services/mqtt-subscriber/.env` also contains `SUPABASE_SERVICE_ROLE_KEY`. These values must not be placed in dashboard files.
 
-### Manual Insert Example
+Frontend-safe file:
+
+- `apps/dashboard/.env`
+
+Only use `VITE_` variables here:
+
+```text
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+VITE_API_BASE_URL=http://localhost:3001
+```
+
+## Supabase Setup
+
+1. Open Supabase SQL Editor.
+2. Run `supabase/schema.sql`.
+3. Enable row-level security on `public.sensor_readings`.
+4. Add a demo read policy for the dashboard:
 
 ```sql
-insert into public.sensor_readings (
-  node_id,
-  temperature,
-  humidity,
-  headcount,
-  pmv,
-  crisis_mode,
-  hvac_state,
-  air_quality,
-  raw_payload
-) values (
-  'demo-1',
-  24.8,
-  61.5,
-  3,
-  0.2,
-  false,
-  '{"mode":"cool","fan":"auto","setpoint":24}'::jsonb,
-  null,
-  '{"temperature":24.8,"humidity":61.5,"headcount":3,"pmv":0.2}'::jsonb
-);
+create policy "Allow public read access for demo"
+on public.sensor_readings
+for select
+to anon
+using (true);
 ```
 
-### Latest Reading Query
+Use the Supabase service role or secret key only in `services/mqtt-subscriber/.env`.
 
-```sql
-select *
-from public.sensor_readings
-where node_id = 'demo-1'
-order by recorded_at desc
-limit 1;
+## HiveMQ Setup
+
+Use HiveMQ Cloud over TLS:
+
+```text
+Host: your-hivemq-cloud-host
+Port: 8883
+SSL/TLS: ON
 ```
 
-### Historical Readings Query
+Create MQTT Access Credentials in HiveMQ Cloud. Use those MQTT credentials in the fake publisher, subscriber, control API, and ESP32 firmware. Firmware should never use Supabase keys.
 
-```sql
-select *
-from public.sensor_readings
-where node_id = 'demo-1'
-order by recorded_at asc;
+## Demo Startup Order
+
+Terminal 1:
+
+```powershell
+cd services\mqtt-subscriber
+npm start
 ```
 
-Not implemented yet:
+Terminal 2:
 
-- MQTT subscriber connection or message handling
-- Telemetry validation
-- Supabase inserts or queries
-- React dashboard application
-- Historical charts, heatmap, or crisis mode
-- Fake ESP32 publishing logic
+```powershell
+cd services\control-api
+npm start
+```
+
+Terminal 3:
+
+```powershell
+cd scripts\fake-esp32-publisher
+npm start
+```
+
+Terminal 4:
+
+```powershell
+cd apps\dashboard
+npm run dev
+```
+
+Open the Vite URL printed by the dashboard.
+
+## Demo Verification
+
+- Supabase `sensor_readings` receives rows.
+- Dashboard overview shows `demo-1`.
+- Historical charts update after a few minutes of fake telemetry.
+- Room Comfort Map shows `demo-1` in the Center zone.
+- MQTTX subscribed to `omnisense/node/demo-1/command` receives crisis commands.
+- Dashboard Enable/Disable Crisis Mode buttons publish `SET_CRISIS_MODE` through `services/control-api`.
+
+## Troubleshooting
+
+- Dashboard has no readings: check Supabase RLS SELECT policy.
+- Dashboard white page or config error: create `apps/dashboard/.env`, fill `VITE_` values, and restart `npm run dev`.
+- MQTT connects to `mqtt://localhost:1883`: save the correct `.env` file and restart the process. Node only reads `--env-file=.env` at startup.
+- PowerShell blocks `npm.ps1`: use `npm.cmd` or adjust PowerShell execution policy.
+- MQTTX sees no crisis command: start `services/control-api`, confirm MQTT credentials, and subscribe to `omnisense/node/demo-1/command`.
+- Never commit `.env` files or paste real passwords/service keys into docs.
+
+See [docs/local-demo.md](docs/local-demo.md) for the longer runbook.
+
+## Not Production-Ready
+
+This is a hackathon demo. It does not include production auth, API rate limiting, durable command queues, device identity management, deployment automation, or production-grade RLS policies.

@@ -1,30 +1,122 @@
-# Local Demo Notes
+# Local Demo Runbook
 
-These notes cover the fake ESP32 MQTT publisher, MQTT subscriber, Supabase inserts, dashboard reads, and the backend crisis command API.
+Use this runbook for a fresh clone demo-day setup.
 
-## Dashboard Setup
+The local demo pipeline is:
 
-The dashboard reads Supabase telemetry and calls the backend control API through `VITE_API_BASE_URL`.
-
-From `apps/dashboard`:
-
-```powershell
-npm install
-Copy-Item .env.example .env
-npm run typecheck
+```text
+fake ESP32 publisher -> HiveMQ Cloud MQTT -> mqtt-subscriber -> Supabase sensor_readings -> dashboard
+dashboard -> control-api -> HiveMQ Cloud MQTT command topic
 ```
 
-Fill `.env` with frontend-safe Supabase values:
+## Prerequisites
+
+- Git
+- Node.js 20+ with npm
+- HiveMQ Cloud broker
+- Supabase project
+- MQTTX for MQTT inspection and manual tests
+
+On Windows PowerShell, use `npm.cmd` if `npm.ps1` is blocked.
+
+## Install Dependencies
+
+Run once after cloning:
+
+```powershell
+cd services\mqtt-subscriber
+npm install
+
+cd ..\control-api
+npm install
+
+cd ..\..\scripts\fake-esp32-publisher
+npm install
+
+cd ..\..\apps\dashboard
+npm install
+```
+
+## Environment Files
+
+From the repo root, copy each template and fill in local values:
+
+```powershell
+Copy-Item services\mqtt-subscriber\.env.example services\mqtt-subscriber\.env
+Copy-Item services\control-api\.env.example services\control-api\.env
+Copy-Item scripts\fake-esp32-publisher\.env.example scripts\fake-esp32-publisher\.env
+Copy-Item apps\dashboard\.env.example apps\dashboard\.env
+```
+
+Do not commit `.env` files.
+
+### Backend Subscriber Env
+
+File: `services/mqtt-subscriber/.env`
+
+```text
+MQTT_BROKER_URL=mqtts://your-hivemq-cloud-host:8883
+MQTT_USERNAME=<from HiveMQ Access Credentials>
+MQTT_PASSWORD=<from HiveMQ Access Credentials>
+MQTT_TELEMETRY_TOPIC=omnisense/node/+/telemetry
+
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=<backend-only service role or secret key>
+
+MQTT_COMMAND_TOPIC_TEMPLATE=omnisense/node/{node_id}/command
+NODE_ENV=development
+```
+
+`SUPABASE_SERVICE_ROLE_KEY` belongs only in this backend service.
+
+### Control API Env
+
+File: `services/control-api/.env`
+
+```text
+MQTT_BROKER_URL=mqtts://your-hivemq-cloud-host:8883
+MQTT_USERNAME=<from HiveMQ Access Credentials>
+MQTT_PASSWORD=<from HiveMQ Access Credentials>
+MQTT_COMMAND_TOPIC_TEMPLATE=omnisense/node/{node_id}/command
+PORT=3001
+```
+
+MQTT credentials stay backend-side. The dashboard never publishes MQTT directly.
+
+### Fake Publisher Env
+
+File: `scripts/fake-esp32-publisher/.env`
+
+```text
+MQTT_BROKER_URL=mqtts://your-hivemq-cloud-host:8883
+MQTT_USERNAME=<from HiveMQ Access Credentials>
+MQTT_PASSWORD=<from HiveMQ Access Credentials>
+MQTT_TELEMETRY_TOPIC_TEMPLATE=omnisense/node/{node_id}/telemetry
+FAKE_PUBLISH_INTERVAL_MS=3000
+```
+
+### Dashboard Env
+
+File: `apps/dashboard/.env`
 
 ```text
 VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+VITE_SUPABASE_ANON_KEY=<frontend-safe anon key>
 VITE_API_BASE_URL=http://localhost:3001
 ```
 
-You may use `VITE_SUPABASE_PUBLISHABLE_KEY` instead of `VITE_SUPABASE_ANON_KEY` if your Supabase project provides one. Never use `SUPABASE_SERVICE_ROLE_KEY` or an `sb_secret` key in dashboard code.
+You may use `VITE_SUPABASE_PUBLISHABLE_KEY` instead of `VITE_SUPABASE_ANON_KEY` if your Supabase project provides one.
 
-If reads fail because row-level security is enabled, add a SELECT policy for the frontend role. For a demo-only setup:
+Never put `SUPABASE_SERVICE_ROLE_KEY`, `sb_secret`, `MQTT_PASSWORD`, or MQTT credentials in dashboard files.
+
+## Supabase Setup
+
+1. Open Supabase.
+2. Go to SQL Editor.
+3. Run the SQL in `supabase/schema.sql`.
+4. Confirm `public.sensor_readings` exists.
+5. Enable row-level security on `public.sensor_readings`.
+6. Add this demo SELECT policy so the dashboard can read rows:
 
 ```sql
 create policy "Allow public read access for demo"
@@ -34,46 +126,78 @@ to anon
 using (true);
 ```
 
-## Control API Setup
+The backend subscriber uses the service role or secret key to insert rows. The dashboard uses only the anon or publishable key to read rows.
 
-From `services/control-api`:
+## HiveMQ Cloud Setup
+
+Use HiveMQ Cloud over TLS:
+
+```text
+Host: your-hivemq-cloud-host
+Port: 8883
+SSL/TLS: ON
+```
+
+Create MQTT Access Credentials in HiveMQ Cloud.
+
+Use the same MQTT credentials in:
+
+- `scripts/fake-esp32-publisher/.env`
+- `services/mqtt-subscriber/.env`
+- `services/control-api/.env`
+- ESP32 firmware
+
+Firmware should use MQTT credentials only. Firmware should not use Supabase URLs, anon keys, service keys, or database APIs.
+
+## Startup Order
+
+Start one terminal per process.
+
+Terminal 1, subscriber:
 
 ```powershell
-npm install
-Copy-Item .env.example .env
+cd services\mqtt-subscriber
 npm start
 ```
 
-Fill in `.env` with backend-only MQTT values:
+Terminal 2, control API:
+
+```powershell
+cd services\control-api
+npm start
+```
+
+Terminal 3, fake ESP32 publisher:
+
+```powershell
+cd scripts\fake-esp32-publisher
+npm start
+```
+
+Terminal 4, dashboard:
+
+```powershell
+cd apps\dashboard
+npm run dev
+```
+
+Open the Vite URL printed in Terminal 4.
+
+## Demo Verification
+
+1. Watch `services/mqtt-subscriber` logs. It should receive `omnisense/node/demo-1/telemetry`.
+2. Open Supabase Table Editor and confirm new rows appear in `sensor_readings`.
+3. Open the dashboard and confirm the overview card for `demo-1`.
+4. Let the fake publisher run for a few minutes and confirm historical charts update.
+5. Confirm Room Comfort Map shows `demo-1` in the Center zone.
+6. In MQTTX, connect to HiveMQ Cloud and subscribe to:
 
 ```text
-MQTT_BROKER_URL=mqtts://e30385d740794e6ab456cd2a6456ba78.s1.eu.hivemq.cloud:8883
-MQTT_USERNAME=<from HiveMQ Access Credentials>
-MQTT_PASSWORD=<from HiveMQ Access Credentials>
-MQTT_COMMAND_TOPIC_TEMPLATE=omnisense/node/{node_id}/command
-PORT=3001
+omnisense/node/demo-1/command
 ```
 
-Use real credentials only in your local `.env` file. Do not commit or paste the real password into repository files.
-
-The control API exposes:
-
-```text
-POST http://localhost:3001/api/crisis
-```
-
-Example body:
-
-```json
-{
-  "node_id": "demo-1",
-  "enabled": true,
-  "target_pmv_limit": 1.0,
-  "reason": "dashboard_demo"
-}
-```
-
-It publishes this MQTT payload:
+7. In the dashboard, click Enable Crisis Mode for `demo-1`.
+8. Confirm MQTTX receives:
 
 ```json
 {
@@ -84,19 +208,11 @@ It publishes this MQTT payload:
 }
 ```
 
-to:
+9. Click Disable Crisis Mode and confirm MQTTX receives the same command with `enabled: false`.
 
-```text
-omnisense/node/demo-1/command
-```
+## Manual Control API Test
 
-To verify with MQTTX, subscribe to:
-
-```text
-omnisense/node/demo-1/command
-```
-
-Then send:
+With `services/control-api` running, you can test without the dashboard:
 
 ```powershell
 Invoke-RestMethod `
@@ -106,94 +222,37 @@ Invoke-RestMethod `
   -Body '{"node_id":"demo-1","enabled":true,"target_pmv_limit":1.0,"reason":"dashboard_demo"}'
 ```
 
-Send `enabled:false` to verify the off command:
-
-```powershell
-Invoke-RestMethod `
-  -Method Post `
-  -Uri http://localhost:3001/api/crisis `
-  -ContentType "application/json" `
-  -Body '{"node_id":"demo-1","enabled":false,"target_pmv_limit":1.0,"reason":"dashboard_demo"}'
-```
-
-## MQTT Subscriber Setup
-
-From `services/mqtt-subscriber`:
-
-```powershell
-npm install
-Copy-Item .env.example .env
-npm start
-```
-
-Fill in `.env` with the same MQTT broker settings used by the fake publisher.
-Also fill `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` for the backend subscriber. Do not commit `.env` or paste the service role key into docs.
-`npm start` loads `.env` with Node's `--env-file=.env` option.
-
-The subscriber listens on:
+Expected command topic:
 
 ```text
-omnisense/node/+/telemetry
+omnisense/node/demo-1/command
 ```
 
-Valid telemetry is inserted into:
-
-```text
-public.sensor_readings
-```
-
-## Fake Publisher Setup
-
-From `scripts/fake-esp32-publisher`:
-
-```powershell
-npm install
-Copy-Item .env.example .env
-npm start
-```
-
-Required environment variables:
-
-```text
-MQTT_BROKER_URL=mqtts://e30385d740794e6ab456cd2a6456ba78.s1.eu.hivemq.cloud:8883
-MQTT_USERNAME=<from HiveMQ Access Credentials>
-MQTT_PASSWORD=<from HiveMQ Access Credentials>
-MQTT_TELEMETRY_TOPIC_TEMPLATE=omnisense/node/{node_id}/telemetry
-FAKE_PUBLISH_INTERVAL_MS=3000
-```
-
-Use real credentials only in your local `.env` file. Do not commit or paste the real password into repository files.
-`npm start` loads `.env` with Node's `--env-file=.env` option.
-
-## Verify With MQTTX
-
-To test the app-to-app MQTT path, run the subscriber in one terminal and the fake publisher in another terminal. The subscriber should log messages from:
-
-```text
-omnisense/node/demo-1/telemetry
-```
-
-After valid telemetry arrives, the subscriber should also log a successful Supabase insert. Open Supabase Table Editor and confirm new rows appear in `sensor_readings`.
-
-You can also inspect and publish messages directly with MQTTX.
+## MQTTX Validation Tests
 
 MQTTX connection settings:
 
 ```text
-Host: e30385d740794e6ab456cd2a6456ba78.s1.eu.hivemq.cloud
+Host: your-hivemq-cloud-host
 Port: 8883
 SSL/TLS: ON
 Username: from HiveMQ Access Credentials
 Password: from HiveMQ Access Credentials
 ```
 
-To test validation, publish invalid JSON in MQTTX to `omnisense/node/demo-1/telemetry` and confirm the subscriber rejects it without exiting:
+Telemetry topic:
+
+```text
+omnisense/node/demo-1/telemetry
+```
+
+Invalid JSON test payload:
 
 ```text
 {bad json
 ```
 
-To test a missing field, publish this payload in MQTTX to `omnisense/node/demo-1/telemetry`:
+Missing `temperature` test payload:
 
 ```json
 {
@@ -205,7 +264,7 @@ To test a missing field, publish this payload in MQTTX to `omnisense/node/demo-1
 }
 ```
 
-To test topic `node_id` precedence, publish this mismatched payload in MQTTX to `omnisense/node/demo-1/telemetry` and confirm the subscriber uses `demo-1`:
+Mismatched body `node_id` test payload:
 
 ```json
 {
@@ -218,38 +277,23 @@ To test topic `node_id` precedence, publish this mismatched payload in MQTTX to 
 }
 ```
 
-Expected topic:
+The subscriber should reject invalid messages without exiting. For mismatched `node_id`, the topic node ID wins.
 
-```text
-omnisense/node/demo-1/telemetry
-```
+## Troubleshooting
 
-Expected payload shape:
+- Dashboard has no readings: confirm `sensor_readings` has rows and the Supabase SELECT policy exists.
+- Dashboard shows config error or white page: create `apps/dashboard/.env`, fill `VITE_` variables, and restart `npm run dev`.
+- Process connects to `mqtt://localhost:1883`: the `.env` file is missing, saved in the wrong folder, or the process was not restarted.
+- MQTT auth fails: check HiveMQ Access Credentials, TLS port `8883`, and `mqtts://` broker URL.
+- Crisis button does not publish: start `services/control-api`, check its MQTT env vars, and subscribe in MQTTX to `omnisense/node/demo-1/command`.
+- Supabase inserts fail: check `SUPABASE_URL`, backend-only service key, and that the table exists.
+- PowerShell blocks `npm.ps1`: run `npm.cmd` or adjust PowerShell execution policy.
+- `.env` files must not be committed. Commit only `.env.example` files.
 
-```json
-{
-  "node_id": "demo-1",
-  "recorded_at": "2026-05-27T03:45:00.000Z",
-  "temperature": 24.2,
-  "humidity": 58,
-  "headcount": 2,
-  "pmv": 0.2,
-  "crisis_mode": false,
-  "hvac_state": {
-    "mode": "cool",
-    "fan": "auto",
-    "setpoint": 24
-  },
-  "battery_voltage": 4.1,
-  "firmware_version": "fake-demo-0.1.0",
-  "raw_sensor_summary": {
-    "scenario": "normal",
-    "sequence": 0,
-    "occupied": true
-  }
-}
-```
+## Demo Stop
 
-## Stop The Publisher
+Press Ctrl+C in each terminal.
 
-Press Ctrl+C in the terminal running `npm start`. The script closes the MQTT connection before exiting.
+## Not Production-Ready
+
+This demo setup does not include production auth, per-user permissions, durable command delivery, device provisioning, deployment automation, strict RLS policies, observability, or secret rotation.

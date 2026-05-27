@@ -1,8 +1,8 @@
 # MQTT Contract
 
-This contract lets the ESP32 firmware, fake publisher, MQTT subscriber, Supabase schema, and dashboard agree on topic names and JSON fields.
+This contract lets the ESP32 firmware, fake publisher, MQTT subscriber, Supabase schema, control API, and dashboard agree on topic names and JSON fields.
 
-No MQTT publishing, subscribing, database inserts, or dashboard behavior is implemented in this document.
+This document defines the contract. Implementation status is tracked in the app and service READMEs.
 
 ## Topics
 
@@ -31,7 +31,7 @@ The `{node_id}` path value should match the `node_id` field in telemetry payload
 
 ## Telemetry Payload
 
-Use `recorded_at` as the timestamp field so it maps directly to the `sensor_readings.recorded_at` database column. If `recorded_at` is missing, the future database insert should use the database insert time.
+Use `recorded_at` as the timestamp field so it maps directly to the `sensor_readings.recorded_at` database column. If `recorded_at` is missing, the database insert uses the database insert time.
 
 Required fields:
 
@@ -121,4 +121,4 @@ This is documented for team alignment only. It is not implemented yet.
 - The subscriber should subscribe to `omnisense/node/+/telemetry`, validate these fields, and map matching fields into `sensor_readings`.
 - The subscriber should store the entire original telemetry JSON in `sensor_readings.raw_payload`, including optional fields that do not have dedicated database columns.
 - The backend command publisher should publish command payloads to one node command topic.
-- The dashboard should read database rows and call a backend endpoint later; it should not publish MQTT directly from the browser.
+- The dashboard should read database rows and call the backend control API; it should not publish MQTT directly from the browser.

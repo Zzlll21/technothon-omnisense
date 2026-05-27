@@ -126,7 +126,7 @@ Use MQTTX to publish manual test messages through HiveMQ Cloud while the subscri
 MQTTX connection settings:
 
 ```text
-Host: e30385d740794e6ab456cd2a6456ba78.s1.eu.hivemq.cloud
+Host: your-hivemq-cloud-host
 Port: 8883
 SSL/TLS: ON
 Username: from HiveMQ Access Credentials
@@ -172,7 +172,7 @@ Mismatched body `node_id` test payload:
 }
 ```
 
-Not implemented yet:
+Out of scope for this service:
 
-- Dashboard integration
-- Crisis command handling
+- Dashboard rendering
+- Crisis command publishing, handled by `services/control-api`
