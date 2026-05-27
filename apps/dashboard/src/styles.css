@@ -25,7 +25,7 @@ button {
 }
 
 .app-shell {
-  width: min(1180px, calc(100% - 32px));
+  width: min(1240px, calc(100% - 32px));
   margin: 0 auto;
   padding: 32px 0 48px;
 }
@@ -74,7 +74,7 @@ button {
 
 .readings-section,
 .history-section {
-  padding-top: 28px;
+  padding-top: 34px;
 }
 
 .section-toolbar {
@@ -119,11 +119,12 @@ button {
 }
 
 .message-panel {
-  padding: 18px;
+  padding: 22px;
   border: 1px solid #dce3ea;
   border-radius: 8px;
   background: #ffffff;
   color: #405060;
+  font-size: 1rem;
 }
 
 .error-panel {
@@ -134,17 +135,35 @@ button {
 
 .reading-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 16px;
 }
 
 .status-card {
-  min-height: 360px;
-  padding: 18px;
+  min-height: 430px;
+  padding: 20px;
   border: 1px solid #dce3ea;
+  border-top: 6px solid #79a88d;
   border-radius: 8px;
   background: #ffffff;
   box-shadow: 0 12px 30px rgb(23 33 43 / 0.06);
+}
+
+.status-card-normal {
+  border-top-color: #67a47d;
+}
+
+.status-card-warm {
+  border-top-color: #d9933d;
+}
+
+.status-card-critical {
+  border-top-color: #d44d3f;
+  box-shadow: 0 16px 34px rgb(161 55 46 / 0.14);
+}
+
+.status-card-cool {
+  border-top-color: #4f91c7;
 }
 
 .card-header {
@@ -156,12 +175,19 @@ button {
 }
 
 .status-card h3 {
-  font-size: 1.45rem;
+  font-size: 1.6rem;
+}
+
+.status-pill-group {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 .state-pill {
   flex: 0 0 auto;
-  min-width: 84px;
+  min-width: 92px;
   padding: 6px 10px;
   border-radius: 999px;
   text-align: center;
@@ -179,6 +205,47 @@ button {
   background: #e7edf3;
 }
 
+.state-pill.normal {
+  color: #123d2f;
+  background: #d9f2e3;
+}
+
+.state-pill.warm {
+  color: #623900;
+  background: #ffe3ba;
+}
+
+.state-pill.critical {
+  color: #7f1717;
+  background: #ffd2ca;
+}
+
+.state-pill.cool {
+  color: #16415f;
+  background: #d7ebfa;
+}
+
+.room-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 16px;
+  padding: 14px;
+  border: 1px solid #e2e8ee;
+  border-radius: 8px;
+  background: #f8fafb;
+}
+
+.room-summary strong {
+  color: #17212b;
+  font-size: 1.08rem;
+}
+
+.room-summary span {
+  color: #607080;
+  font-size: 0.94rem;
+}
+
 .metric-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -187,7 +254,7 @@ button {
 }
 
 .metric {
-  min-height: 82px;
+  min-height: 92px;
   padding: 12px;
   border: 1px solid #e2e8ee;
   border-radius: 6px;
@@ -204,13 +271,36 @@ button {
 .metric dd {
   margin: 0;
   color: #17212b;
-  font-size: 1.1rem;
+  font-size: 1.18rem;
   font-weight: 800;
+}
+
+.metric span {
+  display: block;
+  margin-top: 4px;
+  color: #607080;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.metric-normal {
+  border-color: #cfe6d8;
+  background: #f5fbf7;
+}
+
+.metric-warm {
+  border-color: #f1d1a5;
+  background: #fff9ef;
 }
 
 .metric-critical {
   border-color: #f1b5a8;
   background: #fff7f3;
+}
+
+.metric-cool {
+  border-color: #bed8eb;
+  background: #f2f8fd;
 }
 
 .detail-row {
@@ -230,6 +320,7 @@ button {
   max-width: 62%;
   text-align: right;
   overflow-wrap: anywhere;
+  font-size: 0.96rem;
 }
 
 .history-controls {
