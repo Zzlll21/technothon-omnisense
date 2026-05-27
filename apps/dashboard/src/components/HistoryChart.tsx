@@ -1,5 +1,6 @@
 import { RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import type { PointerEvent } from "react";
 import {
   createReadingsLoadingState,
   fetchLatestReadingsByNode,
@@ -260,6 +261,7 @@ type SingleMetricSvgProps = {
 };
 
 function SingleMetricSvg({ data, series }: SingleMetricSvgProps) {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const width = 420;
   const height = 240;
   const padding = { top: 34, right: 34, bottom: 54, left: 66 };
@@ -284,71 +286,152 @@ function SingleMetricSvg({ data, series }: SingleMetricSvgProps) {
   const path = buildLinePath(data, series, xForIndex, yForValue);
   const firstTime = data[0]?.timeLabel ?? "";
   const lastTime = data[data.length - 1]?.timeLabel ?? "";
+  const hoveredPoint =
+    hoveredIndex === null
+      ? null
+      : getHoverPoint(data, series, hoveredIndex, xForIndex, yForValue);
+  const tooltipPosition = hoveredPoint ? getTooltipPosition(hoveredPoint.x, width) : null;
+
+  const handlePointerMove = (event: PointerEvent<SVGSVGElement>) => {
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const relativeX = ((event.clientX - bounds.left) / bounds.width) * width;
+    setHoveredIndex(findNearestDataIndex(relativeX, data, series, xForIndex));
+  };
 
   return (
-    <svg
-      className="mini-chart-svg"
-      viewBox={`0 0 ${width} ${height}`}
-      role="img"
-      aria-label={`${series.label} history`}
-    >
-      {[0, 0.5, 1].map((fraction) => {
-        const y = padding.top + plotHeight * fraction;
-        return (
-          <line
-            key={fraction}
-            className="chart-grid-line"
-            x1={padding.left}
-            x2={width - padding.right}
-            y1={y}
-            y2={y}
+    <div className="mini-chart-wrap">
+      <svg
+        className="mini-chart-svg"
+        viewBox={`0 0 ${width} ${height}`}
+        role="img"
+        aria-label={`${series.label} history`}
+        onPointerLeave={() => setHoveredIndex(null)}
+        onPointerMove={handlePointerMove}
+      >
+        {[0, 0.25, 0.5, 0.75, 1].map((fraction) => {
+          const y = padding.top + plotHeight * fraction;
+          const labelValue = maxValue - valueRange * fraction;
+          return (
+            <g key={fraction}>
+              <line
+                className="chart-grid-line"
+                x1={padding.left}
+                x2={width - padding.right}
+                y1={y}
+                y2={y}
+              />
+              <text
+                className="chart-axis-label"
+                x={padding.left - 10}
+                y={y + 4}
+                textAnchor="end"
+              >
+                {formatAxisValue(labelValue, series)}
+              </text>
+            </g>
+          );
+        })}
+
+        {path ? (
+          <path
+            d={path}
+            fill="none"
+            stroke={series.color}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="3"
           />
-        );
-      })}
+        ) : null}
 
-      {path ? (
-        <path
-          d={path}
-          fill="none"
-          stroke={series.color}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="3"
-        />
+        {values.length === 1 ? (
+          <SinglePointMarker
+            data={data}
+            series={series}
+            color={series.color}
+            xForIndex={xForIndex}
+            yForValue={yForValue}
+          />
+        ) : null}
+
+        {hoveredPoint ? (
+          <g className="chart-hover-layer">
+            <line
+              className="chart-crosshair"
+              x1={hoveredPoint.x}
+              x2={hoveredPoint.x}
+              y1={padding.top}
+              y2={height - padding.bottom}
+            />
+            <circle
+              className="chart-hover-point"
+              cx={hoveredPoint.x}
+              cy={hoveredPoint.y}
+              fill={series.color}
+              r="5"
+            />
+          </g>
+        ) : null}
+
+        <text className="chart-axis-label" x={padding.left} y={height - 12}>
+          {firstTime}
+        </text>
+        <text
+          className="chart-axis-label"
+          x={width - padding.right}
+          y={height - 12}
+          textAnchor="end"
+        >
+          {lastTime}
+        </text>
+      </svg>
+
+      {hoveredPoint && tooltipPosition ? (
+        <div
+          className="chart-tooltip"
+          style={{
+            left: `${tooltipPosition.left}%`,
+            top: "14%",
+            transform: tooltipPosition.alignRight
+              ? "translate(-100%, -6px)"
+              : "translate(0, -6px)"
+          }}
+        >
+          <span>{formatDateTime(hoveredPoint.point.recorded_at)}</span>
+          <strong>{series.label}</strong>
+          <em>{formatMetricValue(hoveredPoint.value, series)}</em>
+          {series.key === "pmv" ? <small>{getPmvInterpretation(hoveredPoint.value)}</small> : null}
+        </div>
       ) : null}
-
-      {values.length === 1 ? (
-        <circle
-          cx={xForIndex(0)}
-          cy={yForValue(values[0])}
-          fill={series.color}
-          r="5"
-        />
-      ) : null}
-
-      <text className="chart-axis-label" x={padding.left} y={padding.top - 8}>
-        {formatAxisValue(maxValue, series)}
-      </text>
-      <text
-        className="chart-axis-label"
-        x={padding.left}
-        y={height - padding.bottom + 18}
-      >
-        {formatAxisValue(minValue, series)}
-      </text>
-      <text className="chart-axis-label" x={padding.left} y={height - 12}>
-        {firstTime}
-      </text>
-      <text
-        className="chart-axis-label"
-        x={width - padding.right}
-        y={height - 12}
-        textAnchor="end"
-      >
-        {lastTime}
-      </text>
-    </svg>
+    </div>
   );
+}
+
+type SinglePointMarkerProps = {
+  data: ChartPoint[];
+  series: ChartSeries;
+  color: string;
+  xForIndex: (index: number) => number;
+  yForValue: (value: number) => number;
+};
+
+function SinglePointMarker({
+  data,
+  series,
+  color,
+  xForIndex,
+  yForValue
+}: SinglePointMarkerProps) {
+  const index = data.findIndex((point) => typeof point[series.key] === "number");
+  if (index === -1) {
+    return null;
+  }
+
+  const value = data[index][series.key];
+  if (typeof value !== "number") {
+    return null;
+  }
+
+  return <circle cx={xForIndex(index)} cy={yForValue(value)} fill={color} r="5" />;
 }
 
 function buildLinePath(
@@ -376,6 +459,59 @@ function buildLinePath(
   return commands.join(" ");
 }
 
+function findNearestDataIndex(
+  pointerX: number,
+  data: ChartPoint[],
+  series: ChartSeries,
+  xForIndex: (index: number) => number
+) {
+  let nearestIndex = 0;
+  let nearestDistance = Number.POSITIVE_INFINITY;
+
+  data.forEach((point, index) => {
+    if (typeof point[series.key] !== "number") {
+      return;
+    }
+
+    const distance = Math.abs(pointerX - xForIndex(index));
+    if (distance < nearestDistance) {
+      nearestDistance = distance;
+      nearestIndex = index;
+    }
+  });
+
+  return nearestIndex;
+}
+
+function getHoverPoint(
+  data: ChartPoint[],
+  series: ChartSeries,
+  index: number,
+  xForIndex: (index: number) => number,
+  yForValue: (value: number) => number
+) {
+  const point = data[index];
+  const value = point?.[series.key];
+  if (!point || typeof value !== "number") {
+    return null;
+  }
+
+  return {
+    point,
+    value,
+    x: xForIndex(index),
+    y: yForValue(value)
+  };
+}
+
+function getTooltipPosition(x: number, width: number) {
+  const left = Math.min(88, Math.max(12, (x / width) * 100));
+  return {
+    left,
+    alignRight: left > 62
+  };
+}
+
 function getScaleBounds(values: number[], series: ChartSeries) {
   const rawMin = Math.min(...values);
   const rawMax = Math.max(...values);
@@ -399,11 +535,20 @@ function formatMetricValue(value: number | undefined, series: ChartSeries) {
   }
 
   const formatted = value.toFixed(series.decimals);
-  if (!series.unit) {
+  const unit = getDisplayUnit(series);
+  if (!unit) {
     return formatted;
   }
 
-  return series.joinUnit ? `${formatted}${series.unit}` : `${formatted} ${series.unit}`;
+  return series.joinUnit ? `${formatted}${unit}` : `${formatted} ${unit}`;
+}
+
+function getDisplayUnit(series: ChartSeries) {
+  if (series.key === "temperature") {
+    return "°C";
+  }
+
+  return series.unit;
 }
 
 function formatAxisValue(value: number, series: ChartSeries) {
@@ -412,6 +557,22 @@ function formatAxisValue(value: number, series: ChartSeries) {
   }
 
   return value.toFixed(series.decimals);
+}
+
+function getPmvInterpretation(value: number) {
+  if (value > 1) {
+    return "Hot / crisis-like";
+  }
+
+  if (value > 0.5) {
+    return "Warm";
+  }
+
+  if (value < -0.5) {
+    return "Cool";
+  }
+
+  return "Comfortable";
 }
 
 function formatSampleCount(count: number) {

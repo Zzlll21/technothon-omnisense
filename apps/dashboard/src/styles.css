@@ -398,6 +398,66 @@ button {
   width: 100%;
   height: 250px;
   display: block;
+  touch-action: none;
+}
+
+.mini-chart-wrap {
+  position: relative;
+}
+
+.chart-grid-line {
+  stroke: #dce3ea;
+  stroke-width: 1;
+}
+
+.chart-axis-label {
+  fill: #607080;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.chart-crosshair {
+  stroke: #52616f;
+  stroke-dasharray: 4 4;
+  stroke-width: 1.2;
+}
+
+.chart-hover-point {
+  stroke: #ffffff;
+  stroke-width: 2;
+}
+
+.chart-tooltip {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  min-width: 142px;
+  max-width: 190px;
+  gap: 2px;
+  padding: 9px 10px;
+  border: 1px solid #bcc9d6;
+  border-radius: 8px;
+  color: #17212b;
+  background: rgb(255 255 255 / 0.96);
+  box-shadow: 0 12px 28px rgb(23 33 43 / 0.18);
+  pointer-events: none;
+}
+
+.chart-tooltip span,
+.chart-tooltip small {
+  color: #607080;
+  font-size: 0.74rem;
+  font-style: normal;
+}
+
+.chart-tooltip strong {
+  font-size: 0.78rem;
+}
+
+.chart-tooltip em {
+  font-size: 1rem;
+  font-style: normal;
+  font-weight: 800;
 }
 
 .mini-chart-empty {
