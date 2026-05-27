@@ -1,6 +1,6 @@
 # Local Demo Notes
 
-These notes cover the fake ESP32 MQTT publisher and MQTT subscriber. Supabase inserts, dashboard, and crisis command handling are not implemented yet.
+These notes cover the fake ESP32 MQTT publisher and MQTT subscriber through Supabase inserts. Dashboard and crisis command handling are not implemented yet.
 
 ## MQTT Subscriber Setup
 
@@ -13,12 +13,19 @@ npm start
 ```
 
 Fill in `.env` with the same MQTT broker settings used by the fake publisher.
+Also fill `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` for the backend subscriber. Do not commit `.env` or paste the service role key into docs.
 `npm start` loads `.env` with Node's `--env-file=.env` option.
 
 The subscriber listens on:
 
 ```text
 omnisense/node/+/telemetry
+```
+
+Valid telemetry is inserted into:
+
+```text
+public.sensor_readings
 ```
 
 ## Fake Publisher Setup
@@ -51,6 +58,8 @@ To test the app-to-app MQTT path, run the subscriber in one terminal and the fak
 ```text
 omnisense/node/demo-1/telemetry
 ```
+
+After valid telemetry arrives, the subscriber should also log a successful Supabase insert. Open Supabase Table Editor and confirm new rows appear in `sensor_readings`.
 
 You can also inspect and publish messages directly with MQTTX.
 

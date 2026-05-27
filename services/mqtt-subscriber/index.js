@@ -1,4 +1,5 @@
 import mqtt from "mqtt";
+import { insertReading } from "./insertReading.js";
 import { validateTelemetryMessage } from "./validateTelemetry.js";
 
 const brokerUrl = requiredEnv("MQTT_BROKER_URL");
@@ -44,7 +45,7 @@ client.on("connect", (packet) => {
   });
 });
 
-client.on("message", (topic, message) => {
+client.on("message", async (topic, message) => {
   console.log(`MQTT message received: topic=${topic}`);
 
   const result = validateTelemetryMessage(topic, message.toString("utf8"));
@@ -64,6 +65,13 @@ client.on("message", (topic, message) => {
   console.log(`Normalized node_id: ${result.value.node_id}`);
   console.log("Normalized telemetry:");
   console.log(JSON.stringify(result.value, null, 2));
+
+  try {
+    const inserted = await insertReading(result.value);
+    console.log(`Supabase insert succeeded: sensor_readings.id=${inserted.id}`);
+  } catch (error) {
+    console.error(`Supabase insert error: ${error.message}`);
+  }
 });
 
 client.on("reconnect", () => {
