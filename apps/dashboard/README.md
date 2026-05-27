@@ -2,7 +2,7 @@
 
 React dashboard workspace for reading OmniSense telemetry from Supabase.
 
-The dashboard shows latest readings and recent historical trends. Heatmap and crisis mode controls are not implemented yet.
+The dashboard shows latest readings, a simple room heatmap, and recent historical trends. Crisis mode controls are not implemented yet.
 
 ## Environment
 

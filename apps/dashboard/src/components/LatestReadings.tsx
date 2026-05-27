@@ -9,7 +9,11 @@ import { StatusCard } from "./StatusCard";
 
 const REFRESH_INTERVAL_MS = 15000;
 
-export function LatestReadings() {
+type LatestReadingsProps = {
+  onReadingsStateChange?: (state: QueryState<SensorReading[]>) => void;
+};
+
+export function LatestReadings({ onReadingsStateChange }: LatestReadingsProps) {
   const [readingsState, setReadingsState] = useState<QueryState<SensorReading[]>>(
     createReadingsLoadingState()
   );
@@ -32,6 +36,10 @@ export function LatestReadings() {
 
     return () => window.clearInterval(interval);
   }, [loadReadings]);
+
+  useEffect(() => {
+    onReadingsStateChange?.(readingsState);
+  }, [onReadingsStateChange, readingsState]);
 
   return (
     <section className="readings-section" aria-labelledby="latest-readings-title">
@@ -83,4 +91,3 @@ export function LatestReadings() {
     </section>
   );
 }
-
