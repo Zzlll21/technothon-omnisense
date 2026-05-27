@@ -33,6 +33,7 @@ services/control-api/           Dashboard control API -> MQTT command backend
 scripts/fake-esp32-publisher/   Fake ESP32 telemetry publisher
 supabase/schema.sql             Manual Supabase schema setup
 docs/local-demo.md              Full demo-day runbook
+docs/demo-checklist.md          Rehearsal and presentation checklist
 docs/mqtt-contract.md           MQTT topic and JSON payload contract
 ```
 
@@ -166,7 +167,7 @@ Open the Vite URL printed by the dashboard.
 - MQTTX sees no crisis command: start `services/control-api`, confirm MQTT credentials, and subscribe to `omnisense/node/demo-1/command`.
 - Never commit `.env` files or paste real passwords/service keys into docs.
 
-See [docs/local-demo.md](docs/local-demo.md) for the longer runbook.
+See [docs/local-demo.md](docs/local-demo.md) for the longer runbook and [docs/demo-checklist.md](docs/demo-checklist.md) for rehearsal.
 
 ## Not Production-Ready
 
