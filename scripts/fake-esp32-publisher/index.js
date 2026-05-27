@@ -91,11 +91,11 @@ function publishReading() {
 }
 
 function buildTelemetryPayload(scenario, sequence) {
-  const jitter = Math.sin(sequence / 2);
-  const headcount = Math.max(0, scenario.headcount + (sequence % 3) - 1);
-  const temperature = round(scenario.temperature + jitter * 0.4);
-  const humidity = round(scenario.humidity - jitter * 1.5);
-  const pmv = round(scenario.pmv + jitter * 0.1);
+  const jitter = Math.sin(sequence / 3);
+  const headcount = clampInteger(Math.round(scenario.headcount + Math.sin(sequence / 4) * 0.7), 0, 8);
+  const temperature = round(clamp(scenario.temperature + jitter * 0.2, 23, 30));
+  const humidity = round(clamp(scenario.humidity + Math.cos(sequence / 5) * 1.1, 50, 70));
+  const pmv = round(clamp(scenario.pmv + jitter * 0.05, -0.5, 1.8));
 
   return {
     node_id: NODE_ID,
@@ -121,46 +121,69 @@ function buildTelemetryPayload(scenario, sequence) {
 }
 
 function scenarioFor(sequence) {
-  const phase = sequence % 12;
-
-  if (phase < 5) {
-    return {
-      name: "normal",
-      temperature: 24.2,
-      humidity: 58,
+  const cycleLength = 36;
+  const phase = sequence % cycleLength;
+  const scenarios = [
+    {
+      name: "normal_comfort",
+      start: 0,
+      end: 13,
+      next: 1,
+      temperature: 24.1,
+      humidity: 55,
       headcount: 2,
-      pmv: 0.2,
+      pmv: 0.1,
       crisis_mode: false,
       hvacMode: "cool",
       fan: "auto",
       setpoint: 24
-    };
-  }
-
-  if (phase < 9) {
-    return {
-      name: "warm_high_pmv",
-      temperature: 28.1,
-      humidity: 63,
-      headcount: 5,
-      pmv: 1.1,
+    },
+    {
+      name: "warm_crowded_room",
+      start: 13,
+      end: 25,
+      next: 2,
+      temperature: 27.6,
+      humidity: 62,
+      headcount: 6,
+      pmv: 1.0,
       crisis_mode: false,
       hvacMode: "cool",
       fan: "high",
       setpoint: 23
-    };
-  }
+    },
+    {
+      name: "crisis_like_energy_saving",
+      start: 25,
+      end: 36,
+      next: 0,
+      temperature: 29.2,
+      humidity: 66,
+      headcount: 7,
+      pmv: 1.55,
+      crisis_mode: true,
+      hvacMode: "eco",
+      fan: "medium",
+      setpoint: 26
+    }
+  ];
+
+  const scenario = scenarios.find((item) => phase >= item.start && phase < item.end) ?? scenarios[0];
+  const nextScenario = scenarios[scenario.next];
+  const progress = (phase - scenario.start) / Math.max(1, scenario.end - scenario.start);
+  const easedProgress = smoothstep(progress);
+  const blendAmount = 0.35 * easedProgress;
 
   return {
-    name: "crisis_like",
-    temperature: 30.4,
-    humidity: 67,
-    headcount: 7,
-    pmv: 1.6,
-    crisis_mode: true,
-    hvacMode: "eco",
-    fan: "medium",
-    setpoint: 26
+    name: scenario.name,
+    temperature: lerp(scenario.temperature, nextScenario.temperature, blendAmount),
+    humidity: lerp(scenario.humidity, nextScenario.humidity, blendAmount),
+    headcount: lerp(scenario.headcount, nextScenario.headcount, blendAmount),
+    pmv: lerp(scenario.pmv, nextScenario.pmv, blendAmount),
+    crisis_mode: scenario.crisis_mode,
+    hvacMode: scenario.hvacMode,
+    fan: scenario.fan,
+    setpoint: scenario.setpoint
   };
 }
 
@@ -275,4 +298,21 @@ function parsePositiveInteger(value, name) {
 
 function round(value) {
   return Math.round(value * 10) / 10;
+}
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function clampInteger(value, min, max) {
+  return Math.trunc(clamp(value, min, max));
+}
+
+function lerp(start, end, amount) {
+  return start + (end - start) * amount;
+}
+
+function smoothstep(value) {
+  const clamped = clamp(value, 0, 1);
+  return clamped * clamped * (3 - 2 * clamped);
 }
