@@ -8,6 +8,8 @@ export type CrisisCommandRequest = {
 export type CrisisCommandResponse =
   | {
       ok: true;
+      duplicate: false;
+      published: true;
       topic: string;
       payload: {
         command: "SET_CRISIS_MODE";
@@ -15,6 +17,12 @@ export type CrisisCommandResponse =
         target_pmv_limit: number;
         reason: string;
       };
+    }
+  | {
+      ok: true;
+      duplicate: true;
+      published: false;
+      message: string;
     }
   | {
       ok: false;

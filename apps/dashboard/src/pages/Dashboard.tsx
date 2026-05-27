@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { CrisisButton } from "../components/CrisisButton";
 import { HistoryChart } from "../components/HistoryChart";
 import { LatestReadings } from "../components/LatestReadings";
 import { RoomHeatmap } from "../components/RoomHeatmap";
@@ -29,6 +30,7 @@ export function Dashboard() {
 
       <LatestReadings onReadingsStateChange={handleLatestReadingsStateChange} />
       <RoomHeatmap readingsState={latestReadingsState} />
+      <CrisisButton readingsState={latestReadingsState} />
       <HistoryChart />
     </main>
   );

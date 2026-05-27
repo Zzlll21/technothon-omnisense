@@ -74,6 +74,7 @@ button {
 
 .readings-section,
 .heatmap-section,
+.crisis-section,
 .history-section {
   padding-top: 34px;
 }
@@ -132,6 +133,12 @@ button {
   border-color: #e2a1a1;
   color: #8f1f1f;
   background: #fff6f6;
+}
+
+.success-panel {
+  border-color: #add8bc;
+  color: #123d2f;
+  background: #f1fbf5;
 }
 
 .reading-grid {
@@ -527,6 +534,75 @@ button {
   font-weight: 800;
 }
 
+.crisis-panel {
+  padding: 18px;
+  border: 1px solid #dce3ea;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 12px 30px rgb(23 33 43 / 0.06);
+}
+
+.crisis-controls {
+  display: grid;
+  grid-template-columns: minmax(180px, 240px) repeat(2, minmax(190px, max-content));
+  gap: 12px;
+  align-items: end;
+  margin-top: 8px;
+}
+
+.crisis-node-select {
+  width: 100%;
+}
+
+.control-button {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 14px;
+  border: 1px solid #bcc9d6;
+  border-radius: 6px;
+  color: #17212b;
+  background: #ffffff;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.control-button:hover:not(:disabled) {
+  border-color: #376a8c;
+  color: #0e4d6a;
+}
+
+.control-button-critical {
+  border-color: #d96c61;
+  color: #7f1717;
+  background: #fff2ef;
+}
+
+.control-button-critical:hover:not(:disabled) {
+  border-color: #b5362c;
+  color: #7f1717;
+  background: #ffe4df;
+}
+
+.control-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.crisis-payload-note {
+  margin: 14px 0 0;
+  color: #607080;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.crisis-message {
+  margin-top: 14px;
+  padding: 14px;
+}
+
 .history-controls {
   display: flex;
   align-items: flex-end;
@@ -717,6 +793,10 @@ button {
     width: 100%;
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .crisis-controls {
+    grid-template-columns: 1fr;
   }
 
   .node-select {

@@ -2,7 +2,7 @@
 
 React dashboard workspace for reading OmniSense telemetry from Supabase.
 
-The dashboard shows latest readings, a simple room heatmap, and recent historical trends. Crisis mode controls are not implemented yet.
+The dashboard shows latest readings, a simple room heatmap, recent historical trends, and crisis mode controls.
 
 ## Environment
 
@@ -11,6 +11,7 @@ Use frontend-safe Supabase credentials only:
 ```text
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+VITE_API_BASE_URL=http://localhost:3001
 ```
 
 If your Supabase project provides a publishable key instead of an anon key, use:
@@ -37,6 +38,8 @@ After editing `.env`, restart `npm run dev` or `npm run preview`. Vite only read
   - `fetchRecentHistoryForNode(nodeId, options)` for recent rows for one node.
   - `createReadingsLoadingState()` for a simple loading state before async calls finish.
 - `src/api/crisis.ts` exports `sendCrisisCommand()` for calling the backend control API with `VITE_API_BASE_URL`.
+
+The Crisis Mode section calls the backend control API. The dashboard must never contain MQTT credentials.
 
 `fetchRecentHistoryForNode()` fetches the newest rows first, then returns ascending order by default for chart-friendly history.
 The history section uses a lightweight inline SVG chart to plot temperature, humidity, PMV, headcount, and optional air quality for the selected node.

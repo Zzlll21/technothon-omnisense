@@ -2,6 +2,8 @@ import http from "node:http";
 import { closeMqttPublisher, publishCrisisCommand } from "./mqttPublisher.js";
 
 const port = Number.parseInt(process.env.PORT ?? "3001", 10);
+const duplicateCooldownMs = 2000;
+const recentCrisisCommands = new Map();
 
 if (!Number.isInteger(port) || port <= 0) {
   throw new Error("PORT must be a positive integer.");
@@ -36,7 +38,28 @@ const server = http.createServer(async (request, response) => {
       return;
     }
 
-    const result = await publishCrisisCommand(validation.value);
+    const duplicate = getDuplicateResult(validation.value);
+    if (duplicate) {
+      console.log(
+        `Duplicate crisis command ignored: node_id=${validation.value.node_id} enabled=${validation.value.enabled}`
+      );
+      sendJson(response, 200, duplicate);
+      return;
+    }
+
+    const commandKey = getCommandKey(validation.value);
+    const commandTime = Date.now();
+    recentCrisisCommands.set(commandKey, commandTime);
+
+    let result;
+    try {
+      result = await publishCrisisCommand(validation.value);
+    } catch (error) {
+      if (recentCrisisCommands.get(commandKey) === commandTime) {
+        recentCrisisCommands.delete(commandKey);
+      }
+      throw error;
+    }
 
     console.log(
       `Crisis command published: node_id=${validation.value.node_id} topic=${result.topic} enabled=${validation.value.enabled}`
@@ -44,6 +67,8 @@ const server = http.createServer(async (request, response) => {
 
     sendJson(response, 200, {
       ok: true,
+      duplicate: false,
+      published: true,
       topic: result.topic,
       payload: result.payload
     });
@@ -72,6 +97,27 @@ function shutdown() {
       process.exit(0);
     });
   });
+}
+
+function getDuplicateResult(command) {
+  const key = getCommandKey(command);
+  const previousTime = recentCrisisCommands.get(key);
+  const now = Date.now();
+
+  if (previousTime && now - previousTime < duplicateCooldownMs) {
+    return {
+      ok: true,
+      duplicate: true,
+      published: false,
+      message: "Duplicate command ignored within cooldown window"
+    };
+  }
+
+  return null;
+}
+
+function getCommandKey(command) {
+  return `${command.node_id}:${command.enabled}`;
 }
 
 function validateCrisisRequest(body) {
