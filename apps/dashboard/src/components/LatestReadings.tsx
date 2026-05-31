@@ -10,10 +10,14 @@ import { StatusCard } from "./StatusCard";
 const REFRESH_INTERVAL_MS = 15000;
 
 type LatestReadingsProps = {
+  onLastRefreshChange?: (value: string | null) => void;
   onReadingsStateChange?: (state: QueryState<SensorReading[]>) => void;
 };
 
-export function LatestReadings({ onReadingsStateChange }: LatestReadingsProps) {
+export function LatestReadings({
+  onLastRefreshChange,
+  onReadingsStateChange
+}: LatestReadingsProps) {
   const [readingsState, setReadingsState] = useState<QueryState<SensorReading[]>>(
     createReadingsLoadingState()
   );
@@ -24,9 +28,11 @@ export function LatestReadings({ onReadingsStateChange }: LatestReadingsProps) {
     setIsRefreshing(true);
     const result = await fetchLatestReadingsByNode();
     setReadingsState(result);
-    setLastRefresh(new Date().toLocaleTimeString());
+    const refreshTime = new Date().toLocaleTimeString();
+    setLastRefresh(refreshTime);
+    onLastRefreshChange?.(refreshTime);
     setIsRefreshing(false);
-  }, []);
+  }, [onLastRefreshChange]);
 
   useEffect(() => {
     void loadReadings();
@@ -45,11 +51,11 @@ export function LatestReadings({ onReadingsStateChange }: LatestReadingsProps) {
     <section className="readings-section" aria-labelledby="latest-readings-title">
       <div className="section-toolbar">
         <div>
-          <p className="eyebrow">Latest Readings</p>
-          <h2 id="latest-readings-title">Nodes</h2>
-          {lastRefresh ? (
-            <p className="muted">Last refreshed at {lastRefresh}</p>
-          ) : null}
+          <p className="eyebrow">Node Detail</p>
+          <h2 id="latest-readings-title">Current Node Detail</h2>
+          <p className="muted">
+            {lastRefresh ? `Node snapshot at ${lastRefresh}` : "Waiting for node data"}
+          </p>
         </div>
 
         <button

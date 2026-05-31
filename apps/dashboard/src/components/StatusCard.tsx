@@ -6,7 +6,7 @@ type StatusCardProps = {
 
 export function StatusCard({ reading }: StatusCardProps) {
   const isOccupied = (reading.headcount ?? 0) > 0;
-  const hvacState = formatHvacState(reading.hvac_state);
+  const hvacParts = getHvacStateParts(reading.hvac_state);
   const pmvStatus = getPmvStatus(reading.pmv, reading.crisis_mode);
 
   return (
@@ -30,26 +30,52 @@ export function StatusCard({ reading }: StatusCardProps) {
       </div>
 
       <dl className="metric-grid">
-        <Metric label="Temperature" value={formatTemperature(reading.temperature)} />
-        <Metric label="Humidity" value={formatPercent(reading.humidity)} />
-        <Metric label="Headcount" value={formatNullable(reading.headcount)} />
         <Metric
-          label="PMV"
-          value={formatNullable(reading.pmv)}
-          helper={pmvStatus.label}
+          label="Temperature"
+          value={formatTemperature(reading.temperature)}
           tone={pmvStatus.tone}
+        />
+        <Metric
+          label="Comfort / PMV"
+          value={formatPmvDisplay(reading.pmv, pmvStatus.label)}
+          tone={pmvStatus.tone}
+        />
+        <Metric
+          label="Headcount"
+          value={formatNullable(reading.headcount)}
+          helper={isOccupied ? "Occupied" : "Empty"}
         />
         <Metric
           label="Crisis Mode"
           value={reading.crisis_mode ? "Active" : "Normal"}
           tone={reading.crisis_mode ? "critical" : "normal"}
         />
-        <Metric label="Air Quality" value={formatNullable(reading.air_quality)} />
       </dl>
 
       <div className="detail-row">
+        <span>Humidity</span>
+        <strong>{formatPercent(reading.humidity)}</strong>
+      </div>
+      {reading.air_quality !== null ? (
+        <div className="detail-row">
+          <span>Air Quality</span>
+          <strong>{formatNullable(reading.air_quality)}</strong>
+        </div>
+      ) : null}
+      <div className="detail-row detail-row-hvac">
         <span>HVAC</span>
-        <strong>{hvacState}</strong>
+        {hvacParts.length > 0 ? (
+          <div className="hvac-chip-row" aria-label="HVAC state">
+            {hvacParts.map((part) => (
+              <span className="hvac-chip" key={part.label}>
+                <strong>{part.label}:</strong>
+                <span>{part.value}</span>
+              </span>
+            ))}
+          </div>
+        ) : (
+          <strong>No data</strong>
+        )}
       </div>
       <div className="detail-row">
         <span>Last Updated</span>
@@ -83,7 +109,7 @@ function formatTemperature(value: number | null) {
     return "No data";
   }
 
-  return `${value.toFixed(1)} °C`;
+  return `${value.toFixed(1)} \u00b0C`;
 }
 
 function formatPercent(value: number | null) {
@@ -102,6 +128,14 @@ function formatNullable(value: number | null) {
   return Number.isInteger(value) ? String(value) : value.toFixed(2);
 }
 
+function formatPmvDisplay(value: number | null, label: string) {
+  if (value === null) {
+    return "No PMV data";
+  }
+
+  return `${label} \u00b7 PMV ${value.toFixed(2)}`;
+}
+
 function formatDateTime(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
@@ -116,18 +150,26 @@ function formatDateTime(value: string) {
   });
 }
 
-function formatHvacState(value: SensorReading["hvac_state"]) {
+function getHvacStateParts(value: SensorReading["hvac_state"]) {
   if (!value) {
-    return "No data";
+    return [];
   }
 
-  const parts = [
-    value.mode ? `mode ${value.mode}` : null,
-    value.fan ? `fan ${value.fan}` : null,
-    typeof value.setpoint === "number" ? `setpoint ${value.setpoint} °C` : null
-  ].filter(Boolean);
+  return [
+    value.mode ? { label: "Mode", value: formatTitleCase(String(value.mode)) } : null,
+    value.fan ? { label: "Fan", value: formatTitleCase(String(value.fan)) } : null,
+    typeof value.setpoint === "number"
+      ? { label: "Setpoint", value: `${value.setpoint} \u00b0C` }
+      : null
+  ].filter((part): part is { label: string; value: string } => part !== null);
+}
 
-  return parts.length > 0 ? parts.join(", ") : JSON.stringify(value);
+function formatTitleCase(value: string) {
+  return value
+    .split(/[\s_-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
 }
 
 function getPmvStatus(pmv: number | null, crisisMode: boolean) {
@@ -135,17 +177,17 @@ function getPmvStatus(pmv: number | null, crisisMode: boolean) {
     return {
       tone: "normal" as StatusTone,
       label: "No PMV data",
-      summary: "Awaiting comfort data",
-      description: "PMV has not been reported for this reading."
+      summary: "PMV unknown",
+      description: "Awaiting data"
     };
   }
 
   if (crisisMode || (pmv !== null && pmv > 1)) {
     return {
       tone: "critical" as StatusTone,
-      label: "Hot / Crisis-like",
-      summary: "Action needed",
-      description: "Thermal comfort is outside the demo target."
+      label: "Crisis-like",
+      summary: "Above comfort band",
+      description: "Review override"
     };
   }
 
@@ -153,8 +195,8 @@ function getPmvStatus(pmv: number | null, crisisMode: boolean) {
     return {
       tone: "warm" as StatusTone,
       label: "Warm",
-      summary: "Room warming up",
-      description: "Comfort is drifting warmer than ideal."
+      summary: "Warm comfort drift",
+      description: "Monitor zone"
     };
   }
 
@@ -162,8 +204,8 @@ function getPmvStatus(pmv: number | null, crisisMode: boolean) {
     return {
       tone: "cool" as StatusTone,
       label: "Cool",
-      summary: "Room feels cool",
-      description: "Comfort is cooler than neutral."
+      summary: "Below comfort band",
+      description: "Cool drift"
     };
   }
 
@@ -171,6 +213,6 @@ function getPmvStatus(pmv: number | null, crisisMode: boolean) {
     tone: "normal" as StatusTone,
     label: "Comfortable",
     summary: "Comfortable",
-    description: "PMV is near neutral comfort."
+    description: "On target"
   };
 }

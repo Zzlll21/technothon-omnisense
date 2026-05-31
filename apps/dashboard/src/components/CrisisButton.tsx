@@ -99,10 +99,10 @@ export function CrisisButton({ readingsState }: CrisisButtonProps) {
     <section className="crisis-section" aria-labelledby="crisis-control-title">
       <div className="section-toolbar">
         <div>
-          <p className="eyebrow">Control</p>
-          <h2 id="crisis-control-title">Crisis Mode</h2>
+          <p className="eyebrow">Override Action</p>
+          <h2 id="crisis-control-title">Crisis Mode Override</h2>
           <p className="muted">
-            Sends a backend MQTT command to the selected node. Firmware handling is separate.
+            Send a backend MQTT override to the selected ESP32 node.
           </p>
         </div>
       </div>
@@ -155,7 +155,7 @@ export function CrisisButton({ readingsState }: CrisisButtonProps) {
             ? "Sending command..."
             : isCoolingDown
               ? "Command sent. Please wait..."
-            : `Payload: SET_CRISIS_MODE, PMV limit ${TARGET_PMV_LIMIT.toFixed(1)}, reason ${COMMAND_REASON}`}
+            : `SET_CRISIS_MODE · PMV ${TARGET_PMV_LIMIT.toFixed(1)} · ${COMMAND_REASON}`}
         </p>
 
         {message ? (

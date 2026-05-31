@@ -133,8 +133,9 @@ export function HistoryChart() {
     <section className="history-section" aria-labelledby="history-title">
       <div className="section-toolbar">
         <div>
-          <p className="eyebrow">Historical Readings</p>
-          <h2 id="history-title">Recent Trends</h2>
+          <p className="eyebrow">Historical Trends</p>
+          <h2 id="history-title">Sensor Trends</h2>
+          <p className="muted">How room conditions changed over recent readings.</p>
           {lastRefresh ? (
             <p className="muted">History refreshed at {lastRefresh}</p>
           ) : null}
