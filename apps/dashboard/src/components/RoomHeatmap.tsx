@@ -1,3 +1,5 @@
+import { useEffect, useRef, useState } from "react";
+import type { KeyboardEvent } from "react";
 import type { QueryState, SensorReading } from "../types/readings";
 
 type RoomHeatmapProps = {
@@ -27,9 +29,37 @@ const ROOM_ZONES = [
 
 export function RoomHeatmap({ readingsState }: RoomHeatmapProps) {
   const zones = getHeatmapZones(readingsState);
+  const [hoveredZoneLabel, setHoveredZoneLabel] = useState<string | null>(null);
+  const [selectedZoneLabel, setSelectedZoneLabel] = useState<string | null>(null);
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const hoveredZone = zones.find((zone) => zone.label === hoveredZoneLabel) ?? null;
+  const selectedZone = zones.find((zone) => zone.label === selectedZoneLabel) ?? null;
+  const activeZone = hoveredZone ?? selectedZone ?? zones.find((zone) => zone.reading) ?? zones[2];
+
+  useEffect(() => {
+    const handlePointerDown = (event: PointerEvent) => {
+      if (
+        selectedZoneLabel &&
+        sectionRef.current &&
+        !sectionRef.current.contains(event.target as Node)
+      ) {
+        setSelectedZoneLabel(null);
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+    };
+  }, [selectedZoneLabel]);
 
   return (
-    <section className="heatmap-section" aria-labelledby="room-heatmap-title">
+    <section
+      className="heatmap-section"
+      aria-labelledby="room-heatmap-title"
+      ref={sectionRef}
+    >
       <div className="section-toolbar">
         <div>
           <p className="eyebrow">Room Heatmap</p>
@@ -57,22 +87,72 @@ export function RoomHeatmap({ readingsState }: RoomHeatmapProps) {
         </div>
       ) : null}
 
-      <div className="heatmap-floorplan" aria-label="Room temperature zones">
+      <div
+        className="heatmap-floorplan"
+        aria-label="Room temperature zones"
+        onMouseLeave={() => setHoveredZoneLabel(null)}
+      >
         {zones.map((zone) => (
-          <HeatmapTile key={zone.label} zone={zone} />
+          <HeatmapTile
+            isActive={activeZone?.label === zone.label}
+            isPinned={selectedZoneLabel === zone.label}
+            key={zone.label}
+            onHover={() => setHoveredZoneLabel(zone.label)}
+            onSelect={() => setSelectedZoneLabel(zone.label)}
+            zone={zone}
+          />
         ))}
       </div>
+
+      {activeZone ? (
+        <ZoneDetailPanel isPinned={selectedZoneLabel === activeZone.label} zone={activeZone} />
+      ) : null}
     </section>
   );
 }
 
-function HeatmapTile({ zone }: { zone: HeatmapZone }) {
+function HeatmapTile({
+  isActive,
+  isPinned,
+  onHover,
+  onSelect,
+  zone
+}: {
+  isActive: boolean;
+  isPinned: boolean;
+  onHover: () => void;
+  onSelect: () => void;
+  zone: HeatmapZone;
+}) {
   const status = getHeatmapStatus(zone.reading);
+  const tileClassName = [
+    "heatmap-tile",
+    `heatmap-zone-${zone.area}`,
+    `heatmap-tile-${status.tone}`,
+    isActive ? "heatmap-tile-active" : null,
+    isPinned ? "heatmap-tile-pinned" : null
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onSelect();
+    }
+  };
 
   if (!zone.reading) {
     return (
       <article
-        className={`heatmap-tile heatmap-zone-${zone.area} heatmap-tile-unknown`}
+        aria-pressed={isPinned}
+        className={tileClassName}
+        onClick={onSelect}
+        onFocus={onHover}
+        onKeyDown={handleKeyDown}
+        onMouseEnter={onHover}
+        role="button"
+        tabIndex={0}
       >
         <div className="heatmap-tile-header">
           <div>
@@ -89,7 +169,14 @@ function HeatmapTile({ zone }: { zone: HeatmapZone }) {
 
   return (
     <article
-      className={`heatmap-tile heatmap-zone-${zone.area} heatmap-tile-${status.tone}`}
+      aria-pressed={isPinned}
+      className={tileClassName}
+      onClick={onSelect}
+      onFocus={onHover}
+      onKeyDown={handleKeyDown}
+      onMouseEnter={onHover}
+      role="button"
+      tabIndex={0}
     >
       <div className="heatmap-tile-header">
         <div>
@@ -113,6 +200,64 @@ function HeatmapTile({ zone }: { zone: HeatmapZone }) {
         <Chip label="Crisis" value={formatCrisisMode(zone.reading)} />
       </dl>
     </article>
+  );
+}
+
+function ZoneDetailPanel({ isPinned, zone }: { isPinned: boolean; zone: HeatmapZone }) {
+  const status = getHeatmapStatus(zone.reading);
+
+  if (!zone.reading) {
+    return (
+      <aside className="heatmap-detail-panel heatmap-detail-panel-unknown">
+        <div className="heatmap-detail-header">
+          <div>
+            <p className="node-label">{isPinned ? "Selected Zone" : "Inspect Zone"}</p>
+            <h3>{zone.label}</h3>
+          </div>
+          <span className="heatmap-status heatmap-status-unknown">Unknown</span>
+        </div>
+        <p className="heatmap-detail-empty">No sensor data</p>
+        <p className="heatmap-waiting">Waiting for {zone.nodeId}</p>
+      </aside>
+    );
+  }
+
+  return (
+    <aside className={`heatmap-detail-panel heatmap-detail-panel-${status.tone}`}>
+      <div className="heatmap-detail-header">
+        <div>
+          <p className="node-label">{isPinned ? "Selected Zone" : "Inspect Zone"}</p>
+          <h3>{zone.label}</h3>
+        </div>
+        <span className={`heatmap-status heatmap-status-${status.tone}`}>
+          {status.label}
+        </span>
+      </div>
+
+      <dl className="heatmap-detail-grid">
+        <DetailItem label="Node" value={zone.reading.node_id} />
+        <DetailItem label="Temperature" value={formatTemperature(zone.reading.temperature)} />
+        {zone.reading.humidity !== null ? (
+          <DetailItem label="Humidity" value={formatHumidity(zone.reading.humidity)} />
+        ) : null}
+        <DetailItem label="Headcount" value={formatHeadcount(zone.reading.headcount)} />
+        <DetailItem
+          label="PMV / Comfort"
+          value={`${formatPmv(zone.reading.pmv)} \u00b7 ${status.label}`}
+        />
+        <DetailItem label="Crisis Mode" value={formatCrisisMode(zone.reading)} />
+        <DetailItem label="Last Updated" value={formatDateTime(zone.reading.recorded_at)} />
+      </dl>
+    </aside>
+  );
+}
+
+function DetailItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="heatmap-detail-item">
+      <dt>{label}</dt>
+      <dd>{value}</dd>
+    </div>
   );
 }
 
@@ -145,15 +290,15 @@ function getHeatmapStatus(reading: SensorReading | null): HeatmapStatus {
     return {
       tone: "unknown",
       label: "Unknown",
-      summary: "Waiting for the first latest reading."
+      summary: "No data"
     };
   }
 
   if (reading.crisis_mode || (reading.pmv !== null && reading.pmv > 1)) {
     return {
       tone: "crisis",
-      label: "Crisis-like",
-      summary: "Energy-saving or hot comfort state is visually flagged."
+      label: "Crisis",
+      summary: "Alert zone"
     };
   }
 
@@ -161,7 +306,7 @@ function getHeatmapStatus(reading: SensorReading | null): HeatmapStatus {
     return {
       tone: "unknown",
       label: "Unknown",
-      summary: "Temperature has not been reported for this node."
+      summary: "No temperature"
     };
   }
 
@@ -169,7 +314,7 @@ function getHeatmapStatus(reading: SensorReading | null): HeatmapStatus {
     return {
       tone: "cool",
       label: "Cool",
-      summary: "Below the demo comfort band."
+      summary: "Below band"
     };
   }
 
@@ -177,7 +322,7 @@ function getHeatmapStatus(reading: SensorReading | null): HeatmapStatus {
     return {
       tone: "comfortable",
       label: "Comfortable",
-      summary: "Within the demo comfort band."
+      summary: "On target"
     };
   }
 
@@ -185,14 +330,14 @@ function getHeatmapStatus(reading: SensorReading | null): HeatmapStatus {
     return {
       tone: "warm",
       label: "Warm",
-      summary: "Room is warming above the comfort band."
+      summary: "Above band"
     };
   }
 
   return {
     tone: "hot",
     label: "Hot",
-    summary: "Temperature is high for the demo room."
+    summary: "Alert"
   };
 }
 
@@ -202,6 +347,14 @@ function formatTemperature(value: number | null) {
   }
 
   return `${value.toFixed(1)} \u00b0C`;
+}
+
+function formatHumidity(value: number | null) {
+  if (value === null) {
+    return "No data";
+  }
+
+  return `${value.toFixed(0)}%`;
 }
 
 function formatHeadcount(value: number | null) {
@@ -226,4 +379,18 @@ function formatCrisisMode(reading: SensorReading | null) {
   }
 
   return reading.crisis_mode ? "Active" : "Normal";
+}
+
+function formatDateTime(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleString([], {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
 }
