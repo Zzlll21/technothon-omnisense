@@ -33,11 +33,9 @@ type FloorplanImage = {
 };
 
 const ROOM_ZONES = [
-  { label: "Front Left", nodeId: "nodeA", area: "front-left" },
-  { label: "Front Right", nodeId: "nodeB", area: "front-right" },
+  { label: "Left", nodeId: "nodeA", area: "left" },
   { label: "Center", nodeId: "demo-1", area: "center" },
-  { label: "Back Left", nodeId: "nodeC", area: "back-left" },
-  { label: "Back Right", nodeId: "nodeD", area: "back-right" }
+  { label: "Right", nodeId: "demo-2", area: "right" }
 ] as const;
 
 export function RoomHeatmap({ readingsState }: RoomHeatmapProps) {
@@ -467,13 +465,10 @@ function getFloorplanZones(readingsState: QueryState<SensorReading[]>): HeatmapZ
     });
   }
 
-  const centerNodeId =
-    readingsByNode.has("nodeB") || !readingsByNode.has("demo-1") ? "nodeB" : "demo-1";
-
   return [
     { label: "Left zone", nodeId: "nodeA", area: "left", marker: { x: 20, y: 50 } },
-    { label: "Center zone", nodeId: centerNodeId, area: "center", marker: { x: 50, y: 50 } },
-    { label: "Right zone", nodeId: "nodeC", area: "right", marker: { x: 80, y: 50 } }
+    { label: "Center zone", nodeId: "demo-1", area: "center", marker: { x: 50, y: 50 } },
+    { label: "Right zone", nodeId: "demo-2", area: "right", marker: { x: 80, y: 50 } }
   ].map((zone) => createHeatmapZone(zone, readingsByNode));
 }
 
