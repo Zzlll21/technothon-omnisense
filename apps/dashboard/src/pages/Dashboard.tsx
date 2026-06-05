@@ -7,6 +7,15 @@ import { createReadingsLoadingState } from "../api/readings";
 import type { QueryState, SensorReading } from "../types/readings";
 
 type DashboardTab = "overview" | "map" | "trends" | "control";
+type SummaryTone = "normal" | "warm" | "critical" | "cool";
+
+type BuildingSummary = {
+  averageTemperature: number | null;
+  worstPmv: number | null;
+  totalHeadcount: number | null;
+  crisisActive: boolean;
+  tone: SummaryTone;
+};
 
 const dashboardTabs: Array<{ id: DashboardTab; label: string }> = [
   { id: "overview", label: "Overview" },
@@ -21,6 +30,7 @@ export function Dashboard() {
   >(createReadingsLoadingState());
   const [lastRefresh, setLastRefresh] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<DashboardTab>("overview");
+  const buildingSummary = getBuildingSummary(latestReadingsState);
 
   const handleLatestReadingsStateChange = useCallback(
     (state: QueryState<SensorReading[]>) => {
@@ -52,26 +62,26 @@ export function Dashboard() {
         <div className="top-summary-grid" aria-label="Current building summary">
           <SummaryTile
             label="Temperature"
-            tone={getPrimaryReadingTone(latestReadingsState)}
-            value={formatTemperature(getPrimaryReading(latestReadingsState)?.temperature ?? null)}
-            badge={getTemperatureBadge(getPrimaryReading(latestReadingsState))}
+            tone={buildingSummary.tone}
+            value={formatTemperature(buildingSummary.averageTemperature)}
+            badge={getTemperatureBadge(buildingSummary.averageTemperature)}
           />
           <SummaryTile
             label="PMV / Comfort"
-            tone={getPrimaryReadingTone(latestReadingsState)}
-            value={formatComfortSummary(getPrimaryReading(latestReadingsState))}
-            badge={getComfortLabel(getPrimaryReading(latestReadingsState))}
+            tone={buildingSummary.tone}
+            value={formatComfortSummary(buildingSummary.worstPmv)}
+            badge={getComfortLabel(buildingSummary.worstPmv, buildingSummary.crisisActive)}
           />
           <SummaryTile
             label="Headcount"
-            value={formatHeadcount(getPrimaryReading(latestReadingsState)?.headcount ?? null)}
-            badge={getHeadcountBadge(getPrimaryReading(latestReadingsState))}
+            value={formatHeadcount(buildingSummary.totalHeadcount)}
+            badge={getHeadcountBadge(buildingSummary.totalHeadcount)}
           />
           <SummaryTile
             label="Crisis Mode"
-            tone={getPrimaryReading(latestReadingsState)?.crisis_mode ? "critical" : "normal"}
-            value={getPrimaryReading(latestReadingsState)?.crisis_mode ? "Active" : "Normal"}
-            badge={getPrimaryReading(latestReadingsState)?.crisis_mode ? "Alert" : "Normal"}
+            tone={buildingSummary.crisisActive ? "critical" : "normal"}
+            value={buildingSummary.crisisActive ? "Active" : "Normal"}
+            badge={buildingSummary.crisisActive ? "Alert" : "Normal"}
           />
         </div>
       </header>
@@ -150,7 +160,7 @@ function SummaryTile({
   badge
 }: {
   label: string;
-  tone?: "normal" | "warm" | "critical" | "cool";
+  tone?: SummaryTone;
   value: string;
   badge?: string;
 }) {
@@ -188,32 +198,57 @@ function SystemInsights({
   );
 }
 
-function getPrimaryReading(readingsState: QueryState<SensorReading[]>) {
+function getBuildingSummary(readingsState: QueryState<SensorReading[]>): BuildingSummary {
   if (readingsState.status !== "success" || readingsState.data.length === 0) {
-    return null;
+    return {
+      averageTemperature: null,
+      worstPmv: null,
+      totalHeadcount: null,
+      crisisActive: false,
+      tone: "normal"
+    };
   }
 
-  return (
-    readingsState.data.find((reading) => reading.node_id === "demo-1") ??
-    readingsState.data[0]
-  );
+  const readings = readingsState.data;
+  const temperatures = readings
+    .map((reading) => reading.temperature)
+    .filter((value): value is number => typeof value === "number");
+  const pmvValues = readings
+    .map((reading) => reading.pmv)
+    .filter((value): value is number => typeof value === "number");
+  const headcounts = readings
+    .map((reading) => reading.headcount)
+    .filter((value): value is number => typeof value === "number");
+  const averageTemperature =
+    temperatures.length > 0
+      ? temperatures.reduce((total, value) => total + value, 0) / temperatures.length
+      : null;
+  const worstPmv = pmvValues.length > 0 ? Math.max(...pmvValues) : null;
+  const totalHeadcount =
+    headcounts.length > 0
+      ? headcounts.reduce((total, value) => total + value, 0)
+      : null;
+  const crisisActive = readings.some((reading) => reading.crisis_mode);
+
+  return {
+    averageTemperature,
+    worstPmv,
+    totalHeadcount,
+    crisisActive,
+    tone: getComfortTone(worstPmv, crisisActive)
+  };
 }
 
-function getPrimaryReadingTone(readingsState: QueryState<SensorReading[]>) {
-  const reading = getPrimaryReading(readingsState);
-  if (!reading) {
-    return "normal";
-  }
-
-  if (reading.crisis_mode || (reading.pmv !== null && reading.pmv > 1)) {
+function getComfortTone(pmv: number | null, crisisActive: boolean): SummaryTone {
+  if (crisisActive || (pmv !== null && pmv > 1)) {
     return "critical";
   }
 
-  if (reading.pmv !== null && reading.pmv > 0.5) {
+  if (pmv !== null && pmv > 0.5) {
     return "warm";
   }
 
-  if (reading.pmv !== null && reading.pmv < -0.5) {
+  if (pmv !== null && pmv < -0.5) {
     return "cool";
   }
 
@@ -306,32 +341,32 @@ function getSystemInsights(readingsState: QueryState<SensorReading[]>) {
   return insights;
 }
 
-function getComfortLabel(reading: SensorReading | null) {
-  if (!reading || reading.pmv === null) {
+function getComfortLabel(pmv: number | null, crisisActive: boolean) {
+  if (pmv === null) {
     return "No data";
   }
 
-  if (reading.crisis_mode || reading.pmv > 1) {
+  if (crisisActive || pmv > 1) {
     return "Hot / Crisis-like";
   }
 
-  if (reading.pmv > 0.5) {
+  if (pmv > 0.5) {
     return "Warm";
   }
 
-  if (reading.pmv < -0.5) {
+  if (pmv < -0.5) {
     return "Cool";
   }
 
   return "Comfortable";
 }
 
-function formatComfortSummary(reading: SensorReading | null) {
-  if (!reading || reading.pmv === null) {
+function formatComfortSummary(value: number | null) {
+  if (value === null) {
     return "No data";
   }
 
-  return reading.pmv.toFixed(2);
+  return value.toFixed(2);
 }
 
 function formatTemperature(value: number | null) {
@@ -363,36 +398,36 @@ function formatNodeList(readings: SensorReading[]) {
   return readings.map((reading) => reading.node_id).join(", ");
 }
 
-function getTemperatureBadge(reading: SensorReading | null) {
-  if (!reading || reading.temperature === null) {
+function getTemperatureBadge(value: number | null) {
+  if (value === null) {
     return "Unknown";
   }
 
-  if (reading.temperature >= 29) {
+  if (value >= 29) {
     return "Hot";
   }
 
-  if (reading.temperature >= 27) {
+  if (value >= 27) {
     return "Warm";
   }
 
-  if (reading.temperature < 24) {
+  if (value < 24) {
     return "Cool";
   }
 
   return "Normal";
 }
 
-function getHeadcountBadge(reading: SensorReading | null) {
-  if (!reading || reading.headcount === null) {
+function getHeadcountBadge(value: number | null) {
+  if (value === null) {
     return "Unknown";
   }
 
-  if (reading.headcount >= 6) {
+  if (value >= 6) {
     return "High";
   }
 
-  return reading.headcount > 0 ? "Occupied" : "Empty";
+  return value > 0 ? "Occupied" : "Empty";
 }
 
 function isStaleReading(recordedAt: string) {
