@@ -107,7 +107,7 @@ export function HistoryChart() {
         label: "Humidity",
         unit: "%",
         color: "#2f7ebc",
-        decimals: 0,
+        decimals: 1,
         joinUnit: true
       },
       {
@@ -223,6 +223,7 @@ type ChartSeries = {
   color: string;
   decimals: number;
   joinUnit?: boolean;
+  integerDisplay?: boolean;
   integerScale?: boolean;
 };
 
@@ -273,6 +274,7 @@ function SingleMetricSvg({ data, series }: SingleMetricSvgProps) {
     .filter((value): value is number => typeof value === "number");
   const { min: minValue, max: maxValue } = getScaleBounds(values, series);
   const valueRange = maxValue - minValue || 1;
+  const yAxisTicks = getYAxisTicks(minValue, maxValue, series);
 
   const xForIndex = (index: number) => {
     if (data.length <= 1) {
@@ -309,11 +311,10 @@ function SingleMetricSvg({ data, series }: SingleMetricSvgProps) {
         onPointerLeave={() => setHoveredIndex(null)}
         onPointerMove={handlePointerMove}
       >
-        {[0, 0.25, 0.5, 0.75, 1].map((fraction) => {
-          const y = padding.top + plotHeight * fraction;
-          const labelValue = maxValue - valueRange * fraction;
+        {yAxisTicks.map((tick) => {
+          const y = yForValue(tick.value);
           return (
-            <g key={fraction}>
+            <g key={tick.label}>
               <line
                 className="chart-grid-line"
                 x1={padding.left}
@@ -327,7 +328,7 @@ function SingleMetricSvg({ data, series }: SingleMetricSvgProps) {
                 y={y + 4}
                 textAnchor="end"
               >
-                {formatAxisValue(labelValue, series)}
+                {tick.label}
               </text>
             </g>
           );
@@ -518,16 +519,127 @@ function getScaleBounds(values: number[], series: ChartSeries) {
   const rawMax = Math.max(...values);
 
   if (series.integerScale) {
-    const min = Math.max(0, Math.floor(rawMin) - 1);
-    const max = Math.max(min + 1, Math.ceil(rawMax) + 1);
+    const min = 0;
+    const max = Math.max(1, Math.ceil(rawMax));
     return { min, max };
   }
 
-  const paddingValue = Math.max((rawMax - rawMin) * 0.12, series.key === "pmv" ? 0.2 : 0.5);
+  if (series.integerDisplay) {
+    let min = Math.floor(rawMin);
+    let max = Math.ceil(rawMax);
+
+    if (max - min < 2) {
+      min -= 1;
+      max += 1;
+    }
+
+    if (series.key === "humidity") {
+      min = Math.max(0, min);
+      max = Math.min(100, Math.max(min + 1, max));
+    }
+
+    return { min, max };
+  }
+
+  const range = rawMax - rawMin;
+  const paddingValue = Math.max(range * 0.12, series.key === "pmv" ? 0.2 : 0.5);
   return {
     min: rawMin - paddingValue,
     max: rawMax + paddingValue
   };
+}
+
+function getYAxisTicks(minValue: number, maxValue: number, series: ChartSeries) {
+  if (series.integerScale) {
+    return getIntegerTicks(minValue, maxValue).map((value) => ({
+      value,
+      label: formatAxisValue(value, series)
+    }));
+  }
+
+  if (series.integerDisplay) {
+    return dedupeFormattedTicks(
+      getNiceTicks(minValue, maxValue, 5),
+      series
+    );
+  }
+
+  return dedupeFormattedTicks(getNiceTicks(minValue, maxValue, 5), series);
+}
+
+function getIntegerTicks(minValue: number, maxValue: number) {
+  const min = Math.max(0, Math.floor(minValue));
+  const max = Math.max(min + 1, Math.ceil(maxValue));
+  const step = Math.max(1, Math.ceil((max - min) / 4));
+  const ticks: number[] = [];
+
+  for (let value = min; value <= max; value += step) {
+    ticks.push(value);
+  }
+
+  if (ticks.at(-1) !== max) {
+    ticks.push(max);
+  }
+
+  return ticks;
+}
+
+function getNiceTicks(minValue: number, maxValue: number, desiredCount: number) {
+  const range = maxValue - minValue;
+  if (range <= 0) {
+    return [minValue];
+  }
+
+  const roughStep = range / Math.max(1, desiredCount - 1);
+  const step = getNiceStep(roughStep);
+  const start = Math.ceil(minValue / step) * step;
+  const ticks: number[] = [];
+
+  for (let value = start; value <= maxValue + step * 0.001; value += step) {
+    ticks.push(roundToPrecision(value, step));
+  }
+
+  if (ticks.length === 0 || ticks[0] > minValue) {
+    ticks.unshift(roundToPrecision(minValue, step));
+  }
+
+  if (ticks.at(-1)! < maxValue) {
+    ticks.push(roundToPrecision(maxValue, step));
+  }
+
+  return ticks;
+}
+
+function getNiceStep(value: number) {
+  const exponent = Math.floor(Math.log10(value));
+  const magnitude = 10 ** exponent;
+  const normalized = value / magnitude;
+  const niceNormalized =
+    normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
+
+  return niceNormalized * magnitude;
+}
+
+function roundToPrecision(value: number, step: number) {
+  const decimals = Math.max(0, -Math.floor(Math.log10(step)) + 2);
+  return Number(value.toFixed(decimals));
+}
+
+function dedupeFormattedTicks(values: number[], series: ChartSeries) {
+  const seenLabels = new Set<string>();
+  const ticks: Array<{ value: number; label: string }> = [];
+
+  values.forEach((value) => {
+    const label = formatAxisValue(value, series);
+    if (seenLabels.has(label)) {
+      return;
+    }
+
+    seenLabels.add(label);
+    ticks.push({ value, label });
+  });
+
+  return ticks;
 }
 
 function formatMetricValue(value: number | undefined, series: ChartSeries) {

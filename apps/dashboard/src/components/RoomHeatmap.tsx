@@ -603,7 +603,7 @@ function formatHumidity(value: number | null) {
     return "No data";
   }
 
-  return `${value.toFixed(0)}%`;
+  return `${value.toFixed(1)}%`;
 }
 
 function formatHeadcount(value: number | null) {
