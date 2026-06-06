@@ -133,7 +133,11 @@ function formatPmvDisplay(value: number | null, label: string) {
     return "No PMV data";
   }
 
-  return `${label} \u00b7 PMV ${value.toFixed(2)}`;
+  return `${formatCompactComfortLabel(label)}\nPMV ${value.toFixed(2)}`;
+}
+
+function formatCompactComfortLabel(label: string) {
+  return label === "Comfortable" ? "Comfort" : label;
 }
 
 function formatDateTime(value: string) {
