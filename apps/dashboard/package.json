@@ -2,7 +2,7 @@
   "name": "omnisense-dashboard",
   "version": "0.1.0",
   "private": true,
-  "description": "React dashboard workspace for the OmniSense hackathon prototype.",
+  "description": "OmniSense SDP Smart Cooling Management Dashboard.",
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
@@ -10,6 +10,8 @@
     "preview": "vite preview --host 127.0.0.1",
     "typecheck": "tsc --noEmit",
     "test:records": "node --test test/records.test.mjs",
+    "test:overview": "npm --prefix ../../packages/sdp-contract run build && node --test test/overview.test.mjs",
+    "test:nodes": "npm --prefix ../../packages/sdp-contract run build && node --test test/node-history.test.mjs",
     "test:overrides": "npm --prefix ../../packages/sdp-contract run build && node --test test/overrides.test.mjs"
   },
   "dependencies": {
