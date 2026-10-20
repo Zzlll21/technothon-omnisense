@@ -1,0 +1,13 @@
+{
+  "name": "@omnisense/sdp-contract",
+  "version": "1.0.0-draft.1",
+  "private": true,
+  "type": "module",
+  "description": "SDP Integration Contract v1 Draft. Not a finalized transport contract.",
+  "scripts": {
+    "typecheck": "node ../../apps/dashboard/node_modules/typescript/bin/tsc -p tsconfig.json --noEmit",
+    "build": "node ../../apps/dashboard/node_modules/typescript/bin/tsc -p tsconfig.json",
+    "test": "npm run build && node --test test/contracts.test.mjs test/cli.test.mjs",
+    "validate": "node bin/validate.mjs"
+  }
+}

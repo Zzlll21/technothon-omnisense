@@ -1,12 +1,20 @@
-import { useCallback, useState } from "react";
+import { lazy, Suspense, useCallback, useState } from "react";
 import { CrisisButton } from "../components/CrisisButton";
 import { HistoryChart } from "../components/HistoryChart";
 import { LatestReadings } from "../components/LatestReadings";
 import { RoomHeatmap } from "../components/RoomHeatmap";
 import { createReadingsLoadingState } from "../api/readings";
 import type { QueryState, SensorReading } from "../types/readings";
+import type { OverrideRequest, OverrideStatus } from "../../../../packages/sdp-contract/src/index";
 
-type DashboardTab = "overview" | "map" | "trends" | "control";
+const SdpZoneOverview = lazy(() => import("../components/sdp/SdpZoneOverview")
+  .then(module => ({ default: module.SdpZoneOverview })));
+const OperatingRecords = lazy(() => import("../components/sdp/OperatingRecords")
+  .then(module => ({ default: module.OperatingRecords })));
+const ManualOverridePanel = lazy(() => import("../components/sdp/ManualOverridePanel")
+  .then(module => ({ default: module.ManualOverridePanel })));
+
+type DashboardTab = "overview" | "map" | "trends" | "control" | "sdp" | "records" | "override";
 type SummaryTone = "normal" | "warm" | "critical" | "cool";
 
 type BuildingSummary = {
@@ -21,7 +29,10 @@ const dashboardTabs: Array<{ id: DashboardTab; label: string }> = [
   { id: "overview", label: "Overview" },
   { id: "map", label: "Room Map" },
   { id: "trends", label: "Trends" },
-  { id: "control", label: "Crisis Control" }
+  { id: "control", label: "Crisis Control" },
+  { id: "sdp", label: "SDP Zone Overview" },
+  { id: "records", label: "Operating Records" },
+  { id: "override", label: "SDP Manual Override" }
 ];
 
 export function Dashboard() {
@@ -31,6 +42,16 @@ export function Dashboard() {
   const [lastRefresh, setLastRefresh] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<DashboardTab>("overview");
   const buildingSummary = getBuildingSummary(latestReadingsState);
+  const isSdpTab = activeTab === "sdp" || activeTab === "records" || activeTab === "override";
+  const [localOverrideEvents, setLocalOverrideEvents] = useState<(OverrideRequest | OverrideStatus)[]>([]);
+  const [recordsSelection, setRecordsSelection] = useState<{ scenarioId: string; requestId: string } | null>(null);
+  const appendLocalOverrideEvents = useCallback((events: (OverrideRequest | OverrideStatus)[]) => {
+    setLocalOverrideEvents(previous => [...previous, ...events]);
+  }, []);
+  const openOverrideRecords = useCallback((scenarioId: string, requestId: string) => {
+    setRecordsSelection({ scenarioId, requestId });
+    setActiveTab("records");
+  }, []);
 
   const handleLatestReadingsStateChange = useCallback(
     (state: QueryState<SensorReading[]>) => {
@@ -48,45 +69,49 @@ export function Dashboard() {
             <h1>OmniSense Smart HVAC Dashboard</h1>
           </div>
           <div className="header-status">
-            <span className="system-pill live">Live Demo</span>
+            <span className="system-pill live">{isSdpTab ? "Simulated test data" : "Live Demo"}</span>
           </div>
         </div>
 
-        <div className="system-status-strip" aria-label="System status">
-          <span className="status-dot status-dot-normal">System Operational</span>
-          <span className="status-dot status-dot-info">Live MQTT Demo</span>
-          <span>{formatNodeCount(latestReadingsState)}</span>
-          <span>{lastRefresh ? `Refreshed ${lastRefresh}` : "Waiting for data"}</span>
-        </div>
+        {!isSdpTab && (
+          <>
+            <div className="system-status-strip" aria-label="System status">
+              <span className="status-dot status-dot-normal">System Operational</span>
+              <span className="status-dot status-dot-info">Live MQTT Demo</span>
+              <span>{formatNodeCount(latestReadingsState)}</span>
+              <span>{lastRefresh ? `Refreshed ${lastRefresh}` : "Waiting for data"}</span>
+            </div>
 
-        <div className="top-summary-grid" aria-label="Current building summary">
-          <SummaryTile
-            label="Temperature"
-            tone={buildingSummary.tone}
-            value={formatTemperature(buildingSummary.averageTemperature)}
-            badge={getTemperatureBadge(buildingSummary.averageTemperature)}
-          />
-          <SummaryTile
-            label="PMV / Comfort"
-            tone={buildingSummary.tone}
-            value={formatComfortSummary(buildingSummary.worstPmv)}
-            badge={getComfortLabel(buildingSummary.worstPmv, buildingSummary.crisisActive)}
-          />
-          <SummaryTile
-            label="Headcount"
-            value={formatHeadcount(buildingSummary.totalHeadcount)}
-            badge={getHeadcountBadge(buildingSummary.totalHeadcount)}
-          />
-          <SummaryTile
-            label="Crisis Mode"
-            tone={buildingSummary.crisisActive ? "critical" : "normal"}
-            value={buildingSummary.crisisActive ? "Active" : "Normal"}
-            badge={buildingSummary.crisisActive ? "Alert" : "Normal"}
-          />
-        </div>
+            <div className="top-summary-grid" aria-label="Current building summary">
+              <SummaryTile
+                label="Temperature"
+                tone={buildingSummary.tone}
+                value={formatTemperature(buildingSummary.averageTemperature)}
+                badge={getTemperatureBadge(buildingSummary.averageTemperature)}
+              />
+              <SummaryTile
+                label="PMV / Comfort"
+                tone={buildingSummary.tone}
+                value={formatComfortSummary(buildingSummary.worstPmv)}
+                badge={getComfortLabel(buildingSummary.worstPmv, buildingSummary.crisisActive)}
+              />
+              <SummaryTile
+                label="Headcount"
+                value={formatHeadcount(buildingSummary.totalHeadcount)}
+                badge={getHeadcountBadge(buildingSummary.totalHeadcount)}
+              />
+              <SummaryTile
+                label="Crisis Mode"
+                tone={buildingSummary.crisisActive ? "critical" : "normal"}
+                value={buildingSummary.crisisActive ? "Active" : "Normal"}
+                badge={buildingSummary.crisisActive ? "Alert" : "Normal"}
+              />
+            </div>
+          </>
+        )}
       </header>
 
-      <SystemInsights readingsState={latestReadingsState} />
+      {!isSdpTab && <SystemInsights readingsState={latestReadingsState} />}
 
       <nav className="dashboard-tabs" aria-label="Dashboard sections" role="tablist">
         {dashboardTabs.map((tab) => (
@@ -147,6 +172,27 @@ export function Dashboard() {
           role="tabpanel"
         >
           <CrisisButton readingsState={latestReadingsState} />
+        </section>
+        <section
+          className="tab-panel"
+          hidden={activeTab !== "sdp"}
+          id="sdp-panel"
+          aria-labelledby="sdp-tab"
+          role="tabpanel"
+        >
+          <Suspense fallback={<p className="message-panel" role="status">Loading SDP view...</p>}>
+            <SdpZoneOverview />
+          </Suspense>
+        </section>
+        <section className="tab-panel" hidden={activeTab !== "records"} id="records-panel" aria-labelledby="records-tab" role="tabpanel">
+          <Suspense fallback={<p className="message-panel" role="status">Loading Operating Records...</p>}>
+            <OperatingRecords localOverrideEvents={localOverrideEvents} selection={recordsSelection} />
+          </Suspense>
+        </section>
+        <section className="tab-panel" hidden={activeTab !== "override"} id="override-panel" aria-labelledby="override-tab" role="tabpanel">
+          <Suspense fallback={<p className="message-panel" role="status">Loading SDP Manual Override...</p>}>
+            <ManualOverridePanel localEvents={localOverrideEvents} onLocalEvents={appendLocalOverrideEvents} onViewRecords={openOverrideRecords} />
+          </Suspense>
         </section>
       </div>
     </main>

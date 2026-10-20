@@ -1,0 +1,2278 @@
+{
+  "schema_version": "sdp.v1-draft.1",
+  "draft": true,
+  "fixture_source": "SIMULATED",
+  "notice": "Scripted test data only. Scenarios are isolated snapshots, not measured trials or controller/forecast algorithms. Config thresholds are review placeholders.",
+  "events": [
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "ZONE_CONFIG",
+      "event_id": "config-demo",
+      "correlation_id": "config-demo",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:00:00.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "C",
+        "producer_id": "fixture-c"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "config_version": "demo-review-1",
+        "effective_from": "2026-10-20T08:00:00.000Z",
+        "controller_id": "controller-demo",
+        "actuator_id": "fan-demo",
+        "actuation_kind": "FAN_PROXY",
+        "required_nodes": [
+          {
+            "node_id": "demo-1",
+            "label": "Left sensor footprint",
+            "x": 0.3,
+            "y": 0.5
+          },
+          {
+            "node_id": "demo-2",
+            "label": "Right sensor footprint",
+            "x": 0.7,
+            "y": 0.5
+          }
+        ],
+        "representative_environment_node_id": "demo-1",
+        "freshness": {
+          "stale_after_ms": 120000,
+          "disconnected_after_ms": 300000,
+          "max_clock_skew_ms": 5000
+        },
+        "vacancy_confirmation_ms": 120000,
+        "min_mode_dwell_ms": 60000,
+        "override_max_duration_ms": 1800000,
+        "limits": {
+          "temperature_min_c": 23,
+          "temperature_max_c": 29,
+          "humidity_max_percent": 70,
+          "occupied_target_c": 24
+        }
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "NODE_EVIDENCE",
+      "event_id": "evidence-occupied-1",
+      "correlation_id": "evidence-occupied-1",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:03:00.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "A_B",
+        "producer_id": "fixture-a_b"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "node_id": "demo-1",
+        "model_version": "fixture-mlp-1",
+        "firmware_version": "fixture-fw-1",
+        "classification": {
+          "value": {
+            "class_label": "OCCUPIED_1P",
+            "class_scores": {
+              "EMPTY_CORE": 0.04,
+              "THERMAL_ANOMALIES": 0.04,
+              "OCCUPIED_1P": 0.84,
+              "OCCUPIED_2P": 0.04,
+              "OCCUPIED_3P_PLUS": 0.04
+            },
+            "headcount_category": "ONE"
+          },
+          "source": "SIMULATED",
+          "source_id": "demo-1",
+          "observed_at": "2026-10-20T08:03:00.000Z",
+          "validity": "VALID"
+        },
+        "temperature_c": {
+          "value": 25.4,
+          "source": "SIMULATED",
+          "source_id": "demo-1",
+          "observed_at": "2026-10-20T08:03:00.000Z",
+          "validity": "VALID"
+        },
+        "humidity_percent": {
+          "value": 61.5,
+          "source": "SIMULATED",
+          "source_id": "demo-1",
+          "observed_at": "2026-10-20T08:03:00.000Z",
+          "validity": "VALID"
+        }
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "NODE_EVIDENCE",
+      "event_id": "evidence-occupied-2",
+      "correlation_id": "evidence-occupied-2",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:03:00.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "A_B",
+        "producer_id": "fixture-a_b"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "node_id": "demo-2",
+        "model_version": "fixture-mlp-1",
+        "firmware_version": "fixture-fw-1",
+        "classification": {
+          "value": {
+            "class_label": "OCCUPIED_3P_PLUS",
+            "class_scores": {
+              "EMPTY_CORE": 0.04,
+              "THERMAL_ANOMALIES": 0.04,
+              "OCCUPIED_1P": 0.04,
+              "OCCUPIED_2P": 0.04,
+              "OCCUPIED_3P_PLUS": 0.84
+            },
+            "headcount_category": "THREE_PLUS"
+          },
+          "source": "SIMULATED",
+          "source_id": "demo-2",
+          "observed_at": "2026-10-20T08:03:00.000Z",
+          "validity": "VALID"
+        },
+        "temperature_c": {
+          "value": 25.4,
+          "source": "SIMULATED",
+          "source_id": "demo-2",
+          "observed_at": "2026-10-20T08:03:00.000Z",
+          "validity": "VALID"
+        },
+        "humidity_percent": {
+          "value": 61.5,
+          "source": "SIMULATED",
+          "source_id": "demo-2",
+          "observed_at": "2026-10-20T08:03:00.000Z",
+          "validity": "VALID"
+        }
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "NODE_EVIDENCE",
+      "event_id": "evidence-vacant-1",
+      "correlation_id": "evidence-vacant-1",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:03:00.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "A_B",
+        "producer_id": "fixture-a_b"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "node_id": "demo-1",
+        "model_version": "fixture-mlp-1",
+        "firmware_version": "fixture-fw-1",
+        "classification": {
+          "value": {
+            "class_label": "EMPTY_CORE",
+            "class_scores": {
+              "EMPTY_CORE": 0.84,
+              "THERMAL_ANOMALIES": 0.04,
+              "OCCUPIED_1P": 0.04,
+              "OCCUPIED_2P": 0.04,
+              "OCCUPIED_3P_PLUS": 0.04
+            },
+            "headcount_category": "ZERO"
+          },
+          "source": "SIMULATED",
+          "source_id": "demo-1",
+          "observed_at": "2026-10-20T08:03:00.000Z",
+          "validity": "VALID"
+        },
+        "temperature_c": {
+          "value": 25.4,
+          "source": "SIMULATED",
+          "source_id": "demo-1",
+          "observed_at": "2026-10-20T08:03:00.000Z",
+          "validity": "VALID"
+        },
+        "humidity_percent": {
+          "value": 61.5,
+          "source": "SIMULATED",
+          "source_id": "demo-1",
+          "observed_at": "2026-10-20T08:03:00.000Z",
+          "validity": "VALID"
+        }
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "NODE_EVIDENCE",
+      "event_id": "evidence-vacant-2",
+      "correlation_id": "evidence-vacant-2",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:03:00.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "A_B",
+        "producer_id": "fixture-a_b"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "node_id": "demo-2",
+        "model_version": "fixture-mlp-1",
+        "firmware_version": "fixture-fw-1",
+        "classification": {
+          "value": {
+            "class_label": "EMPTY_CORE",
+            "class_scores": {
+              "EMPTY_CORE": 0.84,
+              "THERMAL_ANOMALIES": 0.04,
+              "OCCUPIED_1P": 0.04,
+              "OCCUPIED_2P": 0.04,
+              "OCCUPIED_3P_PLUS": 0.04
+            },
+            "headcount_category": "ZERO"
+          },
+          "source": "SIMULATED",
+          "source_id": "demo-2",
+          "observed_at": "2026-10-20T08:03:00.000Z",
+          "validity": "VALID"
+        },
+        "temperature_c": {
+          "value": 25.4,
+          "source": "SIMULATED",
+          "source_id": "demo-2",
+          "observed_at": "2026-10-20T08:03:00.000Z",
+          "validity": "VALID"
+        },
+        "humidity_percent": {
+          "value": 61.5,
+          "source": "SIMULATED",
+          "source_id": "demo-2",
+          "observed_at": "2026-10-20T08:03:00.000Z",
+          "validity": "VALID"
+        }
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "NODE_EVIDENCE",
+      "event_id": "evidence-uncertain-2",
+      "correlation_id": "evidence-uncertain-2",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:03:00.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "A_B",
+        "producer_id": "fixture-a_b"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "node_id": "demo-2",
+        "model_version": "fixture-mlp-1",
+        "firmware_version": "fixture-fw-1",
+        "classification": {
+          "value": {
+            "class_label": "THERMAL_ANOMALIES",
+            "class_scores": {
+              "EMPTY_CORE": 0.04,
+              "THERMAL_ANOMALIES": 0.84,
+              "OCCUPIED_1P": 0.04,
+              "OCCUPIED_2P": 0.04,
+              "OCCUPIED_3P_PLUS": 0.04
+            },
+            "headcount_category": "UNCERTAIN"
+          },
+          "source": "SIMULATED",
+          "source_id": "demo-2",
+          "observed_at": "2026-10-20T08:03:00.000Z",
+          "validity": "VALID"
+        },
+        "temperature_c": {
+          "value": 25.4,
+          "source": "SIMULATED",
+          "source_id": "demo-2",
+          "observed_at": "2026-10-20T08:03:00.000Z",
+          "validity": "VALID"
+        },
+        "humidity_percent": {
+          "value": 61.5,
+          "source": "SIMULATED",
+          "source_id": "demo-2",
+          "observed_at": "2026-10-20T08:03:00.000Z",
+          "validity": "VALID"
+        }
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "NODE_EVIDENCE",
+      "event_id": "evidence-stale-2",
+      "correlation_id": "evidence-stale-2",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:00:00.500Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "A_B",
+        "producer_id": "fixture-a_b"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "node_id": "demo-2",
+        "model_version": "fixture-mlp-1",
+        "firmware_version": "fixture-fw-1",
+        "classification": {
+          "value": {
+            "class_label": "EMPTY_CORE",
+            "class_scores": {
+              "EMPTY_CORE": 0.84,
+              "THERMAL_ANOMALIES": 0.04,
+              "OCCUPIED_1P": 0.04,
+              "OCCUPIED_2P": 0.04,
+              "OCCUPIED_3P_PLUS": 0.04
+            },
+            "headcount_category": "ZERO"
+          },
+          "source": "SIMULATED",
+          "source_id": "demo-2",
+          "observed_at": "2026-10-20T08:00:00.500Z",
+          "validity": "VALID"
+        },
+        "temperature_c": {
+          "value": 25.4,
+          "source": "SIMULATED",
+          "source_id": "demo-2",
+          "observed_at": "2026-10-20T08:00:00.500Z",
+          "validity": "VALID"
+        },
+        "humidity_percent": {
+          "value": 61.5,
+          "source": "SIMULATED",
+          "source_id": "demo-2",
+          "observed_at": "2026-10-20T08:00:00.500Z",
+          "validity": "VALID"
+        }
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "NODE_EVIDENCE",
+      "event_id": "evidence-unavailable-temperature",
+      "correlation_id": "evidence-unavailable-temperature",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:03:00.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "A_B",
+        "producer_id": "fixture-a_b"
+      },
+      "data_sources": [
+        "SIMULATED",
+        "UNAVAILABLE"
+      ],
+      "payload": {
+        "node_id": "demo-1",
+        "model_version": "fixture-mlp-1",
+        "firmware_version": "fixture-fw-1",
+        "classification": {
+          "value": {
+            "class_label": "EMPTY_CORE",
+            "class_scores": {
+              "EMPTY_CORE": 0.84,
+              "THERMAL_ANOMALIES": 0.04,
+              "OCCUPIED_1P": 0.04,
+              "OCCUPIED_2P": 0.04,
+              "OCCUPIED_3P_PLUS": 0.04
+            },
+            "headcount_category": "ZERO"
+          },
+          "source": "SIMULATED",
+          "source_id": "demo-1",
+          "observed_at": "2026-10-20T08:03:00.000Z",
+          "validity": "VALID"
+        },
+        "temperature_c": {
+          "value": null,
+          "source": "UNAVAILABLE",
+          "source_id": null,
+          "observed_at": null,
+          "validity": "UNAVAILABLE"
+        },
+        "humidity_percent": {
+          "value": 61.5,
+          "source": "SIMULATED",
+          "source_id": "demo-1",
+          "observed_at": "2026-10-20T08:03:00.000Z",
+          "validity": "VALID"
+        }
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "ZONE_DECISION",
+      "event_id": "decision-occupied",
+      "correlation_id": "decision-occupied",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:03:01.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "C",
+        "producer_id": "fixture-c"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "config_event_id": "config-demo",
+        "occupancy": "OCCUPIED",
+        "coverage": "COMPLETE",
+        "requested_mode": "OCCUPIED",
+        "requested_output": {
+          "fan": "HIGH",
+          "setpoint_c": 24
+        },
+        "reason_code": "OCCUPIED_EVIDENCE",
+        "reason_text": "Scripted occupied evidence; review fixture only.",
+        "evaluated_at": "2026-10-20T08:03:01.000Z",
+        "vacancy_confirmed_at": null,
+        "node_states": [
+          {
+            "node_id": "demo-1",
+            "state": "FRESH",
+            "evidence_event_id": "evidence-occupied-1"
+          },
+          {
+            "node_id": "demo-2",
+            "state": "FRESH",
+            "evidence_event_id": "evidence-occupied-2"
+          }
+        ],
+        "forecast_event_id": null,
+        "override_request_id": null,
+        "command_id": "command-decision-occupied"
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "ZONE_DECISION",
+      "event_id": "decision-confirmed-vacancy",
+      "correlation_id": "decision-confirmed-vacancy",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:03:01.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "C",
+        "producer_id": "fixture-c"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "config_event_id": "config-demo",
+        "occupancy": "VACANT",
+        "coverage": "COMPLETE",
+        "requested_mode": "SHORT_VACANCY",
+        "requested_output": {
+          "fan": "MEDIUM",
+          "setpoint_c": 25
+        },
+        "reason_code": "VACANCY_CONFIRMED",
+        "reason_text": "Scripted vacancy confirmed; review fixture only.",
+        "evaluated_at": "2026-10-20T08:03:01.000Z",
+        "vacancy_confirmed_at": "2026-10-20T08:03:00.000Z",
+        "node_states": [
+          {
+            "node_id": "demo-1",
+            "state": "FRESH",
+            "evidence_event_id": "evidence-vacant-1"
+          },
+          {
+            "node_id": "demo-2",
+            "state": "FRESH",
+            "evidence_event_id": "evidence-vacant-2"
+          }
+        ],
+        "forecast_event_id": null,
+        "override_request_id": null,
+        "command_id": "command-decision-confirmed-vacancy"
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "ZONE_DECISION",
+      "event_id": "decision-short-vacancy",
+      "correlation_id": "decision-short-vacancy",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:03:01.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "C",
+        "producer_id": "fixture-c"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "config_event_id": "config-demo",
+        "occupancy": "VACANT",
+        "coverage": "COMPLETE",
+        "requested_mode": "SHORT_VACANCY",
+        "requested_output": {
+          "fan": "MEDIUM",
+          "setpoint_c": 25
+        },
+        "reason_code": "SHORT_GAP",
+        "reason_text": "Scripted short gap; review fixture only.",
+        "evaluated_at": "2026-10-20T08:03:01.000Z",
+        "vacancy_confirmed_at": "2026-10-20T08:03:00.000Z",
+        "node_states": [
+          {
+            "node_id": "demo-1",
+            "state": "FRESH",
+            "evidence_event_id": "evidence-vacant-1"
+          },
+          {
+            "node_id": "demo-2",
+            "state": "FRESH",
+            "evidence_event_id": "evidence-vacant-2"
+          }
+        ],
+        "forecast_event_id": null,
+        "override_request_id": null,
+        "command_id": "command-decision-short-vacancy"
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "ZONE_DECISION",
+      "event_id": "decision-long-vacancy",
+      "correlation_id": "decision-long-vacancy",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:03:01.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "C",
+        "producer_id": "fixture-c"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "config_event_id": "config-demo",
+        "occupancy": "VACANT",
+        "coverage": "COMPLETE",
+        "requested_mode": "LONG_VACANCY",
+        "requested_output": {
+          "fan": "LOW",
+          "setpoint_c": 27
+        },
+        "reason_code": "LONG_GAP",
+        "reason_text": "Scripted long gap; review fixture only.",
+        "evaluated_at": "2026-10-20T08:03:01.000Z",
+        "vacancy_confirmed_at": "2026-10-20T08:03:00.000Z",
+        "node_states": [
+          {
+            "node_id": "demo-1",
+            "state": "FRESH",
+            "evidence_event_id": "evidence-vacant-1"
+          },
+          {
+            "node_id": "demo-2",
+            "state": "FRESH",
+            "evidence_event_id": "evidence-vacant-2"
+          }
+        ],
+        "forecast_event_id": null,
+        "override_request_id": null,
+        "command_id": "command-decision-long-vacancy"
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "ZONE_FORECAST",
+      "event_id": "forecast-return",
+      "correlation_id": "forecast-return",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:02:00.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "D",
+        "producer_id": "fixture-d"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "status": "ACTIVE",
+        "source": "HISTORY",
+        "quality": "LOW",
+        "next_use_window": {
+          "start": "2026-10-20T08:30:00.000Z",
+          "end": "2026-10-20T08:35:00.000Z"
+        },
+        "planned_restart_at": "2026-10-20T08:03:00.000Z",
+        "expires_at": "2026-10-20T08:31:40.000Z",
+        "method_version": "scripted-history-fixture-1",
+        "cooling_model_version": "assumed-cooling-fixture-1",
+        "supersedes_event_id": null,
+        "status_reason": null
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "ZONE_DECISION",
+      "event_id": "decision-precool",
+      "correlation_id": "decision-precool",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:03:01.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "C",
+        "producer_id": "fixture-c"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "config_event_id": "config-demo",
+        "occupancy": "VACANT",
+        "coverage": "COMPLETE",
+        "requested_mode": "PRECOOL",
+        "requested_output": {
+          "fan": "HIGH",
+          "setpoint_c": 24
+        },
+        "reason_code": "FORECAST_RESTART",
+        "reason_text": "Scripted forecast restart; review fixture only.",
+        "evaluated_at": "2026-10-20T08:03:01.000Z",
+        "vacancy_confirmed_at": "2026-10-20T08:03:00.000Z",
+        "node_states": [
+          {
+            "node_id": "demo-1",
+            "state": "FRESH",
+            "evidence_event_id": "evidence-vacant-1"
+          },
+          {
+            "node_id": "demo-2",
+            "state": "FRESH",
+            "evidence_event_id": "evidence-vacant-2"
+          }
+        ],
+        "forecast_event_id": "forecast-return",
+        "override_request_id": null,
+        "command_id": "command-decision-precool"
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "ZONE_DECISION",
+      "event_id": "decision-missing-node",
+      "correlation_id": "decision-missing-node",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:03:01.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "C",
+        "producer_id": "fixture-c"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "config_event_id": "config-demo",
+        "occupancy": "UNCERTAIN",
+        "coverage": "DEGRADED",
+        "requested_mode": "OCCUPIED",
+        "requested_output": {
+          "fan": "HIGH",
+          "setpoint_c": 24
+        },
+        "reason_code": "MISSING_EVIDENCE",
+        "reason_text": "Scripted missing evidence; review fixture only.",
+        "evaluated_at": "2026-10-20T08:03:01.000Z",
+        "vacancy_confirmed_at": null,
+        "node_states": [
+          {
+            "node_id": "demo-1",
+            "state": "FRESH",
+            "evidence_event_id": "evidence-vacant-1"
+          },
+          {
+            "node_id": "demo-2",
+            "state": "MISSING",
+            "evidence_event_id": null
+          }
+        ],
+        "forecast_event_id": null,
+        "override_request_id": null,
+        "command_id": "command-decision-missing-node"
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "ZONE_DECISION",
+      "event_id": "decision-uncertain",
+      "correlation_id": "decision-uncertain",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:03:01.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "C",
+        "producer_id": "fixture-c"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "config_event_id": "config-demo",
+        "occupancy": "UNCERTAIN",
+        "coverage": "DEGRADED",
+        "requested_mode": "OCCUPIED",
+        "requested_output": {
+          "fan": "HIGH",
+          "setpoint_c": 24
+        },
+        "reason_code": "UNCERTAIN_EVIDENCE",
+        "reason_text": "Scripted uncertain evidence; review fixture only.",
+        "evaluated_at": "2026-10-20T08:03:01.000Z",
+        "vacancy_confirmed_at": null,
+        "node_states": [
+          {
+            "node_id": "demo-1",
+            "state": "FRESH",
+            "evidence_event_id": "evidence-vacant-1"
+          },
+          {
+            "node_id": "demo-2",
+            "state": "FRESH",
+            "evidence_event_id": "evidence-uncertain-2"
+          }
+        ],
+        "forecast_event_id": null,
+        "override_request_id": null,
+        "command_id": "command-decision-uncertain"
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "ZONE_DECISION",
+      "event_id": "decision-stale-node",
+      "correlation_id": "decision-stale-node",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:03:01.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "C",
+        "producer_id": "fixture-c"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "config_event_id": "config-demo",
+        "occupancy": "UNCERTAIN",
+        "coverage": "DEGRADED",
+        "requested_mode": "OCCUPIED",
+        "requested_output": {
+          "fan": "HIGH",
+          "setpoint_c": 24
+        },
+        "reason_code": "MISSING_EVIDENCE",
+        "reason_text": "Scripted missing evidence; review fixture only.",
+        "evaluated_at": "2026-10-20T08:03:01.000Z",
+        "vacancy_confirmed_at": null,
+        "node_states": [
+          {
+            "node_id": "demo-1",
+            "state": "FRESH",
+            "evidence_event_id": "evidence-vacant-1"
+          },
+          {
+            "node_id": "demo-2",
+            "state": "STALE",
+            "evidence_event_id": "evidence-stale-2"
+          }
+        ],
+        "forecast_event_id": null,
+        "override_request_id": null,
+        "command_id": "command-decision-stale-node"
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "ZONE_DECISION",
+      "event_id": "decision-unavailable-temperature",
+      "correlation_id": "decision-unavailable-temperature",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:03:01.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "C",
+        "producer_id": "fixture-c"
+      },
+      "data_sources": [
+        "SIMULATED",
+        "UNAVAILABLE"
+      ],
+      "payload": {
+        "config_event_id": "config-demo",
+        "occupancy": "VACANT",
+        "coverage": "COMPLETE",
+        "requested_mode": "SHORT_VACANCY",
+        "requested_output": {
+          "fan": "MEDIUM",
+          "setpoint_c": 25
+        },
+        "reason_code": "ENVIRONMENT_LIMIT",
+        "reason_text": "Temperature unavailable; scripted controller limits deeper setback.",
+        "evaluated_at": "2026-10-20T08:03:01.000Z",
+        "vacancy_confirmed_at": "2026-10-20T08:03:00.000Z",
+        "node_states": [
+          {
+            "node_id": "demo-1",
+            "state": "FRESH",
+            "evidence_event_id": "evidence-unavailable-temperature"
+          },
+          {
+            "node_id": "demo-2",
+            "state": "FRESH",
+            "evidence_event_id": "evidence-vacant-2"
+          }
+        ],
+        "forecast_event_id": null,
+        "override_request_id": null,
+        "command_id": "command-decision-unavailable-temperature"
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "ZONE_FORECAST",
+      "event_id": "forecast-expired",
+      "correlation_id": "forecast-expired",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:02:00.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "D",
+        "producer_id": "fixture-d"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "status": "ACTIVE",
+        "source": "HISTORY",
+        "quality": "LOW",
+        "next_use_window": {
+          "start": "2026-10-20T08:30:00.000Z",
+          "end": "2026-10-20T08:35:00.000Z"
+        },
+        "planned_restart_at": "2026-10-20T08:03:00.000Z",
+        "expires_at": "2026-10-20T08:03:00.000Z",
+        "method_version": "scripted-history-fixture-1",
+        "cooling_model_version": "assumed-cooling-fixture-1",
+        "supersedes_event_id": null,
+        "status_reason": null
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "ZONE_FORECAST",
+      "event_id": "forecast-cancelled",
+      "correlation_id": "forecast-return",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:02:50.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "D",
+        "producer_id": "fixture-d"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "status": "CANCELLED",
+        "source": "HISTORY",
+        "quality": "UNAVAILABLE",
+        "next_use_window": null,
+        "planned_restart_at": null,
+        "expires_at": "2026-10-20T08:31:40.000Z",
+        "method_version": "scripted-history-fixture-1",
+        "cooling_model_version": "assumed-cooling-fixture-1",
+        "supersedes_event_id": "forecast-return",
+        "status_reason": "Scripted booking cancellation; no actual prediction."
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "APPLIED_OUTPUT",
+      "event_id": "output-normal-applied",
+      "correlation_id": "decision-occupied",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:03:02.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "B",
+        "producer_id": "fixture-b"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "command_id": "command-decision-occupied",
+        "decision_event_id": "decision-occupied",
+        "actuator_id": "fan-demo",
+        "status": "APPLIED",
+        "reported_output": {
+          "fan": "HIGH",
+          "setpoint_c": 24
+        },
+        "feedback_basis": "SIMULATED",
+        "reason": null
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "APPLIED_OUTPUT",
+      "event_id": "output-command-accepted",
+      "correlation_id": "decision-short-vacancy",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:03:02.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "B",
+        "producer_id": "fixture-b"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "command_id": "command-decision-short-vacancy",
+        "decision_event_id": "decision-short-vacancy",
+        "actuator_id": "fan-demo",
+        "status": "ACCEPTED",
+        "reported_output": null,
+        "feedback_basis": "SIMULATED",
+        "reason": null
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "APPLIED_OUTPUT",
+      "event_id": "output-command-rejected",
+      "correlation_id": "decision-short-vacancy",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:03:03.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "B",
+        "producer_id": "fixture-b"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "command_id": "command-decision-short-vacancy",
+        "decision_event_id": "decision-short-vacancy",
+        "actuator_id": "fan-demo",
+        "status": "REJECTED",
+        "reported_output": null,
+        "feedback_basis": "SIMULATED",
+        "reason": "Scripted actuator rejects an unsupported setting."
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "APPLIED_OUTPUT",
+      "event_id": "output-command-failed",
+      "correlation_id": "decision-short-vacancy",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:03:03.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "B",
+        "producer_id": "fixture-b"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "command_id": "command-decision-short-vacancy",
+        "decision_event_id": "decision-short-vacancy",
+        "actuator_id": "fan-demo",
+        "status": "FAILED",
+        "reported_output": null,
+        "feedback_basis": "SIMULATED",
+        "reason": "Scripted actuator write failed; previous output must not be assumed changed."
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "OVERRIDE_REQUEST",
+      "event_id": "override-request",
+      "correlation_id": "trace-override",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:03:02.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "E",
+        "producer_id": "fixture-e"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "request_id": "request-occupied",
+        "valid_until": "2026-10-20T08:03:12.000Z",
+        "reason": "Simulated operator review request.",
+        "action": "SET_OVERRIDE",
+        "requested_mode": "OCCUPIED",
+        "requested_setpoint_c": 24,
+        "override_expires_at": "2026-10-20T08:13:02.000Z"
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "OVERRIDE_STATUS",
+      "event_id": "override-pending",
+      "correlation_id": "trace-override",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:03:03.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "E",
+        "producer_id": "fixture-e"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "request_id": "request-occupied",
+        "status": "PENDING",
+        "reason": "Scripted override pending.",
+        "decision_event_id": null,
+        "applied_output_event_id": null,
+        "effective_until": null
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "OVERRIDE_STATUS",
+      "event_id": "override-accepted",
+      "correlation_id": "trace-override",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:03:04.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "C",
+        "producer_id": "fixture-c"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "request_id": "request-occupied",
+        "status": "ACCEPTED",
+        "reason": "Scripted override accepted.",
+        "decision_event_id": null,
+        "applied_output_event_id": null,
+        "effective_until": "2026-10-20T08:13:02.000Z"
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "ZONE_DECISION",
+      "event_id": "decision-override",
+      "correlation_id": "trace-override",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:03:05.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "C",
+        "producer_id": "fixture-c"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "config_event_id": "config-demo",
+        "occupancy": "VACANT",
+        "coverage": "COMPLETE",
+        "requested_mode": "OCCUPIED",
+        "requested_output": {
+          "fan": "HIGH",
+          "setpoint_c": 24
+        },
+        "reason_code": "MANUAL_OVERRIDE",
+        "reason_text": "Scripted manual override; review fixture only.",
+        "evaluated_at": "2026-10-20T08:03:05.000Z",
+        "vacancy_confirmed_at": "2026-10-20T08:03:00.000Z",
+        "node_states": [
+          {
+            "node_id": "demo-1",
+            "state": "FRESH",
+            "evidence_event_id": "evidence-vacant-1"
+          },
+          {
+            "node_id": "demo-2",
+            "state": "FRESH",
+            "evidence_event_id": "evidence-vacant-2"
+          }
+        ],
+        "forecast_event_id": null,
+        "override_request_id": "request-occupied",
+        "command_id": "command-decision-override"
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "APPLIED_OUTPUT",
+      "event_id": "output-override-accepted",
+      "correlation_id": "trace-override",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:03:06.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "B",
+        "producer_id": "fixture-b"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "command_id": "command-decision-override",
+        "decision_event_id": "decision-override",
+        "actuator_id": "fan-demo",
+        "status": "ACCEPTED",
+        "reported_output": null,
+        "feedback_basis": "SIMULATED",
+        "reason": null
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "APPLIED_OUTPUT",
+      "event_id": "output-override-applied",
+      "correlation_id": "trace-override",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:03:07.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "B",
+        "producer_id": "fixture-b"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "command_id": "command-decision-override",
+        "decision_event_id": "decision-override",
+        "actuator_id": "fan-demo",
+        "status": "APPLIED",
+        "reported_output": {
+          "fan": "HIGH",
+          "setpoint_c": 24
+        },
+        "feedback_basis": "SIMULATED",
+        "reason": null
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "OVERRIDE_STATUS",
+      "event_id": "override-applied",
+      "correlation_id": "trace-override",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:03:08.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "C",
+        "producer_id": "fixture-c"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "request_id": "request-occupied",
+        "status": "APPLIED",
+        "reason": "Scripted override applied.",
+        "decision_event_id": "decision-override",
+        "applied_output_event_id": "output-override-applied",
+        "effective_until": "2026-10-20T08:13:02.000Z"
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "OVERRIDE_STATUS",
+      "event_id": "override-expired",
+      "correlation_id": "trace-override",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:13:02.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "C",
+        "producer_id": "fixture-c"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "request_id": "request-occupied",
+        "status": "EXPIRED",
+        "reason": "Controller timer expired; automatic operation resumes.",
+        "decision_event_id": "decision-override",
+        "applied_output_event_id": "output-override-applied",
+        "effective_until": "2026-10-20T08:13:02.000Z"
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "ZONE_DECISION",
+      "event_id": "decision-after-expiry",
+      "correlation_id": "trace-override",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:13:02.001Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "C",
+        "producer_id": "fixture-c"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "config_event_id": "config-demo",
+        "occupancy": "UNCERTAIN",
+        "coverage": "DEGRADED",
+        "requested_mode": "OCCUPIED",
+        "requested_output": {
+          "fan": "HIGH",
+          "setpoint_c": 24
+        },
+        "reason_code": "OVERRIDE_EXPIRED",
+        "reason_text": "Override expired; scripted conservative automatic fallback because evidence is disconnected.",
+        "evaluated_at": "2026-10-20T08:13:02.001Z",
+        "vacancy_confirmed_at": null,
+        "node_states": [
+          {
+            "node_id": "demo-1",
+            "state": "DISCONNECTED",
+            "evidence_event_id": "evidence-vacant-1"
+          },
+          {
+            "node_id": "demo-2",
+            "state": "DISCONNECTED",
+            "evidence_event_id": "evidence-vacant-2"
+          }
+        ],
+        "forecast_event_id": null,
+        "override_request_id": null,
+        "command_id": "command-decision-after-expiry"
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "APPLIED_OUTPUT",
+      "event_id": "output-after-expiry",
+      "correlation_id": "trace-override",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:13:02.002Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "B",
+        "producer_id": "fixture-b"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "command_id": "command-decision-after-expiry",
+        "decision_event_id": "decision-after-expiry",
+        "actuator_id": "fan-demo",
+        "status": "APPLIED",
+        "reported_output": {
+          "fan": "HIGH",
+          "setpoint_c": 24
+        },
+        "feedback_basis": "SIMULATED",
+        "reason": null
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "OVERRIDE_STATUS",
+      "event_id": "override-rejected",
+      "correlation_id": "trace-override",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:03:04.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "C",
+        "producer_id": "fixture-c"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "request_id": "request-occupied",
+        "status": "REJECTED",
+        "reason": "Scripted controller rejects override during equipment fault.",
+        "decision_event_id": null,
+        "applied_output_event_id": null,
+        "effective_until": null
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "APPLIED_OUTPUT",
+      "event_id": "output-override-failed",
+      "correlation_id": "trace-override",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:03:07.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "B",
+        "producer_id": "fixture-b"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "command_id": "command-decision-override",
+        "decision_event_id": "decision-override",
+        "actuator_id": "fan-demo",
+        "status": "FAILED",
+        "reported_output": null,
+        "feedback_basis": "SIMULATED",
+        "reason": "Simulated actuator failure."
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "OVERRIDE_STATUS",
+      "event_id": "override-failed",
+      "correlation_id": "trace-override",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:03:08.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "C",
+        "producer_id": "fixture-c"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "request_id": "request-occupied",
+        "status": "FAILED",
+        "reason": "Scripted override failed.",
+        "decision_event_id": "decision-override",
+        "applied_output_event_id": "output-override-failed",
+        "effective_until": null
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "OVERRIDE_REQUEST",
+      "event_id": "return-request",
+      "correlation_id": "trace-override",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:03:20.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "E",
+        "producer_id": "fixture-e"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "request_id": "request-return",
+        "valid_until": "2026-10-20T08:03:30.000Z",
+        "reason": "Simulated Return to Automatic.",
+        "action": "RETURN_TO_AUTOMATIC",
+        "target_request_id": "request-occupied"
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "OVERRIDE_STATUS",
+      "event_id": "return-accepted",
+      "correlation_id": "trace-override",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:03:21.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "C",
+        "producer_id": "fixture-c"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "request_id": "request-return",
+        "status": "ACCEPTED",
+        "reason": "Scripted override accepted.",
+        "decision_event_id": null,
+        "applied_output_event_id": null,
+        "effective_until": null
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "ZONE_DECISION",
+      "event_id": "decision-return-automatic",
+      "correlation_id": "trace-override",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:03:22.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "C",
+        "producer_id": "fixture-c"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "config_event_id": "config-demo",
+        "occupancy": "VACANT",
+        "coverage": "COMPLETE",
+        "requested_mode": "SHORT_VACANCY",
+        "requested_output": {
+          "fan": "MEDIUM",
+          "setpoint_c": 25
+        },
+        "reason_code": "RETURN_TO_AUTOMATIC",
+        "reason_text": "Scripted return to automatic; review fixture only.",
+        "evaluated_at": "2026-10-20T08:03:22.000Z",
+        "vacancy_confirmed_at": "2026-10-20T08:03:00.000Z",
+        "node_states": [
+          {
+            "node_id": "demo-1",
+            "state": "FRESH",
+            "evidence_event_id": "evidence-vacant-1"
+          },
+          {
+            "node_id": "demo-2",
+            "state": "FRESH",
+            "evidence_event_id": "evidence-vacant-2"
+          }
+        ],
+        "forecast_event_id": null,
+        "override_request_id": "request-return",
+        "command_id": "command-decision-return-automatic"
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "APPLIED_OUTPUT",
+      "event_id": "output-return-applied",
+      "correlation_id": "trace-override",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:03:23.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "B",
+        "producer_id": "fixture-b"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "command_id": "command-decision-return-automatic",
+        "decision_event_id": "decision-return-automatic",
+        "actuator_id": "fan-demo",
+        "status": "APPLIED",
+        "reported_output": {
+          "fan": "MEDIUM",
+          "setpoint_c": 25
+        },
+        "feedback_basis": "SIMULATED",
+        "reason": null
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "OVERRIDE_STATUS",
+      "event_id": "return-applied",
+      "correlation_id": "trace-override",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:03:24.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "C",
+        "producer_id": "fixture-c"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "request_id": "request-return",
+        "status": "APPLIED",
+        "reason": "Scripted override applied.",
+        "decision_event_id": "decision-return-automatic",
+        "applied_output_event_id": "output-return-applied",
+        "effective_until": null
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "OVERRIDE_STATUS",
+      "event_id": "override-cancelled",
+      "correlation_id": "trace-override",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:03:25.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "C",
+        "producer_id": "fixture-c"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "request_id": "request-occupied",
+        "status": "CANCELLED",
+        "reason": "Original override ended after Return to Automatic was applied.",
+        "decision_event_id": "decision-return-automatic",
+        "applied_output_event_id": "output-return-applied",
+        "effective_until": null
+      }
+    },
+    {
+      "schema_version": "sdp.v1-draft.1",
+      "event_type": "ZONE_FORECAST",
+      "event_id": "forecast-unavailable",
+      "correlation_id": "forecast-unavailable",
+      "session_id": "sdp-fixture-session",
+      "room_id": "room-demo",
+      "zone_id": "zone-demo",
+      "occurred_at": "2026-10-20T08:02:00.000Z",
+      "clock": {
+        "time_base": "REPLAY",
+        "replay_id": "sdp-review-replay"
+      },
+      "producer": {
+        "component": "D",
+        "producer_id": "fixture-d"
+      },
+      "data_sources": [
+        "SIMULATED"
+      ],
+      "payload": {
+        "status": "UNAVAILABLE",
+        "source": "NONE",
+        "quality": "UNAVAILABLE",
+        "next_use_window": null,
+        "planned_restart_at": null,
+        "expires_at": "2026-10-20T08:31:40.000Z",
+        "method_version": "scripted-history-fixture-1",
+        "cooling_model_version": null,
+        "supersedes_event_id": null,
+        "status_reason": "Simulated sparse history; no supported forecast."
+      }
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "normal-occupied",
+      "label": "Normal occupied zone",
+      "query": {
+        "session_id": "sdp-fixture-session",
+        "zone_id": "zone-demo",
+        "clock": {
+          "time_base": "REPLAY",
+          "replay_id": "sdp-review-replay"
+        },
+        "as_of": "2026-10-20T08:03:04.000Z"
+      },
+      "event_ids": [
+        "config-demo",
+        "evidence-occupied-1",
+        "evidence-occupied-2",
+        "decision-occupied",
+        "output-normal-applied"
+      ]
+    },
+    {
+      "id": "confirmed-vacancy",
+      "label": "Controller-confirmed vacancy",
+      "query": {
+        "session_id": "sdp-fixture-session",
+        "zone_id": "zone-demo",
+        "clock": {
+          "time_base": "REPLAY",
+          "replay_id": "sdp-review-replay"
+        },
+        "as_of": "2026-10-20T08:03:04.000Z"
+      },
+      "event_ids": [
+        "config-demo",
+        "evidence-vacant-1",
+        "evidence-vacant-2",
+        "decision-confirmed-vacancy"
+      ]
+    },
+    {
+      "id": "short-vacancy",
+      "label": "Short vacancy",
+      "query": {
+        "session_id": "sdp-fixture-session",
+        "zone_id": "zone-demo",
+        "clock": {
+          "time_base": "REPLAY",
+          "replay_id": "sdp-review-replay"
+        },
+        "as_of": "2026-10-20T08:03:04.000Z"
+      },
+      "event_ids": [
+        "config-demo",
+        "evidence-vacant-1",
+        "evidence-vacant-2",
+        "decision-short-vacancy"
+      ]
+    },
+    {
+      "id": "long-vacancy",
+      "label": "Long vacancy",
+      "query": {
+        "session_id": "sdp-fixture-session",
+        "zone_id": "zone-demo",
+        "clock": {
+          "time_base": "REPLAY",
+          "replay_id": "sdp-review-replay"
+        },
+        "as_of": "2026-10-20T08:03:04.000Z"
+      },
+      "event_ids": [
+        "config-demo",
+        "evidence-vacant-1",
+        "evidence-vacant-2",
+        "decision-long-vacancy"
+      ]
+    },
+    {
+      "id": "precool",
+      "label": "Pre-cooling before predicted return",
+      "query": {
+        "session_id": "sdp-fixture-session",
+        "zone_id": "zone-demo",
+        "clock": {
+          "time_base": "REPLAY",
+          "replay_id": "sdp-review-replay"
+        },
+        "as_of": "2026-10-20T08:03:04.000Z"
+      },
+      "event_ids": [
+        "config-demo",
+        "evidence-vacant-1",
+        "evidence-vacant-2",
+        "forecast-return",
+        "decision-precool"
+      ]
+    },
+    {
+      "id": "missing-node",
+      "label": "Required demo-2 missing",
+      "query": {
+        "session_id": "sdp-fixture-session",
+        "zone_id": "zone-demo",
+        "clock": {
+          "time_base": "REPLAY",
+          "replay_id": "sdp-review-replay"
+        },
+        "as_of": "2026-10-20T08:03:04.000Z"
+      },
+      "event_ids": [
+        "config-demo",
+        "evidence-vacant-1",
+        "decision-missing-node"
+      ]
+    },
+    {
+      "id": "stale-node",
+      "label": "Required demo-2 stale",
+      "query": {
+        "session_id": "sdp-fixture-session",
+        "zone_id": "zone-demo",
+        "clock": {
+          "time_base": "REPLAY",
+          "replay_id": "sdp-review-replay"
+        },
+        "as_of": "2026-10-20T08:03:04.000Z"
+      },
+      "event_ids": [
+        "config-demo",
+        "evidence-vacant-1",
+        "evidence-stale-2",
+        "decision-stale-node"
+      ]
+    },
+    {
+      "id": "uncertain-occupancy",
+      "label": "Thermal evidence uncertain",
+      "query": {
+        "session_id": "sdp-fixture-session",
+        "zone_id": "zone-demo",
+        "clock": {
+          "time_base": "REPLAY",
+          "replay_id": "sdp-review-replay"
+        },
+        "as_of": "2026-10-20T08:03:04.000Z"
+      },
+      "event_ids": [
+        "config-demo",
+        "evidence-vacant-1",
+        "evidence-uncertain-2",
+        "decision-uncertain"
+      ]
+    },
+    {
+      "id": "unavailable-environment",
+      "label": "Temperature unavailable",
+      "query": {
+        "session_id": "sdp-fixture-session",
+        "zone_id": "zone-demo",
+        "clock": {
+          "time_base": "REPLAY",
+          "replay_id": "sdp-review-replay"
+        },
+        "as_of": "2026-10-20T08:03:04.000Z"
+      },
+      "event_ids": [
+        "config-demo",
+        "evidence-unavailable-temperature",
+        "evidence-vacant-2",
+        "decision-unavailable-temperature"
+      ]
+    },
+    {
+      "id": "expired-forecast",
+      "label": "Expired forecast; controller fallback",
+      "query": {
+        "session_id": "sdp-fixture-session",
+        "zone_id": "zone-demo",
+        "clock": {
+          "time_base": "REPLAY",
+          "replay_id": "sdp-review-replay"
+        },
+        "as_of": "2026-10-20T08:03:04.000Z"
+      },
+      "event_ids": [
+        "config-demo",
+        "evidence-vacant-1",
+        "evidence-vacant-2",
+        "forecast-expired",
+        "decision-short-vacancy"
+      ]
+    },
+    {
+      "id": "cancelled-forecast",
+      "label": "Cancelled forecast; no active plan",
+      "query": {
+        "session_id": "sdp-fixture-session",
+        "zone_id": "zone-demo",
+        "clock": {
+          "time_base": "REPLAY",
+          "replay_id": "sdp-review-replay"
+        },
+        "as_of": "2026-10-20T08:03:04.000Z"
+      },
+      "event_ids": [
+        "config-demo",
+        "evidence-vacant-1",
+        "evidence-vacant-2",
+        "forecast-return",
+        "forecast-cancelled",
+        "decision-short-vacancy"
+      ]
+    },
+    {
+      "id": "override-pending",
+      "label": "Override submitted; no controller acceptance",
+      "query": {
+        "session_id": "sdp-fixture-session",
+        "zone_id": "zone-demo",
+        "clock": {
+          "time_base": "REPLAY",
+          "replay_id": "sdp-review-replay"
+        },
+        "as_of": "2026-10-20T08:03:03.000Z"
+      },
+      "event_ids": [
+        "config-demo",
+        "evidence-vacant-1",
+        "evidence-vacant-2",
+        "decision-long-vacancy",
+        "override-request",
+        "override-pending"
+      ]
+    },
+    {
+      "id": "override-accepted",
+      "label": "Override accepted; no applied output yet",
+      "query": {
+        "session_id": "sdp-fixture-session",
+        "zone_id": "zone-demo",
+        "clock": {
+          "time_base": "REPLAY",
+          "replay_id": "sdp-review-replay"
+        },
+        "as_of": "2026-10-20T08:03:04.000Z"
+      },
+      "event_ids": [
+        "config-demo",
+        "evidence-vacant-1",
+        "evidence-vacant-2",
+        "decision-long-vacancy",
+        "override-request",
+        "override-pending",
+        "override-accepted"
+      ]
+    },
+    {
+      "id": "override-applied",
+      "label": "Override applied after device report",
+      "query": {
+        "session_id": "sdp-fixture-session",
+        "zone_id": "zone-demo",
+        "clock": {
+          "time_base": "REPLAY",
+          "replay_id": "sdp-review-replay"
+        },
+        "as_of": "2026-10-20T08:03:08.000Z"
+      },
+      "event_ids": [
+        "config-demo",
+        "evidence-vacant-1",
+        "evidence-vacant-2",
+        "decision-long-vacancy",
+        "override-request",
+        "override-pending",
+        "override-accepted",
+        "decision-override",
+        "output-override-accepted",
+        "output-override-applied",
+        "override-applied"
+      ]
+    },
+    {
+      "id": "override-expired",
+      "label": "Override expired; automatic decision applied",
+      "query": {
+        "session_id": "sdp-fixture-session",
+        "zone_id": "zone-demo",
+        "clock": {
+          "time_base": "REPLAY",
+          "replay_id": "sdp-review-replay"
+        },
+        "as_of": "2026-10-20T08:13:03.000Z"
+      },
+      "event_ids": [
+        "config-demo",
+        "evidence-vacant-1",
+        "evidence-vacant-2",
+        "decision-long-vacancy",
+        "override-request",
+        "override-pending",
+        "override-accepted",
+        "decision-override",
+        "output-override-accepted",
+        "output-override-applied",
+        "override-applied",
+        "override-expired",
+        "decision-after-expiry",
+        "output-after-expiry"
+      ]
+    },
+    {
+      "id": "override-rejected",
+      "label": "Controller rejects override",
+      "query": {
+        "session_id": "sdp-fixture-session",
+        "zone_id": "zone-demo",
+        "clock": {
+          "time_base": "REPLAY",
+          "replay_id": "sdp-review-replay"
+        },
+        "as_of": "2026-10-20T08:03:04.000Z"
+      },
+      "event_ids": [
+        "config-demo",
+        "evidence-vacant-1",
+        "evidence-vacant-2",
+        "decision-long-vacancy",
+        "override-request",
+        "override-pending",
+        "override-rejected"
+      ]
+    },
+    {
+      "id": "override-failed",
+      "label": "Accepted override fails at actuator",
+      "query": {
+        "session_id": "sdp-fixture-session",
+        "zone_id": "zone-demo",
+        "clock": {
+          "time_base": "REPLAY",
+          "replay_id": "sdp-review-replay"
+        },
+        "as_of": "2026-10-20T08:03:08.000Z"
+      },
+      "event_ids": [
+        "config-demo",
+        "evidence-vacant-1",
+        "evidence-vacant-2",
+        "decision-long-vacancy",
+        "override-request",
+        "override-pending",
+        "override-accepted",
+        "decision-override",
+        "output-override-accepted",
+        "output-override-failed",
+        "override-failed"
+      ]
+    },
+    {
+      "id": "return-to-automatic",
+      "label": "Return to Automatic acknowledged and applied",
+      "query": {
+        "session_id": "sdp-fixture-session",
+        "zone_id": "zone-demo",
+        "clock": {
+          "time_base": "REPLAY",
+          "replay_id": "sdp-review-replay"
+        },
+        "as_of": "2026-10-20T08:03:26.000Z"
+      },
+      "event_ids": [
+        "config-demo",
+        "evidence-vacant-1",
+        "evidence-vacant-2",
+        "decision-long-vacancy",
+        "override-request",
+        "override-pending",
+        "override-accepted",
+        "decision-override",
+        "output-override-accepted",
+        "output-override-applied",
+        "override-applied",
+        "return-request",
+        "return-accepted",
+        "decision-return-automatic",
+        "output-return-applied",
+        "return-applied",
+        "override-cancelled"
+      ]
+    },
+    {
+      "id": "command-accepted",
+      "label": "Device accepted command; not yet applied",
+      "query": {
+        "session_id": "sdp-fixture-session",
+        "zone_id": "zone-demo",
+        "clock": {
+          "time_base": "REPLAY",
+          "replay_id": "sdp-review-replay"
+        },
+        "as_of": "2026-10-20T08:03:04.000Z"
+      },
+      "event_ids": [
+        "config-demo",
+        "evidence-vacant-1",
+        "evidence-vacant-2",
+        "decision-short-vacancy",
+        "output-command-accepted"
+      ]
+    },
+    {
+      "id": "command-rejected",
+      "label": "Device rejected command",
+      "query": {
+        "session_id": "sdp-fixture-session",
+        "zone_id": "zone-demo",
+        "clock": {
+          "time_base": "REPLAY",
+          "replay_id": "sdp-review-replay"
+        },
+        "as_of": "2026-10-20T08:03:04.000Z"
+      },
+      "event_ids": [
+        "config-demo",
+        "evidence-vacant-1",
+        "evidence-vacant-2",
+        "decision-short-vacancy",
+        "output-command-rejected"
+      ]
+    },
+    {
+      "id": "command-failed",
+      "label": "Device failed to apply command",
+      "query": {
+        "session_id": "sdp-fixture-session",
+        "zone_id": "zone-demo",
+        "clock": {
+          "time_base": "REPLAY",
+          "replay_id": "sdp-review-replay"
+        },
+        "as_of": "2026-10-20T08:03:04.000Z"
+      },
+      "event_ids": [
+        "config-demo",
+        "evidence-vacant-1",
+        "evidence-vacant-2",
+        "decision-short-vacancy",
+        "output-command-failed"
+      ]
+    },
+    {
+      "id": "unavailable-forecast",
+      "label": "Forecast unavailable because history is sparse",
+      "query": {
+        "session_id": "sdp-fixture-session",
+        "zone_id": "zone-demo",
+        "clock": {
+          "time_base": "REPLAY",
+          "replay_id": "sdp-review-replay"
+        },
+        "as_of": "2026-10-20T08:03:04.000Z"
+      },
+      "event_ids": [
+        "config-demo",
+        "evidence-vacant-1",
+        "evidence-vacant-2",
+        "forecast-unavailable",
+        "decision-short-vacancy"
+      ]
+    }
+  ]
+}

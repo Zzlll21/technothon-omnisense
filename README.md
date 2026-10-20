@@ -37,6 +37,10 @@ docs/demo-checklist.md          Rehearsal and presentation checklist
 docs/mqtt-contract.md           MQTT topic and JSON payload contract
 ```
 
+## SDP Integration Draft
+
+The proposed SDP interfaces, simulated scenarios and opt-in dashboard data adapter are documented in [SDP Integration Contract v1 Draft](docs/sdp-contract-v1.md). Shared types and validation live in `packages/sdp-contract`. This is a review draft; it does not change the working Technothon pipeline or finalize new MQTT topics.
+
 ## Fresh Clone Setup
 
 Install dependencies in each runnable workspace:

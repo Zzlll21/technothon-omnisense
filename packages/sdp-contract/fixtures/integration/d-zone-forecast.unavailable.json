@@ -1,0 +1,33 @@
+{
+  "schema_version": "sdp.v1-draft.1",
+  "event_type": "ZONE_FORECAST",
+  "event_id": "forecast-unavailable",
+  "correlation_id": "forecast-unavailable",
+  "session_id": "sdp-fixture-session",
+  "room_id": "room-demo",
+  "zone_id": "zone-demo",
+  "occurred_at": "2026-10-20T08:02:00.000Z",
+  "clock": {
+    "time_base": "REPLAY",
+    "replay_id": "sdp-review-replay"
+  },
+  "producer": {
+    "component": "D",
+    "producer_id": "fixture-d"
+  },
+  "data_sources": [
+    "SIMULATED"
+  ],
+  "payload": {
+    "status": "UNAVAILABLE",
+    "source": "NONE",
+    "quality": "UNAVAILABLE",
+    "next_use_window": null,
+    "planned_restart_at": null,
+    "expires_at": "2026-10-20T08:31:40.000Z",
+    "method_version": "scripted-history-fixture-1",
+    "cooling_model_version": null,
+    "supersedes_event_id": null,
+    "status_reason": "Simulated sparse history; no supported forecast."
+  }
+}

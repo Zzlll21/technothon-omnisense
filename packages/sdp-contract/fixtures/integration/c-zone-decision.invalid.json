@@ -1,0 +1,49 @@
+{
+  "schema_version": "sdp.v1-draft.1",
+  "event_type": "ZONE_DECISION",
+  "event_id": "decision-occupied",
+  "correlation_id": "decision-occupied",
+  "session_id": "sdp-fixture-session",
+  "room_id": "room-demo",
+  "zone_id": "zone-demo",
+  "occurred_at": "2026-10-20T08:03:01.000Z",
+  "clock": {
+    "time_base": "REPLAY",
+    "replay_id": "sdp-review-replay"
+  },
+  "producer": {
+    "component": "C",
+    "producer_id": "fixture-c"
+  },
+  "data_sources": [
+    "SIMULATED"
+  ],
+  "payload": {
+    "config_event_id": "config-demo",
+    "coverage": "COMPLETE",
+    "requested_mode": "eco",
+    "requested_output": {
+      "fan": "HIGH",
+      "setpoint_c": 24
+    },
+    "reason_code": "OCCUPIED_EVIDENCE",
+    "reason_text": "Scripted occupied evidence; review fixture only.",
+    "evaluated_at": "2026-10-20T08:03:01.000Z",
+    "vacancy_confirmed_at": null,
+    "node_states": [
+      {
+        "node_id": "demo-1",
+        "state": "FRESH",
+        "evidence_event_id": "evidence-occupied-1"
+      },
+      {
+        "node_id": "demo-2",
+        "state": "FRESH",
+        "evidence_event_id": "evidence-occupied-2"
+      }
+    ],
+    "forecast_event_id": null,
+    "override_request_id": null,
+    "command_id": "command-decision-occupied"
+  }
+}

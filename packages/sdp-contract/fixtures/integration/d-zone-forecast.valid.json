@@ -1,0 +1,36 @@
+{
+  "schema_version": "sdp.v1-draft.1",
+  "event_type": "ZONE_FORECAST",
+  "event_id": "forecast-return",
+  "correlation_id": "forecast-return",
+  "session_id": "sdp-fixture-session",
+  "room_id": "room-demo",
+  "zone_id": "zone-demo",
+  "occurred_at": "2026-10-20T08:02:00.000Z",
+  "clock": {
+    "time_base": "REPLAY",
+    "replay_id": "sdp-review-replay"
+  },
+  "producer": {
+    "component": "D",
+    "producer_id": "fixture-d"
+  },
+  "data_sources": [
+    "SIMULATED"
+  ],
+  "payload": {
+    "status": "ACTIVE",
+    "source": "HISTORY",
+    "quality": "LOW",
+    "next_use_window": {
+      "start": "2026-10-20T08:30:00.000Z",
+      "end": "2026-10-20T08:35:00.000Z"
+    },
+    "planned_restart_at": "2026-10-20T08:03:00.000Z",
+    "expires_at": "2026-10-20T08:31:40.000Z",
+    "method_version": "scripted-history-fixture-1",
+    "cooling_model_version": "assumed-cooling-fixture-1",
+    "supersedes_event_id": null,
+    "status_reason": null
+  }
+}

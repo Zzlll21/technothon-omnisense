@@ -8,7 +8,9 @@
     "dev": "vite --host 127.0.0.1",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host 127.0.0.1",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:records": "node --test test/records.test.mjs",
+    "test:overrides": "npm --prefix ../../packages/sdp-contract run build && node --test test/overrides.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",
