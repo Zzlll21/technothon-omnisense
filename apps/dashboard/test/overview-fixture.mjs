@@ -36,7 +36,12 @@ export function overviewFixture(anchor = '2026-10-21T04:50:00.000Z', history = f
   };
 }
 export function selectRows(rows, filters, orders, limit = Infinity) {
-  const result = rows.filter(row => filters.every(([method, field, value]) => method === 'eq' ? row[field] === value : method === 'neq' ? row[field] !== value : method === 'lte' ? row[field] <= value : method === 'lt' ? row[field] < value : method === 'gte' ? row[field] >= value : method === 'gt' ? row[field] > value : value.includes(row[field])));
+  const fieldValue=(row,field)=>field.split(/->>?/).reduce((v,key)=>v?.[key],row);
+  const like=(raw,pattern)=>{
+    let regex='';for(let i=0;i<pattern.length;i++){let c=pattern[i];if(c==='\\'&&i+1<pattern.length)c=pattern[++i];else if(c==='%'){regex+='.*';continue;}else if(c==='_'){regex+='.';continue;}regex+=c.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
+    return raw!=null&&new RegExp(`^${regex}$`,'is').test(typeof raw==='object'?JSON.stringify(raw):String(raw));
+  };
+  const result = rows.filter(row => filters.every(([method, field, value]) => {const actual=fieldValue(row,field);return method === 'eq' ? actual === value : method === 'neq' ? actual !== value : method === 'lte' ? actual <= value : method === 'lt' ? actual < value : method === 'gte' ? actual >= value : method === 'gt' ? actual > value : method === 'ilike' ? like(actual,value) : value.includes(actual);}));
   result.sort((a, b) => {
     for (const [field, ascending] of orders) {
       const comparison = a[field] < b[field] ? -1 : a[field] > b[field] ? 1 : 0;
@@ -51,7 +56,7 @@ export function fakeClient(tables, intercept) {
   return { queries, from(table) {
     const query = { table, filters: [], orders: [], limit: Infinity };
     const chain = {
-      select(columns) { query.columns = columns; return chain; },
+      select(columns, options) { query.columns = columns; query.count = options?.count; return chain; },
       eq(field, value) { query.filters.push(['eq', field, value]); return chain; },
       neq(field, value) { query.filters.push(['neq', field, value]); return chain; },
       lte(field, value) { query.filters.push(['lte', field, value]); return chain; },
@@ -59,13 +64,15 @@ export function fakeClient(tables, intercept) {
       gte(field, value) { query.filters.push(['gte', field, value]); return chain; },
       gt(field, value) { query.filters.push(['gt', field, value]); return chain; },
       in(field, value) { query.filters.push(['in', field, value]); return chain; },
+      ilike(field, value) { query.filters.push(['ilike', field, value]); return chain; },
       order(field, options = {}) { query.orders.push([field, options.ascending !== false]); return chain; },
       limit(value) { query.limit = value; return chain; },
       range(start, end) { query.offset = start; query.limit = end - start + 1; return chain; },
       abortSignal(signal) { query.signal = signal; return chain; },
       then(resolve, reject) { queries.push(query); return Promise.resolve().then(() => {
         if (query.signal?.aborted) throw new Error('Aborted');
-        return intercept?.(query, queries) ?? { data: selectRows(tables[table] ?? [], query.filters, query.orders).slice(query.offset ?? 0, (query.offset ?? 0) + query.limit), error: null };
+        const selected=selectRows(tables[table] ?? [],query.filters,query.orders);
+        return intercept?.(query, queries) ?? { data: selected.slice(query.offset ?? 0, (query.offset ?? 0) + query.limit), count: query.count ? selected.length : undefined, error: null };
       }).then(resolve, reject); }
     };
     return chain;

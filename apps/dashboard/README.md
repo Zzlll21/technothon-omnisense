@@ -1,6 +1,6 @@
 # OmniSense SDP Dashboard
 
-Phase 5A: Overview, Room & Nodes, Predictive Cooling and AC Utilization. This frontend reads only the
+Phase 5B: Overview, Room & Nodes, Predictive Cooling, AC Utilization and Operating Records. This frontend reads only the
 dedicated SDP database. There is no MQTT connection, Control API dependency,
 command sending, scenario selector or legacy `sensor_readings` query.
 
@@ -79,9 +79,9 @@ policies or privileged frontend credentials.
 
 ## Product navigation
 
-Overview, Room & Nodes, Predictive Cooling and AC Utilization are implemented.
-Operating Records has a navigable, explicit next-phase state. Its search/export
-workflow remains future work. Legacy UI modules
+All five product destinations are implemented with read-only SDP data access.
+Operating Records provides server-filtered browsing, exact linked details and CSV
+export. Legacy UI modules
 and APIs are removed on this branch; protected branches are not modified.
 Pure record/export and override-contract utilities/tests remain reusable but are
 not part of the running interface and cannot send commands.
@@ -234,6 +234,95 @@ follow the other monitoring pages. Stale-feed warnings remain in the shell.
 The schema and generator are unchanged. Multi-zone aggregation, compressor runtime,
 electricity consumption and comparisons/savings claims are outside this phase.
 
+## Operating Records
+
+Operating Records is loaded on demand. The table uses a fixed committed snapshot
+of the ACTIVE run; background Overview updates do not reorder a page being read.
+Apply filters or Refresh records to adopt the latest Overview snapshot. A newly
+published run remounts the page. The shell continues to show stale/connection warnings.
+
+### Queries, filters and pagination
+
+- Read `sdp_events` with explicit columns, `run_id = snapshot.runId`,
+  `zone_id = snapshot.zoneId`, `sequence <= snapshot.sequence`, and
+  `occurred_at <= snapshot.at`. The date window is half-open: `>= start`, `< end`.
+- Order by `occurred_at DESC, sequence DESC, ordinal DESC`. These storage fields
+  preserve order when events share a timestamp. UI pages contain 25 records and
+  use exact server counts plus offset/range pagination over the pinned dataset.
+- Category filtering uses `event_type = ...` or an `IN` list. Operational events
+  (the default) include decisions, forecasts, output reports and override records.
+  Node evidence and configuration are available through their categories or All.
+- Requested-mode filtering uses `event->payload->>requested_mode = ...` directly.
+  Only decision and SET_OVERRIDE request records contain that field. It deliberately
+  excludes reports/forecasts rather than inferring their modes through a join.
+- Search is a server-side case-insensitive substring filter on `event->>payload`
+  (Recorded text), `event_id`, or `event->>correlation_id`. Percent, underscore and
+  backslash are escaped as literal characters. Input is passed through structured
+  query methods, not interpolated into an OR/filter expression. Search never filters
+  only the visible page. Human-readable generated labels are not searched.
+- Select 24h, 7d, or up to seven inclusive Malaysia-local calendar dates. Custom
+  dates begin at UTC+08:00 midnight, and today is clipped to current browser time.
+  Invalid/reversed/future dates are rejected. Apply resets pagination to page one.
+  Unapplied filter changes disable export, so a draft selection cannot download an
+  older result set by accident.
+
+The existing run/zone/time and event-type indexes bound the reads. JSON substring,
+identifier substring and reverse decision-report searches do not have dedicated
+text/JSON indexes; the database may scan the bounded matching scope. This is not
+full-text/fuzzy search. Larger deployments should add a reviewed search/index API
+in a later phase; this implementation does not alter schema or RLS.
+
+### Exact correlation and event details
+
+For a page, fetch only its frame sequences in batches of 100 from
+`sdp_zone_frames`. A frame must match run, zone, sequence and original event time.
+Missing frames produce a warning, not an invented context row. All event envelopes
+are checked with the existing contract validator and must be simulated replay
+records for the selected run/zone and committed cutoff.
+
+For output events, fetch the exact referenced decision ID. Match both decision ID
+and command ID, the room, and chronological/sequence order. For decisions, look up
+APPLIED_OUTPUT events by exact `decision_event_id` (batches of 100, pages of 500),
+bounded by the earliest decision time and snapshot. Verify command/room/order before
+attaching. More than 5,000 linked reports per batch fails explicitly. The latest
+matching report uses timestamp, sequence and ordinal order. A shared correlation ID
+alone never proves a match.
+
+Fetch forecasts by the decision's exact forecast ID, including a record before the
+selected date range when necessary. Reject it as supporting evidence if it was
+issued after the decision. Forecast details distinguish stored status, validity at
+decision/event time, and validity at snapshot; expiry does not create a fake event.
+Cancelled forecasts retain and check their prior forecast reference. Override status
+decision references also require matching request IDs.
+
+The drawer shows requested settings, separately timestamped reported outcomes,
+reason, frame occupancy and applicable forecast information. Missing/unmatched
+links remain visible as warnings. References/UUIDs stay in collapsed advanced
+details. The current generator does not normally emit overrides or failed reports;
+those remain view-only contract-supported records, never command controls.
+
+### CSV scope and safety
+
+Export CSV runs the exact applied filters and pinned cutoff through every matching
+500-row page, independent of the current UI page. Related context can predate the
+range or arrive after a requested decision, but must remain within the snapshot;
+it adds columns, never extra export rows. Original UTC, Malaysia-local time with
+explicit `+08:00`, event/run/zone IDs, sequence/ordinal, reason, requested mode and
+settings, separately reported outcome/settings/time, forecast validity, correlation
+warnings and applied filter/snapshot metadata are preserved. Each row identifies
+the source as **Simulated SDP operating records**. The filename uses Malaysia dates.
+
+The exporter builds UTF-8 CSV with a BOM and CRLF rows. It reuses the tested CSV
+cell escaper for commas, quotes and newlines, and prefixes formula-like external
+text (`=`, `+`, `-`, `@`, leading whitespace/control characters) with an apostrophe.
+Progress reports completed/total rows; controls are locked during export and Cancel
+is available. A download starts only after all matching rows are prepared.
+
+Limits are 50,000 matching rows, 25 MiB UTF-8 and a three-minute deadline. Oversized,
+changed-count, missing-page, read-error and cancelled exports produce no partial
+download. Narrow the filters and retry. Export is in-browser, not a background
+server job. No record writes or cloud migrations are performed.
+
 ## Checks and rehearsal
 
 ```powershell
@@ -243,6 +332,7 @@ npm.cmd run test:overview
 npm.cmd run test:nodes
 npm.cmd run test:predictive
 npm.cmd run test:utilization
+npm.cmd run test:operating
 npm.cmd run test:records
 npm.cmd run test:overrides
 ```
@@ -272,8 +362,14 @@ For AC Utilization, compare 24h and 7d, inspect daily/trend bars and the vacant 
 normal-cooling cell. Verify pre-cooling is separate, partial days are clipped, and
 known plus unknown covers the window. Open metric definitions and compare times
 against recorded decisions. Test missing/stale/sparse states with intercepted local
-test responses, leaving the cloud dataset intact. Operating Records still needs
-stored-event browsing, filtering, detailed correlation views and CSV export.
+test responses, leaving the cloud dataset intact.
+
+For Operating Records, combine category, requested mode, search and date filters;
+move between pages and verify newest-first timestamp/sequence/ordinal ordering.
+Open decision and output details and compare exact references in advanced details.
+Export from a later UI page and verify the CSV contains every matching row, with
+Malaysia times and distinct requested/reported fields. Check empty filters,
+read failures/Retry, missing correlations, export cancellation and mobile drawers.
 
 Unit fixtures come from the existing deterministic generator only in test code;
 they are never imported into the production dashboard. Browser QA may intercept

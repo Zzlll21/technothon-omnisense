@@ -14,6 +14,7 @@
     "test:nodes": "npm --prefix ../../packages/sdp-contract run build && node --test test/node-history.test.mjs",
     "test:predictive": "npm --prefix ../../packages/sdp-contract run build && node --test test/predictive.test.mjs",
     "test:utilization": "npm --prefix ../../packages/sdp-contract run build && node --test test/utilization.test.mjs",
+    "test:operating": "npm --prefix ../../packages/sdp-contract run build && node --test test/operating-records.test.mjs",
     "test:overrides": "npm --prefix ../../packages/sdp-contract run build && node --test test/overrides.test.mjs"
   },
   "dependencies": {

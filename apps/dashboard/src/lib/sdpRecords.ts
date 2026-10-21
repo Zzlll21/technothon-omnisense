@@ -83,7 +83,7 @@ export const recordsCsvColumns = [
   "override_request_id", "forecast_source", "forecast_quality", "forecast_expires_at", "forecast_expiry_reached_as_of", "event_json"
 ] as const;
 
-function csvCell(value: string | number | boolean | null | undefined): string {
+export function csvCell(value: string | number | boolean | null | undefined): string {
   let text = value == null ? "" : String(value);
   // Quoting alone does not stop spreadsheets interpreting external text as formulas.
   if (typeof value === "string" && /^(?:\s*[=+@-]|[\t\r\n])/.test(text)) text = `'${text}`;
