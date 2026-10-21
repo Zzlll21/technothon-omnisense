@@ -1,6 +1,6 @@
 # OmniSense SDP Dashboard
 
-Phase 4A: product shell, current-zone Overview and Room & Nodes monitoring. This frontend reads only the
+Phase 5A: Overview, Room & Nodes, Predictive Cooling and AC Utilization. This frontend reads only the
 dedicated SDP database. There is no MQTT connection, Control API dependency,
 command sending, scenario selector or legacy `sensor_readings` query.
 
@@ -79,9 +79,9 @@ policies or privileged frontend credentials.
 
 ## Product navigation
 
-Overview and Room & Nodes are implemented. Predictive Cooling, AC Utilization and
-Operating Records have navigable, explicit next-phase states. Their detailed
-workflows remain future work. Legacy UI modules
+Overview, Room & Nodes, Predictive Cooling and AC Utilization are implemented.
+Operating Records has a navigable, explicit next-phase state. Its search/export
+workflow remains future work. Legacy UI modules
 and APIs are removed on this branch; protected branches are not modified.
 Pure record/export and override-contract utilities/tests remain reusable but are
 not part of the running interface and cannot send commands.
@@ -121,6 +121,119 @@ click/tap pins it, and arrow keys/Home/End inspect points while a chart is focus
 Escape or leaving keyboard focus clears the selection. The readout stays below the
 plot so it cannot cover labels or overflow a card. Sparse samples remain visible.
 
+## Predictive Cooling
+
+The synchronized timeline shows stored zone occupancy, requested cooling modes,
+the configured representative node's temperature, forecast windows as issued,
+planned restart markers and decision events. All tracks share UTC millisecond
+coordinates, displayed in browser local time. The target line is the configured
+occupied temperature setting, not a measured room temperature or savings claim.
+
+Choose the last 24 hours or 7 days. The chart has one crosshair and aligned tooltip;
+hover inspects a time, click/tap pins it, keyboard arrows/Home/End select frames,
+and Escape clears the selection. Decision-event rows also select their original
+timestamp. The inspection panel separately displays the requested output and the
+correlated simulated output report. It never equates an accepted request with
+applied output or verified physical AC control.
+
+Historical frames and reference-node samples are read in 500-row pages, bounded
+by ACTIVE run, zone, committed sequence and timestamp range. Cooling events are
+restricted to ZoneDecision, ZoneForecast and AppliedOutput. Exact linked IDs are
+fetched in batches of 100 when an active decision/forecast predates the range;
+supporting forecast references are preserved too. The safety bounds are 25,000
+frames/samples and 75,000 operating events per window. Refreshes read only newer
+sequences and prune the rolling window. No history is downloaded for this page
+until it is opened, and no cloud records are changed.
+
+Forecast status is evaluated as of the inspection time, not by applying today's
+forecast to yesterday. Later issues/cancellations cannot rewrite an earlier
+inspection. At the current snapshot, expired/cancelled/unavailable predictions
+are explicitly inactive. Archived windows remain on the "as issued" track and
+are not assertions that arrivals actually occurred. Only forecasts issued by the
+inspection time appear there. If the latest known forecast is active, the axis
+can extend into a shaded forecast horizon (up to 24 hours); no observed occupancy,
+cooling or temperature is extrapolated into that horizon. Historical inspection
+within it reports no recorded conditions and uses knowledge at the range cutoff.
+
+State bands cover only sampling intervals supported by frames; missing frames
+remain gaps. Missing reference-node temperatures do not hide occupancy or cooling
+records. Reasons are based on stored codes and exact forecast links; no frontend
+controller, forecasting algorithm or unexpected-arrival claim is introduced.
+Empty/error/loading states and stale-feed warnings remain visible. Cached history
+survives read failures, and Retry is available. Custom-day selection is deferred.
+
+The current generator produces booking forecasts and simulated APPLIED reports.
+It does not normally emit cancelled/unavailable forecasts or uncertain occupancy;
+those display states are checked using isolated test responses. Browser testing
+must not create or modify cloud data to manufacture these cases.
+
+## AC Utilization
+
+The utilization page presents requested operating time from stored simulation
+records. Daily profiles, a known-time mode distribution, hourly/daily request
+trends and an occupancy-by-mode matrix support the last 24 hours or 7 days.
+Hover/focus/click a bar or matrix cell to inspect its values. The overlap matrix
+scrolls inside its region on mobile. Metric definitions are available on the page;
+Data Sources & Methodology remains accessible through the product shell.
+
+### Calculation definitions
+
+All calculations live in `src/lib/utilizationAnalytics.ts`, separate from React.
+An interval is half-open `[start, end)` and clipped to the selected window:
+
+| Metric | Definition |
+| --- | --- |
+| Normal cooling requested | Sum of known intervals in `OCCUPIED` requested mode, independent of occupancy. |
+| Reduced / standby | `SHORT_VACANCY` plus `LONG_VACANCY` duration. The individual categories remain visible in charts. |
+| Pre-cooling | `PRECOOL` duration only; never also counted as normal cooling during vacancy. |
+| Normal during vacancy | `OCCUPIED` requested mode overlapping controller-reported `VACANT` occupancy. This is a review opportunity, not verified avoidable waste. |
+| Mode transitions | Changes between known requested modes across continuous evidence, including decision events within a frame interval. First observations and jumps across gaps are excluded. Changes exactly at the range start are included when a valid predecessor exists; changes exactly at the end are excluded. |
+| Known coverage | Elapsed intervals with continuous frame evidence and valid linked requested-mode/occupancy state. `UNCERTAIN` occupancy remains a known reported category. |
+| Unknown coverage | Unbracketed head/tail time, missing sequences, stale gaps or absent decision references. It is never treated as zero utilization. |
+| Matched APPLIED report | Known time supported by an `APPLIED`, `SIMULATED` output with the exact decision and command IDs. Accepted/rejected/failed or absent reports remain unconfirmed. This is report coverage, not physical runtime. |
+
+Known plus unknown time equals the selected window. Requested mode categories
+partition known time; percentages in Mode Distribution use known time only.
+Daily bars and trends include unknown time explicitly. When nothing is known,
+KPI durations display Unavailable. Small gaps never round up to 100% coverage.
+Display durations are floored to whole minutes (`<1 min` for positive sub-minute
+durations); chart readouts/titles provide seconds where appropriate.
+
+### Interval and timestamp rules
+
+1. Load frames within the range plus the one preceding the left boundary. This
+   permits clipping an already-running mode without losing the first partial interval.
+2. A pair must have consecutive sequences and increasing actual timestamps. Its
+   gap must be no greater than `min(config.stale_after_ms, 1.5 * expected cadence)`.
+   Expected cadence is five minutes before the run's live anchor and 30 seconds
+   afterwards, matching this stored model version. These values detect gaps only;
+   durations always use actual timestamp subtraction, never row counts.
+3. Within each supported pair, begin with the left frame's authoritative occupancy
+   and linked decision. Split at controller decision publication timestamps,
+   using their stored occupancy/mode, and at correlated output-report timestamps.
+   No classification, occupancy fusion or cooling policy is calculated here.
+4. A frame alone does not establish duration after its timestamp. The latest live
+   tail remains unknown until another committed frame brackets it. This conservative
+   estimate can omit genuine operation during outages; it never extrapolates it.
+5. Split counted time at local midnight. Daily grouping is explicitly
+   `Asia/Kuala_Lumpur` (UTC+08:00, no daylight saving), independent of browser locale.
+   Rolling windows may include two partial endpoint days (eight rows for seven days).
+   Trends use UTC+08:00-aligned hours for 24h and local days for 7d.
+
+History reads use only `sdp_zone_frames` and `ZONE_DECISION` / `APPLIED_OUTPUT`
+records in `sdp_events`. They are ACTIVE-run/zone scoped, pinned to the Overview
+committed sequence, bounded by timestamp, and paginated at 500 rows. Exact boundary
+references are loaded in batches of 100. Limits are 25,000 in-range frames and
+50,000 in-range events, plus one predecessor and linked records. No node samples
+or forecast history are downloaded for utilization. The shared Overview still
+refreshes its small current snapshot for the shell as before.
+
+Refreshes read new sequences, retain a predecessor as the window moves, and prune
+old history. The 60-second deadline, cancellation, cached-on-error state and Retry
+follow the other monitoring pages. Stale-feed warnings remain in the shell.
+The schema and generator are unchanged. Multi-zone aggregation, compressor runtime,
+electricity consumption and comparisons/savings claims are outside this phase.
+
 ## Checks and rehearsal
 
 ```powershell
@@ -128,6 +241,8 @@ npm.cmd run typecheck
 npm.cmd run build
 npm.cmd run test:overview
 npm.cmd run test:nodes
+npm.cmd run test:predictive
+npm.cmd run test:utilization
 npm.cmd run test:records
 npm.cmd run test:overrides
 ```
@@ -145,6 +260,20 @@ refresh. Check both 1280px laptop and 390px mobile widths. Stop the generator to
 verify delayed/disconnected labels and trailing history gaps; existing records
 must remain visible. Use controlled test responses for missing/empty/error states
 without deleting or altering cloud data.
+
+For Predictive Cooling, inspect an occupied-to-vacant transition, reduced cooling,
+standby and pre-cooling before a stored forecast window. Check the exact decision
+timestamp, forecast issue/expiry and requested/reported output. Switch 24 hours /
+7 days, inspect via mouse/keyboard/touch and confirm gaps after the last stored
+frame. On narrow screens the synchronized plot scrolls horizontally inside its
+own region; labels and details stay readable outside the plot.
+
+For AC Utilization, compare 24h and 7d, inspect daily/trend bars and the vacant ×
+normal-cooling cell. Verify pre-cooling is separate, partial days are clipped, and
+known plus unknown covers the window. Open metric definitions and compare times
+against recorded decisions. Test missing/stale/sparse states with intercepted local
+test responses, leaving the cloud dataset intact. Operating Records still needs
+stored-event browsing, filtering, detailed correlation views and CSV export.
 
 Unit fixtures come from the existing deterministic generator only in test code;
 they are never imported into the production dashboard. Browser QA may intercept
