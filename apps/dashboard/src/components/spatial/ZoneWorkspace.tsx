@@ -5,8 +5,8 @@ import { number, time } from "../../lib/overviewDisplay";
 import { OfficeCanvas } from "./OfficeCanvas";
 const NodeInspector = lazy(() => import("./NodeInspector").then(module => ({ default: module.NodeInspector })));
 
-export function ZoneWorkspace({ data, model, now, refreshToken, refreshError, active, dashboardHref }: {
-  data: OverviewData; model: SpatialOverview; now: number; refreshToken: string | null; refreshError?: string | null; active: boolean; dashboardHref: string;
+export function ZoneWorkspace({ data, model, now, refreshToken, refreshError, active }: {
+  data: OverviewData; model: SpatialOverview; now: number; refreshToken: string | null; refreshError?: string | null; active: boolean;
 }) {
   const [selectedId, setSelectedId] = useState<string | null>(null), [inspecting, setInspecting] = useState(false);
   const selectedNode = model.nodes.find(n => n.id === selectedId);
@@ -30,7 +30,6 @@ export function ZoneWorkspace({ data, model, now, refreshToken, refreshError, ac
         <div className="sz-plan-pair"><div><span>Planned cooling restart</span><strong title={model.forecast.restart ?? undefined}>{model.forecast.restart ? time(model.forecast.restart) : "Not scheduled"}</strong><small>{model.forecast.restart ? time(model.forecast.restart, true) : "No active restart record"}</small></div><div><span>Next-use window</span><strong title={model.forecast.window?.start}>{model.forecast.window ? time(model.forecast.window.start) : "Unavailable"}</strong><small>{model.forecast.window ? <><time title={model.forecast.window.start}>{time(model.forecast.window.start, true)}</time>–<time title={model.forecast.window.end}>{time(model.forecast.window.end, new Date(model.forecast.window.start).toDateString() !== new Date(model.forecast.window.end).toDateString())}</time></> : "No active usage forecast"}</small></div></div>
         <p className="sz-forecast-quality">{model.forecast.source.toLowerCase()} source · {model.forecast.quality.toLowerCase()} quality · {model.forecast.status.toLowerCase()}</p>{model.forecast.reason && <p className="sz-note">{model.forecast.reason}</p>}<p className="sz-note">A forecast window is an expectation. Planned restart does not confirm cooling was applied.</p>
         <details className="sz-trace"><summary>Current decision references</summary><dl><div><dt>Run / frame</dt><dd>{model.runId} / {model.sequence}</dd></div><div><dt>Decision / command</dt><dd>{model.decisionId}<br />{model.commandId}</dd></div><div><dt>Forecast / output</dt><dd>{model.forecast.id}<br />{model.outputId}</dd></div></dl></details>
-        <a href={dashboardHref} className="sz-dashboard-link">History, operating records &amp; CSV in current dashboard ↗</a>
       </aside>
     </div>
     {inspecting && selectedNode && active && <Suspense fallback={<p role="status">Opening node inspector…</p>}><NodeInspector data={data} model={model} nodeId={selectedNode.id} now={now} refreshToken={refreshToken} refreshError={refreshError} onSelect={select} onClose={() => setInspecting(false)} /></Suspense>}

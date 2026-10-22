@@ -1,4 +1,38 @@
-# OmniSense SDP Dashboard
+# OmniSense — landing page and Spatial Workspace
+
+The main website now enters through the approved landing page. Its buttons open the integrated Floor Overview and 3D Zone Workspace, with Usage & Cooling and Operating Records. The old dashboard is no longer a public entry or navigation target; its source is retained for reference. Existing `?experience=spatial` bookmarks continue to work.
+
+## Start both pages together (PowerShell)
+
+From this isolated integration worktree's `apps/dashboard` directory:
+
+```powershell
+npm.cmd run dev:site
+```
+
+Open http://127.0.0.1:8130/ for the landing page, or http://127.0.0.1:8130/workspace for the Floor Overview. The landing page can also be opened at `/landing/`; history and records have direct links `/workspace?view=history` and `/workspace?view=records`.
+
+Keep the terminal open. Press Ctrl+C to stop. If 8130 is already occupied, open the existing preview or use `npm.cmd run dev:site -- --port 8132`. Only one website server is needed. No Python server or second generator is needed.
+
+The launcher uses the existing ignored `apps/dashboard/.env`. In an isolated Git worktree, when that file is absent, it reads the primary checkout's existing configuration into process memory. It does not copy, create, print or change credentials. If configuration is absent, the existing visible setup/error state remains honest.
+
+## Build and preview the production files locally
+
+Stop the development server first, then run from the same directory:
+
+```powershell
+npm.cmd run build:site
+npm.cmd run preview:site
+```
+
+Both pages and their presentation assets are included in `apps/dashboard/dist`. These commands only run locally; they do not deploy, push, merge or change the database. Public hosting must serve `dist`, support `/workspace` through the SPA fallback to `/index.html`, and support directory indexes for `/landing/`. Publishing to a domain remains a separate deployment step.
+
+The approved landing source remains in `docs/design/omnisense-landing`, plus `docs/design/omnisense-office/office-scene.js`. Vite packages an explicit allowlist of six presentation files into ignored `public/landing` for dev and production builds, rewriting only workspace and scene asset links. Landing sample values remain labelled illustrative; they do not enter the stored-data workspace.
+
+---
+
+## Previous dashboard implementation reference
+
 
 Decision Console experiment: Overview, Room & Nodes, Predictive Cooling, Cooling Statistics and Operating Records. This frontend reads only the
 dedicated SDP database. There is no MQTT connection, Control API dependency,

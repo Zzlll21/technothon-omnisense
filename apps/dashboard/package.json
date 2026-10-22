@@ -17,7 +17,11 @@
     "test:predictive": "npm --prefix ../../packages/sdp-contract run build && node --test test/predictive.test.mjs",
     "test:utilization": "npm --prefix ../../packages/sdp-contract run build && node --test test/utilization.test.mjs",
     "test:operating": "npm --prefix ../../packages/sdp-contract run build && node --test test/operating-records.test.mjs",
-    "test:overrides": "npm --prefix ../../packages/sdp-contract run build && node --test test/overrides.test.mjs"
+    "test:overrides": "npm --prefix ../../packages/sdp-contract run build && node --test test/overrides.test.mjs",
+    "dev:site": "node scripts/site.mjs dev",
+    "build:site": "tsc --noEmit && node scripts/site.mjs build",
+    "preview:site": "node scripts/site.mjs preview",
+    "test:site": "node --test test/site-entry.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",

@@ -26,3 +26,6 @@ pnpm-debug.log*
 Thumbs.db
 .vscode/
 .idea/
+
+# Generated approved landing assets (source: docs/design/omnisense-landing)
+/apps/dashboard/public/landing/
