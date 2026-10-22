@@ -22,6 +22,10 @@ export function spatialOverview(data: OverviewData, now: number) {
       id: configured.node_id, label: configured.label, x: configured.x, y: configured.y,
       temperature, humidity, observedAt: sample?.observed_at ?? null,
       classification: classification?.validity === "VALID" ? classificationLabels[classification.value.class_label] : "Unavailable",
+      classificationCode: classification?.validity === "VALID" ? classification.value.class_label : null,
+      temperatureValidity: evidence?.payload.temperature_c.validity ?? "UNAVAILABLE",
+      humidityValidity: evidence?.payload.humidity_percent.validity ?? "UNAVAILABLE",
+      classificationValidity: classification?.validity ?? "UNAVAILABLE",
       evidenceValid: valid, freshness: freshness.label, recordedState: state?.state ?? "MISSING",
       freshAndValid: freshness.label === "Connected" && state?.state === "FRESH" && valid,
       evidenceId: evidence?.event_id ?? null

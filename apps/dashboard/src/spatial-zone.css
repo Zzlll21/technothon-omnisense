@@ -1,0 +1,116 @@
+/* Approved Thermal Atlas workspace, scoped to the opt-in application. */
+.spatial-app .sa-nav>.sz-current-nav{display:flex;align-items:center;min-height:57px;border-bottom:2px solid var(--sa-ink);font-weight:600;margin-left:0;color:var(--sa-ink)}
+.spatial-app #sz-zone-heading:focus,.spatial-app #sa-floor-heading:focus{outline:none}
+.spatial-app .sz-refresh-heading{justify-content:flex-end;margin-bottom:13px;min-height:42px}
+.spatial-app .sz-heading{display:flex;justify-content:space-between;align-items:baseline;gap:24px;margin-bottom:23px}
+.spatial-app .sz-heading>span{font-size:12px;color:var(--sa-muted);text-align:right}
+.spatial-app .sz-layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:34px;align-items:start}
+.spatial-app .sz-stage{border-block:1px solid var(--sa-line);display:flex;flex-direction:column;min-height:610px;min-width:0}
+.spatial-app .sz-stage-top{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:17px 0;color:var(--sa-muted);font-size:12px;flex-wrap:wrap}
+.spatial-app .sz-zone-environment{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.spatial-app .sz-zone-environment strong{font:500 28px/1 Bahnschrift,'Segoe UI',sans-serif;color:var(--sa-ink);font-variant-numeric:tabular-nums}
+.spatial-app .sz-zone-environment strong small{font:13px 'Segoe UI',sans-serif;margin-left:3px}
+.spatial-app .sz-zone-environment>span{height:15px;border-left:1px solid #c6d0bf;margin:0 8px}
+.spatial-app .sz-zone-environment>small{font-size:12px}
+.spatial-app .sz-office{flex:1;display:grid;grid-template-rows:auto minmax(290px,1fr) auto auto;gap:8px;min-height:530px}
+.spatial-app .sz-office-heading{font-size:14px;font-weight:600}
+.spatial-app .sz-viewport{position:relative;min-height:290px;overflow:hidden;border-radius:5px;background:radial-gradient(ellipse at 50% 60%,#e8ece1 0,transparent 65%)}
+.spatial-app .sz-viewport canvas{position:absolute;inset:0;display:block;width:100%;height:100%;cursor:grab}
+.spatial-app .sz-viewport canvas[hidden]{display:none}
+.spatial-app .sz-viewport canvas:active{cursor:grabbing}
+.spatial-app .sz-viewport canvas:focus-visible{outline-offset:-3px}
+.spatial-app .sz-marker{position:absolute;left:0;top:0;min-width:44px;min-height:44px;padding:5px 9px;background:#fcfdf7;border:1px solid #b3c5a6;border-radius:50%;font-size:13px;font-weight:600;box-shadow:0 2px 7px #183e3512;will-change:transform;visibility:hidden}
+.spatial-app .sz-marker[aria-pressed=true]{background:#315f50;color:#fff;border-color:#315f50}
+.spatial-app .sz-marker:hover{border-color:#315f50}
+.spatial-app .sz-camera-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px;color:var(--sa-muted);flex-wrap:wrap}
+.spatial-app .sz-camera-toolbar>div{display:flex;align-items:center;gap:4px;margin-left:auto}
+.spatial-app .sz-camera-toolbar button{display:flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;border:1px solid #d6dfd0;border-radius:4px;background:#fbfcf8;font-size:18px;user-select:none;-webkit-user-select:none;touch-action:none}
+.spatial-app .sz-camera-toolbar button:last-child{font-size:12px;padding:0 10px;margin-left:3px}
+.spatial-app .sz-camera-toolbar button:disabled{opacity:.35;cursor:default}
+.spatial-app .sz-camera-toolbar button:hover:not(:disabled){background:#e5ecdf}
+.spatial-app .sz-camera-toolbar button:active:not(:disabled){background:#dce7d4}
+.spatial-app .sz-touch-help{display:none}
+.spatial-app .sz-node-readings{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.spatial-app .sz-node-readings>button{padding:11px 13px;border:1px solid #c9d7be;border-radius:5px;background:#fbfdf7;text-align:left;min-width:0;transition:border-color 160ms,background-color 160ms}
+.spatial-app .sz-node-readings>button:nth-child(2){background:#f6faf8;border-color:#c2d8ce}
+.spatial-app .sz-node-readings>button[aria-pressed=true]{border-color:#587c4a}
+.spatial-app .sz-node-readings>button:nth-child(2)[aria-pressed=true]{border-color:#48816d}
+.spatial-app .sz-node-readings>button:hover{background:#e7eee0}
+.spatial-app .sz-reading-title{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap;font-size:13px}
+.spatial-app .sz-reading-title small{font-size:12px;color:var(--sa-muted)}
+.spatial-app .sz-reading-meta{display:block;font-size:12px;color:var(--sa-muted);margin-top:5px;overflow-wrap:anywhere}
+.spatial-app .sz-reading-values{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-top:5px;font-size:13px}
+.spatial-app .sz-reading-values>strong{font:500 25px Bahnschrift,'Segoe UI',sans-serif;font-variant-numeric:tabular-nums}
+.spatial-app .sz-reading-values small{font:13px 'Segoe UI',sans-serif;margin-left:3px}
+.spatial-app .sz-stage-foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--sa-muted);margin:12px 0}
+.spatial-app .sz-decision{min-width:0}
+.spatial-app .sz-section-label{display:flex;align-items:baseline;justify-content:space-between;gap:15px}
+.spatial-app .sz-section-label h2{font-size:13px;font-weight:600}
+.spatial-app .sz-section-label time{font-size:12px;color:var(--sa-muted)}
+.spatial-app .sz-mode{font:500 38px/1.1 Bahnschrift,'Segoe UI',sans-serif;letter-spacing:-1px;margin:13px 0 15px;padding-left:16px;border-left:6px solid #839967}
+.spatial-app .sz-mode[data-mode=PRECOOL]{border-color:#ae9552}
+.spatial-app .sz-mode[data-mode=OCCUPIED]{border-color:#315f50}
+.spatial-app .sz-mode[data-mode=LONG_VACANCY]{border-color:#9baba1}
+.spatial-app .sz-reason{font-size:14px;line-height:1.65;margin-bottom:17px}
+.spatial-app .sz-output{border-block:1px solid var(--sa-line);padding:13px 0;display:grid;gap:5px;font-size:13px}
+.spatial-app .sz-output>span,.spatial-app .sz-output small{color:var(--sa-muted);font-size:12px}
+.spatial-app .sz-output>strong{font-weight:500}
+.spatial-app .sz-plan-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;border-top:1px solid var(--sa-line);padding-top:15px;margin-top:25px}
+.spatial-app .sz-plan-pair span,.spatial-app .sz-plan-pair small{font-size:12px;color:var(--sa-muted);display:block}
+.spatial-app .sz-plan-pair strong{font:500 27px/1.2 Bahnschrift,'Segoe UI',sans-serif;letter-spacing:-.7px;display:block;margin:5px 0;overflow-wrap:anywhere}
+.spatial-app .sz-forecast-quality{color:#7b622a;font-size:13px;margin:13px 0 9px}
+.spatial-app .sz-note{font-size:13px;line-height:1.65;color:var(--sa-muted);margin:10px 0}
+.spatial-app .sz-trace{font-size:12px;border-block:1px solid var(--sa-line);margin:20px 0 10px;padding:7px 0}
+.spatial-app .sz-trace dl{margin:8px 0}.spatial-app .sz-trace dl>div{margin:9px 0}
+.spatial-app .sz-trace dd{margin:2px 0 0;font:13px/1.7 Consolas,monospace;overflow-wrap:anywhere;color:var(--sa-muted)}
+.spatial-app .sz-dashboard-link{font-size:13px;text-decoration:underline;text-underline-offset:4px;text-decoration-color:#a0b395;line-height:1.8;display:block;margin-top:18px}
+.spatial-app .sz-scene-fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:30px;text-align:center;font-size:14px;color:var(--sa-muted)}
+.spatial-app .sz-scene-fallback button{margin-top:18px;border-bottom:1px solid #a0b395;padding:10px}
+.spatial-app .sz-dialog{position:fixed;inset:0 0 0 auto;margin:0;width:466px;height:100dvh;max-height:100dvh;max-width:100%;border:0;border-left:1px solid #becdb4;padding:0;color:var(--sa-ink);background:#fafbf6;box-shadow:-8px 0 30px #183e350b;overflow-y:auto;overscroll-behavior:contain}
+.spatial-app .sz-dialog::backdrop{background:#142d231f;backdrop-filter:blur(1px)}
+.spatial-app .sz-dialog[open]{animation:sz-drawer-enter 280ms cubic-bezier(.23,1,.32,1) both}
+.spatial-app .sz-drawer-top{position:sticky;top:0;z-index:2;padding:12px 25px;border-bottom:1px solid var(--sa-line);display:flex;justify-content:space-between;align-items:center;background:#fafbf6;font-size:13px;color:var(--sa-muted)}
+.spatial-app .sz-drawer-top button{display:grid;place-items:center;width:44px;height:44px;border-radius:4px}
+.spatial-app .sz-drawer-top button:hover{background:#e5eddd}
+.spatial-app .sz-drawer-body{padding:25px}
+.spatial-app .sz-drawer-body>h2{font:500 28px/1.2 Bahnschrift,'Segoe UI',sans-serif;letter-spacing:-.5px;margin:0 0 8px}
+.spatial-app .sz-inspector-nodes{display:flex;gap:7px;margin-top:18px;flex-wrap:wrap}
+.spatial-app .sz-inspector-nodes button{font-size:12px;border:1px solid var(--sa-line);padding:8px;min-height:42px;border-radius:3px}
+.spatial-app .sz-inspector-nodes button[aria-pressed=true]{background:#e3edda;border-color:#6b8959}
+.spatial-app .sz-drawer-values{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin:23px 0 15px}
+.spatial-app .sz-drawer-values span{display:block;font-size:12px;color:var(--sa-muted)}
+.spatial-app .sz-drawer-values strong{font:500 42px Bahnschrift,'Segoe UI',sans-serif;letter-spacing:-1px;font-variant-numeric:tabular-nums}
+.spatial-app .sz-drawer-values small{font:18px 'Segoe UI',sans-serif;margin-left:5px}
+.spatial-app .sz-keyrows{margin:19px 0 23px;border-top:1px solid var(--sa-line)}
+.spatial-app .sz-keyrows>div{display:flex;justify-content:space-between;gap:18px;border-bottom:1px solid var(--sa-line);padding:11px 0;font-size:13px}
+.spatial-app .sz-keyrows dt{color:var(--sa-muted)}
+.spatial-app .sz-keyrows dd{margin:0;text-align:right;overflow-wrap:anywhere}
+.spatial-app .sz-keyrows dd small{display:block;font-size:11px;color:var(--sa-muted)}
+.spatial-app .sz-history-heading{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin:25px 0 10px}
+.spatial-app .sz-history-heading h3{font-size:15px;font-weight:600}
+.spatial-app .sz-range{display:flex;background:#e4eadf;padding:3px;border-radius:5px}
+.spatial-app .sz-range button{padding:6px 9px;border-radius:3px;font-size:12px;min-height:38px}
+.spatial-app .sz-range button[aria-pressed=true]{background:#fafbf6;box-shadow:0 1px 3px #183e3510}
+.spatial-app .sz-history-context{font-size:12px;color:var(--sa-muted);margin-bottom:16px}
+.spatial-app .sz-health-note{background:#f4edda;border-left:2px solid #976c21;padding:12px;font-size:13px;color:#654c22;margin:12px 0}
+.spatial-app .sz-health-note button{padding:8px 0;text-decoration:underline}
+.spatial-app .sz-history-empty{font-size:13px;color:var(--sa-muted);padding:25px 0}
+.spatial-app .sz-dialog .node-charts{display:grid;grid-template-columns:minmax(0,1fr);gap:20px}
+.spatial-app .sz-dialog .history-plot{border:0;border-top:1px solid var(--sa-line);border-radius:0;background:none;padding:15px 0 0}
+.spatial-app .sz-dialog .history-plot header{min-height:48px;gap:12px}
+.spatial-app .sz-dialog .history-plot h3{font-size:13px}
+.spatial-app .sz-dialog .history-plot header>strong{font-size:14px;max-width:52%;color:var(--sa-ink)}
+.spatial-app .sz-dialog .history-plot header span{font-size:12px;color:var(--sa-muted)}
+.spatial-app .sz-dialog .history-line.plot-temperature_c{stroke:#315f50}
+.spatial-app .sz-dialog .history-line.plot-humidity_percent{stroke:#a78232}
+.spatial-app .sz-dialog .plot-dot.plot-temperature_c{fill:#315f50}
+.spatial-app .sz-dialog .plot-dot.plot-humidity_percent{fill:#a78232}
+.spatial-app .sz-dialog .history-tick{font:12px 'Segoe UI',sans-serif;fill:var(--sa-muted)}
+.spatial-app .sz-dialog .history-times,.spatial-app .sz-dialog .history-readout,.spatial-app .sz-dialog .classification-legend{font-size:12px;color:var(--sa-muted)}
+.spatial-app .sz-dialog .history-readout{border-color:var(--sa-line)}
+.spatial-app .sz-dialog .history-readout strong{color:var(--sa-ink)}
+@keyframes sz-drawer-enter{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+@media(pointer:coarse){.spatial-app .sz-mouse-help{display:none}.spatial-app .sz-touch-help{display:inline}}
+@media(max-width:1150px) and (min-width:801px){.spatial-app .sz-layout{grid-template-columns:minmax(0,1fr) 290px;gap:25px}.spatial-app .sz-stage-top{align-items:start}.spatial-app .sz-zone-environment>small{width:100%}.spatial-app .sz-mode{font-size:34px}}
+@media(max-width:800px){.spatial-app .sa-nav{overflow-x:auto;gap:18px;white-space:nowrap}.spatial-app .sa-nav>*{flex-shrink:0}.spatial-app .sa-nav>.sz-current-nav{display:flex;font-size:12px;margin-left:0}.spatial-app .sz-layout{grid-template-columns:minmax(0,1fr);gap:25px}.spatial-app .sz-heading{display:block}.spatial-app .sz-heading>span{display:block;text-align:left;margin-top:10px}.spatial-app .sz-stage{min-height:620px}.spatial-app .sz-stage-top{padding-top:14px}.spatial-app .sz-zone-environment>small{width:100%}.spatial-app .sz-node-readings{gap:9px}.spatial-app .sz-node-readings>button{padding:9px}.spatial-app .sz-reading-values{gap:5px}.spatial-app .sz-reading-title small{font-size:11px}.spatial-app .sz-dialog{width:100%;max-width:100%;border-left:0}.spatial-app .sz-drawer-body{padding:24px 22px}.spatial-app .sz-drawer-top{padding:12px 22px}.spatial-app .sz-refresh-heading .sa-refresh{width:100%;margin-top:0}.spatial-app .sz-decision{border-top:1px solid var(--sa-line);padding-top:20px}}
+@media(prefers-reduced-motion:reduce){.spatial-app .sz-dialog[open]{animation:none}.spatial-app .sz-node-readings>button{transition:none}}
