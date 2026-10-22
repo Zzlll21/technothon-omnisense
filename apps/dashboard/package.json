@@ -10,7 +10,7 @@
     "preview": "vite preview --host 127.0.0.1",
     "typecheck": "tsc --noEmit",
     "test:console": "node --test test/decision-console.test.mjs test/landing-moments.test.mjs",
-    "test:spatial": "npm --prefix ../../packages/sdp-contract run build && node --test test/spatial-overview.test.mjs test/spatial-zone.test.mjs test/spatial-render.test.mjs",
+    "test:spatial": "npm --prefix ../../packages/sdp-contract run build && node --test test/spatial-overview.test.mjs test/spatial-zone.test.mjs test/spatial-render.test.mjs test/spatial-cooling.test.mjs",
     "test:records": "node --test test/records.test.mjs",
     "test:overview": "npm --prefix ../../packages/sdp-contract run build && node --test test/overview.test.mjs",
     "test:nodes": "npm --prefix ../../packages/sdp-contract run build && node --test test/node-history.test.mjs",

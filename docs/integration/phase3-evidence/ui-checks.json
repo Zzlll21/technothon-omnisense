@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-22",
+  "preview": "http://127.0.0.1:8130/?experience=spatial&view=history",
+  "floorToSupportedZone": "passed",
+  "zoneToHistoryAndBrowserBackForward": "passed",
+  "ranges24hAnd7d": "passed",
+  "exactPrecoolInspection": {
+    "at": "2026-10-22T04:50:00.000Z",
+    "frameSequence": 6094,
+    "nodeTemperaturesC": [27.3, 27.6],
+    "requestedMode": "PRECOOL",
+    "knownForecastIssuedAtLocal": "2026-10-22 10:15",
+    "storedRestartAtLocal": "2026-10-22 12:50",
+    "storedUseWindowLocal": ["2026-10-22 13:00", "2026-10-22 13:05"],
+    "output": "APPLIED / fan HIGH / 24.5 C / SIMULATED"
+  },
+  "pinnedInspectionThroughPolling": {
+    "refreshedBefore": "2026-10-22T11:14:19.404Z",
+    "refreshedAfter": "2026-10-22T11:16:19.392Z",
+    "timestampUnchanged": true,
+    "entireInspectedRecordTextUnchanged": true
+  },
+  "pinThroughRangeAndFloorZoneNavigation": "passed",
+  "latestSnapshotReset": "passed",
+  "keyboardFramePin": "passed",
+  "node02InspectorAndHistory": "passed",
+  "rotationAndZoomControls": "passed",
+  "cameraThroughHistoryNavigation": {
+    "before": ["translate3d(379.712px, 36.7361px, 0px)", "translate3d(438.644px, 79.7484px, 0px)"],
+    "after": ["translate3d(379.712px, 36.7361px, 0px)", "translate3d(438.644px, 79.7484px, 0px)"],
+    "identical": true
+  },
+  "desktopViewport": [1440, 900],
+  "mobileViewport": [390, 844],
+  "mobileChart": "Horizontal scrolling with fixed lane labels, both sensor legends and recent-record positioning",
+  "realDeviceTouchAndScreenReader": "not performed",
+  "writesToSupabase": 0
+}

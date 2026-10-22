@@ -8,16 +8,19 @@ import { spatialOverview } from "../lib/spatialOverview";
 import type { SpatialOverview } from "../lib/spatialOverview";
 import "../spatial.css";
 import "../spatial-zone.css";
+import "../spatial-cooling.css";
 
 const ZoneWorkspace = lazy(() => import("../components/spatial/ZoneWorkspace").then(module => ({ default: module.ZoneWorkspace })));
-const currentView = () => new URLSearchParams(window.location.search).get("view") === "room" ? "room" : "floor";
+const UsageCooling = lazy(() => import("../components/spatial/UsageCooling").then(module => ({ default: module.UsageCooling })));
+const currentView = (): "floor" | "room" | "history" => { const view = new URLSearchParams(window.location.search).get("view"); return view === "room" || view === "history" ? view : "floor"; };
+const headingId = (view: "floor" | "room" | "history") => view === "history" ? "su-heading" : view === "room" ? "sz-zone-heading" : "sa-floor-heading";
 
 export function SpatialDashboard() {
   const state = useOverview();
   const model = state.data ? spatialOverview(state.data, state.now) : null;
   const [selected, setSelected] = useState<FloorSpaceId>("open-office");
   const [view, setView] = useState(currentView);
-  const [zoneVisited, setZoneVisited] = useState(() => currentView() === "room");
+  const [zoneVisited, setZoneVisited] = useState(() => currentView() !== "floor");
   const inspector = useRef<HTMLElement>(null);
   const space = floorSpaces.find(s => s.id === selected)!;
   const dashboardUrl = new URL(window.location.href);
@@ -27,20 +30,20 @@ export function SpatialDashboard() {
   const status = state.error ? "Connection issue" : state.loading ? "Connecting" : !model ? "No active dataset" : model.feed === "CURRENT" ? "Feed current" : model.feed === "CLOCK_SKEW" ? "Clock mismatch" : "Data delayed";
   useEffect(() => {
     const previous = document.title;
-    document.title = view === "room" ? "OmniSense · Zone workspace" : "OmniSense · Floor overview";
+    document.title = view === "history" ? "OmniSense · Usage & cooling" : view === "room" ? "OmniSense · Zone workspace" : "OmniSense · Floor overview";
     return () => { document.title = previous; };
   }, [view]);
   useEffect(() => {
-    const pop = () => { const next = currentView(); setView(next); if (next === "room") setZoneVisited(true); requestAnimationFrame(() => document.getElementById(next === "room" ? "sz-zone-heading" : "sa-floor-heading")?.focus({ preventScroll: true })); };
+    const pop = () => { const next = currentView(); setView(next); if (next !== "floor") setZoneVisited(true); requestAnimationFrame(() => document.getElementById(headingId(next))?.focus({ preventScroll: true })); };
     window.addEventListener("popstate", pop);
     return () => window.removeEventListener("popstate", pop);
   }, []);
-  function navigate(next: "floor" | "room") {
+  function navigate(next: "floor" | "room" | "history") {
     if (view === next) return;
     const url = new URL(window.location.href);
-    if (next === "room") { url.searchParams.set("view", "room"); setZoneVisited(true); } else url.searchParams.delete("view");
+    if (next !== "floor") { url.searchParams.set("view", next); setZoneVisited(true); } else url.searchParams.delete("view");
     window.history.pushState(null, "", url); setView(next);
-    requestAnimationFrame(() => { document.getElementById(next === "room" ? "sz-zone-heading" : "sa-floor-heading")?.focus({ preventScroll: true }); window.scrollTo({ top: 0 }); });
+    requestAnimationFrame(() => { document.getElementById(headingId(next))?.focus({ preventScroll: true }); window.scrollTo({ top: 0 }); });
   }
   function select(id: FloorSpaceId) {
     setSelected(id);
@@ -52,10 +55,10 @@ export function SpatialDashboard() {
   }
   return <div className="spatial-app">
     <a className="sa-skip" href="#spatial-main">Skip to workspace</a>
-    <header className="sa-header"><a href="?experience=spatial" className="sa-brand" aria-label="OmniSense floor overview" onClick={event => { if (!event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) { event.preventDefault(); navigate("floor"); } }}><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" /><path d="m23 8-15 8 15 8" /></svg>omnisense</a><span className="sa-context">{view === "room" ? "Open Office" : "Office floor"}</span><div className="sa-header-end"><span>Synthetic operating records</span><span className="sa-feed" role="status">{status}</span></div></header>
-    <nav className="sa-nav" aria-label="Workspace views"><a href="?experience=spatial" aria-current={view === "floor" ? "page" : undefined} onClick={event => { if (!event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) { event.preventDefault(); navigate("floor"); } }}>Floor overview</a>{view === "room" && <span className="sz-current-nav" aria-current="page">Zone</span>}<a href={dashboardHref}>Current dashboard <ArrowRight size={14} /></a><span>{view === "room" ? "One shared cooling zone" : "1 supported zone slot · 5 illustrative spaces"}</span></nav>
+    <header className="sa-header"><a href="?experience=spatial" className="sa-brand" aria-label="OmniSense floor overview" onClick={event => { if (!event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) { event.preventDefault(); navigate("floor"); } }}><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" /><path d="m23 8-15 8 15 8" /></svg>omnisense</a><span className="sa-context">{view !== "floor" ? "Open Office" : "Office floor"}</span><div className="sa-header-end"><span>Synthetic operating records</span><span className="sa-feed" role="status">{status}</span></div></header>
+    <nav className="sa-nav" aria-label="Workspace views"><a href="?experience=spatial" aria-current={view === "floor" ? "page" : undefined} onClick={event => { if (!event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) { event.preventDefault(); navigate("floor"); } }}>Floor overview</a>{view !== "floor" && ([['room', 'Zone'], ['history', 'Usage & cooling']] as const).map(([target, label]) => <a key={target} href={`?experience=spatial&view=${target}`} aria-current={view === target ? "page" : undefined} onClick={event => { if (!event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) { event.preventDefault(); navigate(target); } }}>{label}</a>)}<a href={dashboardHref}>Current dashboard <ArrowRight size={14} /></a><span>{view !== "floor" ? "One shared cooling zone" : "1 supported zone slot · 5 illustrative spaces"}</span></nav>
     <main id="spatial-main" tabIndex={-1}>
-      <div className={`sa-heading ${view === "room" ? "sz-refresh-heading" : ""}`}><div hidden={view === "room"}><h1 id="sa-floor-heading" tabIndex={-1}>The floor, at a glance.</h1><p>Select Open Office to enter its shared cooling zone and inspect stored sensor records.</p></div><div className="sa-refresh"><span>{state.refreshedAt ? <>Refreshed <time title={state.refreshedAt}>{time(state.refreshedAt)}</time></> : "Awaiting first refresh"}</span><button disabled={state.refreshing} onClick={() => void state.refresh()}><RefreshCw size={15} />{state.refreshing ? "Refreshing" : "Refresh"}</button></div></div>
+      <div className={`sa-heading ${view !== "floor" ? "sz-refresh-heading" : ""}`}><div hidden={view !== "floor"}><h1 id="sa-floor-heading" tabIndex={-1}>The floor, at a glance.</h1><p>Select Open Office to enter its shared cooling zone and inspect stored sensor records.</p></div><div className="sa-refresh"><span>{state.refreshedAt ? <>Refreshed <time title={state.refreshedAt}>{time(state.refreshedAt)}</time></> : "Awaiting first refresh"}</span><button disabled={state.refreshing} onClick={() => void state.refresh()}><RefreshCw size={15} />{state.refreshing ? "Refreshing" : "Refresh"}</button></div></div>
       {state.error && <div className="sa-notice" role="alert"><strong>{model ? "Refresh interrupted" : "Unable to load SDP records"}</strong><p>{state.error} {model && "The last successful snapshot remains visible; it is not a new reading."}</p></div>}
       {!state.error && model && model.feed !== "CURRENT" && <div className="sa-notice" role="status"><strong>{model.feed === "CLOCK_SKEW" ? "Stored timestamps are ahead of this browser" : "The stored feed is delayed"}</strong><p>Latest frame <time title={model.at}>{time(model.at, true)}</time>. Values below belong to that snapshot.</p></div>}
       <section hidden={view !== "floor"} aria-label="Floor overview">
@@ -74,6 +77,7 @@ export function SpatialDashboard() {
       <p className="sa-boundary">Only the Open Office slot maps to the single stored SDP cooling zone. Surrounding spaces and furniture are schematic; they do not represent additional connected rooms. Sensing footprints illustrate approximately 10 m² per ceiling node and are not to scale.</p>
       </section>
       {zoneVisited && <div hidden={view !== "room"}>{model && state.data ? <Suspense fallback={<p role="status">Opening zone workspace…</p>}><ZoneWorkspace key={`${model.runId}/${model.zoneId}`} data={state.data} model={model} now={state.now} refreshToken={state.refreshedAt} refreshError={state.error} active={view === "room"} dashboardHref={dashboardHref} /></Suspense> : <p role="status">{state.loading ? "Loading the stored zone snapshot…" : "No validated zone snapshot is available. Refresh or return to the floor overview."}</p>}</div>}
+      {zoneVisited && state.data && <Suspense fallback={<p role="status">Opening usage &amp; cooling…</p>}><UsageCooling key={`${state.data.run.run_id}/${state.data.zone.zone_id}`} data={state.data} refreshToken={state.refreshedAt} refreshError={state.error} view={view} onExplore={() => navigate("history")} /></Suspense>}
       <footer className="sa-footer"><p>Stored synthetic records · simulated reported output. No physical HVAC actuation or measured electricity use.</p><span>{model ? <>Snapshot <time title={model.at}>{time(model.at, true)}</time> · browser local time</> : "Waiting for a stored snapshot"}</span></footer>
     </main>
   </div>;
