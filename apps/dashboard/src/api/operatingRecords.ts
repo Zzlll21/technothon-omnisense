@@ -69,6 +69,15 @@ export async function fetchOperatingPage(client: Client, snapshot: RecordSnapsho
   return { total: result.count!, rows: await correlateRecords(client, snapshot, rows, signal) };
 }
 
+// Contextual navigation needs identity equality, independent of a list's filters/page.
+// Validation and all causal links still pass through the same established correlator.
+export async function fetchOperatingRecord(client: Client, snapshot: RecordSnapshot, eventId: string, signal: AbortSignal): Promise<RecordContext | null> {
+  if (!eventId.trim() || eventId.length > 512) throw new Error("Select a valid stored record identity.");
+  const rows = checked((await read<RecordRow>(scoped(client, snapshot).eq("event_id", eventId).limit(2).abortSignal(signal))).data, snapshot);
+  if (rows.length > 1 || rows.some(row => row.event_id !== eventId)) invalid();
+  return (await correlateRecords(client, snapshot, rows, signal))[0] ?? null;
+}
+
 async function correlateRecords(client: Client, snapshot: RecordSnapshot, rows: RecordRow[], signal: AbortSignal): Promise<RecordContext[]> {
   if (!rows.length) return [];
   const sequences = [...new Set(rows.map(row => row.sequence))];

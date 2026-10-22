@@ -1,0 +1,49 @@
+import { useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
+import type { RecordContext, RecordSnapshot } from "../../api/operatingRecords";
+import type { SpatialRecordTarget } from "../../lib/spatialRecords";
+import { useOperatingRecord } from "../../hooks/useOperatingRecord";
+import { malaysiaTime, recordPresentation } from "../../lib/operatingRecordsDisplay";
+import { describeRecord, eventTypeLabels } from "../../lib/sdpRecords";
+import { forecastStatus } from "../../lib/predictiveDisplay";
+import { modeLabels, outputLabel } from "../../lib/overviewDisplay";
+
+export function OperatingRecordInspector({ target, onClose, onFull, onRelated }: { target: SpatialRecordTarget; onClose: () => void; onFull: (context: RecordContext) => void; onRelated: (id: string) => void }) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const trigger = useRef(typeof document !== "undefined" && (document.activeElement instanceof HTMLElement || document.activeElement instanceof SVGElement) ? document.activeElement : null);
+  const [retry, setRetry] = useState(0), state = useOperatingRecord(target, retry);
+  useEffect(() => {
+    const element = dialog.current; element?.showModal();
+    return () => { element?.close(); if (trigger.current?.isConnected && !trigger.current.closest("[hidden]")) trigger.current.focus({ preventScroll: true }); };
+  }, []);
+  useEffect(() => { if (dialog.current) { dialog.current.scrollTop = 0; dialog.current.querySelector<HTMLButtonElement>(".sr-drawer-top button")?.focus({ preventScroll: true }); } }, [target.eventId]);
+  return <dialog ref={dialog} className="sr-dialog" aria-labelledby="sr-detail-heading" onCancel={event => { event.preventDefault(); onClose(); }} onClick={event => { if (event.target === event.currentTarget) onClose(); }}>
+    <header className="sr-drawer-top"><span>Operating record · {target.origin === "history" ? "from historical inspection" : "from filtered records"}</span><button aria-label="Close operating record" autoFocus onClick={onClose}>×</button></header>
+    <div className="sr-drawer-body">
+      {state.error && <div className="sa-notice" role="alert"><strong>Record read interrupted</strong><p>{state.error}{state.context && " The cached record remains visible."}</p><button onClick={() => setRetry(n => n + 1)}>Retry exact record</button></div>}
+      {state.loading && <p role="status">Loading exact stored record…</p>}
+      {state.context ? <OperatingRecordContent context={state.context} snapshot={target.snapshot} onRelated={onRelated} /> : <><h2 id="sr-detail-heading">{state.loading ? "Opening record" : "Record unavailable"}</h2>{!state.loading && !state.error && <p>This exact event is unavailable within the selected run, zone and committed snapshot. No nearby event has been substituted.</p>}<code className="sr-missing-id">{target.eventId}</code></>}
+      <div className="sr-drawer-actions">{state.context && target.origin === "history" && <button className="sr-primary" onClick={() => onFull(state.context!)}>View in Operating Records ↗</button>}<button className="sr-secondary" onClick={onClose}>{target.origin === "history" ? "Return to historical inspection" : "Back to filtered records"}</button></div>
+      <p className="sr-provenance">Stored simulation records · no physical HVAC actuation. Snapshot {malaysiaTime(target.snapshot.at)} MYT · sequence ≤ {target.snapshot.sequence}.</p>
+    </div>
+  </dialog>;
+}
+
+function Facts({ items }: { items: [string, ReactNode][] }) { return <dl className="sr-facts">{items.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>; }
+export function OperatingRecordContent({ context: c, snapshot, onRelated }: { context: RecordContext; snapshot: RecordSnapshot; onRelated?: (id: string) => void }) {
+  const e = c.row.event, view = recordPresentation(c), raw = describeRecord(e), d = c.decision, f = c.forecast;
+  const reports = e.event_type === "APPLIED_OUTPUT" ? [e] : e.event_type === "ZONE_DECISION" ? c.outputs : [];
+  const link = (id: string, label = id) => onRelated ? <button className="sr-reference-link" title={id} onClick={() => onRelated(id)}>{label} ↗</button> : id;
+  return <>
+    <div className="sr-detail-category">{view.category}</div><h2 id="sr-detail-heading">{view.title}</h2>
+    <time className="sr-detail-time" dateTime={e.occurred_at} title={e.occurred_at}>{malaysiaTime(e.occurred_at)} MYT</time><p className="sr-detail-description">{view.reason || raw.summary}</p>
+    {c.warnings.length > 0 && <div className="sr-correlation-warning" role="status"><strong>Linked records need review</strong>{c.warnings.map(w => <p key={w}>{w}</p>)}</div>}
+    <section><h3>Recorded context</h3><Facts items={[["Event type", eventTypeLabels[e.event_type]], ["Cooling zone", snapshot.zoneName], ["Occupancy in exact frame", c.frame?.occupancy.toLowerCase() ?? "Unavailable · no exact frame"], ["Correlation status", c.warnings.length ? "Incomplete / unmatched" : "Exact frame matched"], ["Original UTC", e.occurred_at]]} /></section>
+    {d && <section><h3>Stored cooling decision</h3><Facts items={[["Requested mode", modeLabels[d.payload.requested_mode]], ["Requested setting", outputLabel(d.payload.requested_output)], ["Recorded controller occupancy", d.payload.occupancy.toLowerCase()], ["Evaluated", `${malaysiaTime(d.payload.evaluated_at)} MYT`]]} /><p className="sr-raw-reason">{d.payload.reason_text}</p><small>Stored reason · {d.payload.reason_code}</small></section>}
+    {reports.length > 0 ? <section><h3>{e.event_type === "APPLIED_OUTPUT" ? "This simulated output report" : "Correlated simulated output"}</h3>{reports.map(o => <div className="sr-report" key={o.event_id}><strong>{o.payload.status.toLowerCase()} · {outputLabel(o.payload.reported_output)}</strong><time dateTime={o.occurred_at}>{malaysiaTime(o.occurred_at)} MYT</time><p>{o.payload.reason ?? "No report reason stored."}</p><small>Feedback basis: {o.payload.feedback_basis.toLowerCase().replaceAll("_", " ")}</small>{e.event_id !== o.event_id && link(o.event_id, "Open exact output report")}</div>)}<p className="sr-muted">Reports may follow a decision. Only matched records within this snapshot are shown; acceptance does not confirm application.</p></section> : e.event_type === "ZONE_DECISION" && <section><h3>Simulated reported output</h3><p>No matching output report is available at this snapshot.</p></section>}
+    {f ? <section><h3>{e.event_type === "ZONE_FORECAST" ? "Stored forecast" : "Exact supporting forecast"}</h3><Facts items={[["Stored status", f.payload.status.toLowerCase()], ["Validity at decision / event", forecastStatus(f, Date.parse(d?.payload.evaluated_at ?? e.occurred_at)).toLowerCase()], ["Validity at snapshot", forecastStatus(f, Date.parse(snapshot.at)).toLowerCase()], ["Source / quality", `${f.payload.source.toLowerCase()} / ${f.payload.quality.toLowerCase()}`], ["Expected usage window", f.payload.next_use_window ? `${malaysiaTime(f.payload.next_use_window.start)}–${malaysiaTime(f.payload.next_use_window.end)} MYT` : "Unavailable"], ["Planned restart", f.payload.planned_restart_at ? `${malaysiaTime(f.payload.planned_restart_at)} MYT` : "Not scheduled"], ["Issued", `${malaysiaTime(f.occurred_at)} MYT`], ["Expires", `${malaysiaTime(f.payload.expires_at)} MYT`]]} />{f.payload.status_reason && <p>{f.payload.status_reason}</p>}<p className="sr-muted">Forecasts are expectations, not confirmed use or cooling.</p></section> : d?.payload.forecast_event_id && <section><h3>Supporting forecast</h3><p>The exact forecast link is unavailable. No later or nearby forecast is substituted.</p></section>}
+    {e.event_type === "NODE_EVIDENCE" && <section><h3>Recorded node evidence</h3><Facts items={[["Node identity", e.payload.node_id], ["Classification", e.payload.classification.validity === "VALID" ? e.payload.classification.value.class_label : "Unavailable"], ["Classification validity", e.payload.classification.validity.toLowerCase()], ["Temperature", e.payload.temperature_c.validity === "VALID" ? `${e.payload.temperature_c.value.toFixed(1)} °C` : "Unavailable"], ["Temperature validity", e.payload.temperature_c.validity.toLowerCase()], ["Humidity", e.payload.humidity_percent.validity === "VALID" ? `${e.payload.humidity_percent.value.toFixed(1)}% RH` : "Unavailable"], ["Humidity validity", e.payload.humidity_percent.validity.toLowerCase()]]} /></section>}
+    {(e.event_type === "OVERRIDE_REQUEST" || e.event_type === "OVERRIDE_STATUS") && <section><h3>Stored override record</h3><p>{raw.summary}</p><p>{e.payload.reason}</p>{e.event_type === "OVERRIDE_REQUEST" && e.payload.action === "SET_OVERRIDE" && <Facts items={[["Requested mode", modeLabels[e.payload.requested_mode]], ["Requested expiry", `${malaysiaTime(e.payload.override_expires_at)} MYT`]]} />}{e.event_type === "OVERRIDE_STATUS" && <Facts items={[["Stored lifecycle status", e.payload.status.toLowerCase()]]} />}</section>}
+    <details className="sr-references"><summary>Record references &amp; original payload</summary><Facts items={[["Event ID", e.event_id], ["Run / zone", `${e.session_id} / ${e.zone_id}`], ["Sequence / ordinal", `${c.row.sequence} / ${c.row.ordinal}`], ["Frame sequence", c.frame?.sequence ?? "Unmatched"], ["Correlation ID", e.correlation_id], ["Command ID", d?.payload.command_id ?? (e.event_type === "APPLIED_OUTPUT" ? e.payload.command_id : "Not linked")], ["Decision event", d ? d.event_id === e.event_id ? d.event_id : link(d.event_id) : "Not linked"], ["Forecast event", f ? f.event_id === e.event_id ? f.event_id : link(f.event_id) : "Not linked"], ["Clock / provenance", `${e.clock.time_base} / ${e.data_sources.join(", ")}`]]} /><pre>{JSON.stringify(e, null, 2)}</pre></details>
+  </>;
+}

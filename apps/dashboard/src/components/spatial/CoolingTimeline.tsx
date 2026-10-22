@@ -13,12 +13,12 @@ interface Props {
   history: PredictiveHistory; nodes: NodeHistoryPoint[][]; labels: string[]; result: UtilizationResult | null;
   start: number; end: number; anchor: string; snapshot: number; inspection: CoolingInspection;
   selectedAt: number | null; pinned: boolean; compact?: boolean;
-  onHover: (at: number | null) => void; onPin: (at: number) => void; onClear: () => void;
+  onHover: (at: number | null) => void; onPin: (at: number) => void; onClear: () => void; onRecord?: (id: string, at: number) => void;
 }
 const iso = (at: number) => new Date(at).toISOString();
 const nodeColors = ["#315f50", "#a78232"];
 
-export function CoolingTimeline({ history, nodes, labels, result, start, end, anchor, snapshot, inspection, selectedAt, pinned, compact = false, onHover, onPin, onClear }: Props) {
+export function CoolingTimeline({ history, nodes, labels, result, start, end, anchor, snapshot, inspection, selectedAt, pinned, compact = false, onHover, onPin, onClear, onRecord }: Props) {
   const host = useRef<HTMLDivElement>(null), [width, setWidth] = useState(1100);
   const id = useId().replace(/:/g, "");
   useEffect(() => {
@@ -127,18 +127,18 @@ export function CoolingTimeline({ history, nodes, labels, result, start, end, an
             const box = event.currentTarget.ownerSVGElement!.getBoundingClientRect();
             const at = start + ((event.clientX - box.left) / box.width * width - left) / (right - left) * (domainEnd - start);
             const nearest = reports.filter(e => e.event_type === "APPLIED_OUTPUT" && e.payload.status === status).reduce<(typeof reports)[number] | null>((best, e) => !best || Math.abs(Date.parse(e.occurred_at) - at) < Math.abs(Date.parse(best.occurred_at) - at) ? e : best, null);
-            if (nearest) onPin(Date.parse(nearest.occurred_at));
+            if (nearest) { onPin(Date.parse(nearest.occurred_at)); onRecord?.(nearest.event_id, Date.parse(nearest.occurred_at)); }
           }}><title>{status.toLowerCase()} simulated output events · select a marker to inspect its exact timestamp</title></path>)}
           <text x="0" y="355">Forecasts as issued</text><line x1={left} x2={right} y1="350" y2="350" stroke="#d4ddd2" />
           {windows.map(f => <g key={f.event_id}><title>Forecast issued {time(f.occurred_at, true)} · {f.payload.source} / {f.payload.quality} · window {time(f.payload.next_use_window!.start, true)}–{time(f.payload.next_use_window!.end, true)}. May be superseded; inspect a time for its known forecast.</title><rect x={x(clamp(Date.parse(f.payload.next_use_window!.start)))} y="339" width={Math.max(0, x(clamp(Date.parse(f.payload.next_use_window!.end))) - x(clamp(Date.parse(f.payload.next_use_window!.start))))} height="22" fill={`url(#${id}-plan)`} stroke="#b79b5e" opacity=".55" />{f.payload.planned_restart_at && Date.parse(f.payload.planned_restart_at) >= start && Date.parse(f.payload.planned_restart_at) <= domainEnd && <path d={`M${x(Date.parse(f.payload.planned_restart_at))} 334v32`} stroke="#a78232" />}</g>)}
           <text x="0" y="405">Key decisions</text><line x1={left} x2={right} y1="400" y2="400" stroke="#d4ddd2" />
-          {decisions.map(e => <circle key={e.event_id} role="button" tabIndex={-1} aria-label={`Inspect decision ${time(e.occurred_at, true)} · ${spatialModeNames[e.payload.requested_mode]}`} cx={x(Date.parse(e.occurred_at))} cy="400" r="4.5" fill={spatialModeColors[e.payload.requested_mode]} onClick={event => { event.stopPropagation(); onPin(Date.parse(e.occurred_at)); }} onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); event.stopPropagation(); onPin(Date.parse(e.occurred_at)); } }}><title>{time(e.occurred_at, true)} · {e.payload.reason_text}</title></circle>)}
+          {decisions.map(e => <circle key={e.event_id} role="button" tabIndex={-1} aria-label={`Inspect decision ${time(e.occurred_at, true)} · ${spatialModeNames[e.payload.requested_mode]}`} cx={x(Date.parse(e.occurred_at))} cy="400" r="4.5" fill={spatialModeColors[e.payload.requested_mode]} onClick={event => { event.stopPropagation(); onPin(Date.parse(e.occurred_at)); onRecord?.(e.event_id, Date.parse(e.occurred_at)); }} onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); event.stopPropagation(); onPin(Date.parse(e.occurred_at)); onRecord?.(e.event_id, Date.parse(e.occurred_at)); } }}><title>{time(e.occurred_at, true)} · {e.payload.reason_text}</title></circle>)}
         </>}
         {snapshot >= start && snapshot <= domainEnd && <><line x1={x(snapshot)} x2={x(snapshot)} y1="35" y2={compact ? 148 : 427} stroke="#557767" strokeDasharray="3 4" />{compact && <text x={x(snapshot)} y="178" textAnchor="end" className="su-axis">Snapshot {time(iso(snapshot))}</text>}</>}
         {restart !== null && restart >= start && restart <= domainEnd && <g><line x1={x(restart)} x2={x(restart)} y1={modeY - 8} y2={modeY + 37} stroke="#a78232" strokeWidth="1.5" />{compact && <text x={right - x(restart) < 140 ? x(restart) : x(restart) + 5} textAnchor={right - x(restart) < 140 ? "end" : "start"} y="178" fill="#8c6c27">Restart {time(iso(restart))}</text>}<title>Planned restart {time(iso(restart), true)}. A stored plan, not an applied output.</title></g>}
         {selectedAt !== null && selectedAt >= start && selectedAt <= domainEnd && <line x1={x(selectedAt)} x2={x(selectedAt)} y1="35" y2={height - 34} stroke="#183e35" strokeWidth={pinned ? 2 : 1} strokeDasharray={pinned ? undefined : "3 3"} />}
       </svg>
     </div>
-    <p className="su-chart-help">{compact ? "Solid = recorded · dashed = expected use · gold marker = planned restart. No future cooling mode is assumed." : "Hover to preview · click / tap or use ← → to pin · Escape returns to latest. Hatched gaps are unknown; forecast windows show expectations as issued."}<span>Swipe to explore the timeline.</span></p>
+    <p className="su-chart-help">{compact ? "Solid = recorded · dashed = expected use · gold marker = planned restart. No future cooling mode is assumed." : "Hover to preview · click / tap or use ← → to pin · Escape returns to latest. Hatched gaps are unknown; forecast windows show expectations as issued. Decision and report markers open their exact record."}<span>Swipe to explore the timeline.</span></p>
   </div>;
 }
