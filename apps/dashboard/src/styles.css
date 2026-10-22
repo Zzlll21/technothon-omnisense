@@ -1,6 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;450;500;550;600;650;700&display=swap');
-
-:root { font-family: 'DM Sans', 'Segoe UI', sans-serif; font-size: 16px; line-height: 1.5; color: #24342f; background: #f5f7f7; font-synthesis: none; --jade: #147d64; --ink: #21332e; --muted: #6b7772; --line: #e4e9e6; --good: #13745c; --info: #326a99; --attention: #a26318; --danger: #b63f3f; --neutral: #697671; }
+:root { font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Arial, sans-serif; font-size: 16px; line-height: 1.5; color: #24342f; background: #f5f7f7; font-synthesis: none; --jade: #147d64; --ink: #21332e; --muted: #6b7772; --line: #e4e9e6; --good: #13745c; --info: #326a99; --attention: #a26318; --danger: #b63f3f; --neutral: #697671; }
 * { box-sizing: border-box; letter-spacing: 0; }
 body { margin: 0; min-width: 320px; }
 button, a, input, select { -webkit-tap-highlight-color: transparent; }
