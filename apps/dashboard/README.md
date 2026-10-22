@@ -1,6 +1,6 @@
 # OmniSense SDP Dashboard
 
-Phase 5B: Overview, Room & Nodes, Predictive Cooling, AC Utilization and Operating Records. This frontend reads only the
+Decision Console experiment: Overview, Room & Nodes, Predictive Cooling, Cooling Statistics and Operating Records. This frontend reads only the
 dedicated SDP database. There is no MQTT connection, Control API dependency,
 command sending, scenario selector or legacy `sensor_readings` query.
 
@@ -9,7 +9,7 @@ command sending, scenario selector or legacy `sensor_readings` query.
 From the repository root:
 
 ```powershell
-git branch --show-current # sdp-dashboard-rebuild
+git branch --show-current # experiment/gemini-ui-redesign
 npm.cmd --prefix apps/dashboard ci
 Set-Location apps/dashboard
 # Only if .env does not already exist:
@@ -48,15 +48,21 @@ a visible setup state, with the rejected values omitted from browser code.
    future, mismatched command/output and inconsistent sample references. Retry
    once if a newly published run hides rows partway through a read.
 
-No entire historical dataset is downloaded for the Overview. Room temperature
+The current snapshot query does not download history. The redesigned Overview separately loads
+the bounded 24-hour predictive and zone-level utilization histories (500-row pagination,
+committed sequence bounds and incremental refresh), using the same tested APIs as the
+dedicated analysis views. Room temperature
 and humidity use the configured representative environmental node, explicitly
-labelled in the KPI notes. No frontend occupancy fusion/cooling algorithm or PMV
+labelled as the reference temperature. No frontend occupancy fusion/cooling algorithm or PMV
 comfort claim is implemented. Node classifications are not summed into an exact
 headcount; the contract only provides categories.
 
 The Overview includes stored zone occupancy, requested mode/reason, requested vs
 reported output, future use window/restart, forecast quality/expiry, required
-nodes and latest important events. The illustrative room diagram uses stored node
+nodes and latest important events. Its primary workspace pairs the synchronized timeline
+with the decision explanation. Sensor buttons open current evidence and 1h/24h/7d
+histories in a modal; the full Room & Nodes destination remains available.
+The illustrative room diagram uses stored node
 coordinates, not surveyed geometry. Output acknowledgement is simulated, not
 verified physical HVAC actuation. Data Sources & Methodology explains provenance.
 
@@ -80,6 +86,30 @@ policies or privileged frontend credentials.
 ## Product navigation
 
 All five product destinations are implemented with read-only SDP data access.
+Top navigation scrolls horizontally on narrow screens; there is no hidden off-canvas
+menu with focusable links. Tab/Shift+Tab use native controls. Sensor, methodology
+and record dialogs use native modal focus handling and Escape dismissal.
+
+In the timeline, hover previews a time; click/tap or arrow/Home/End inspection pins
+it. Explicit selection survives blur, data refresh and navigation between the
+Overview, Predictive Cooling and audit views for the same active run. It is an
+in-memory inspection, not a browser-reload bookmark. Use Latest snapshot or Escape
+to clear it, or select another timestamp. Changing the time range intentionally
+resets inspection. Decision markers remain on the timeline; the redundant expandable
+Decision Changes list has been removed. Its historical records are still queried.
+
+The Overview retains its utilization matrix. Select a cell
+to see up to five latest matching **contiguous recorded intervals**, then inspect
+one in Predictive Cooling. Open decision record searches the exact event ID in
+the existing seven-day audit range. If that event is outside retained history,
+an empty result is shown rather than an invented explanation.
+Cooling Statistics is a separate compact Numbers/Bars page, not another copy of
+the Overview matrix. Secondary daily/trend/distribution charts are removed from
+that interface. Their shared timestamp-based calculation utilities are unchanged.
+On phones, the decision inspector precedes the timeline; the full timestamp domain
+and all four matrix columns fit the viewport. Touch inspection retains its readout.
+Snapshot time, decision evaluation time and simulated report time are separately labelled.
+
 Operating Records provides server-filtered browsing, exact linked details and CSV
 export. Legacy UI modules
 and APIs are removed on this branch; protected branches are not modified.
@@ -167,14 +197,17 @@ It does not normally emit cancelled/unavailable forecasts or uncertain occupancy
 those display states are checked using isolated test responses. Browser testing
 must not create or modify cloud data to manufacture these cases.
 
-## AC Utilization
+## Cooling Statistics
 
-The utilization page presents requested operating time from stored simulation
-records. Daily profiles, a known-time mode distribution, hourly/daily request
-trends and an occupancy-by-mode matrix support the last 24 hours or 7 days.
-Hover/focus/click a bar or matrix cell to inspect its values. The overlap matrix
-scrolls inside its region on mobile. Metric definitions are available on the page;
-Data Sources & Methodology remains accessible through the product shell.
+The compact Statistics page presents requested operating duration from stored
+simulation records for the last 24 hours or 7 days. Numbers is the default; Bars
+shows the same values as three exclusive categories: normal, reduced/standby and
+pre-cooling. Normal cooling during vacancy is a subset of normal cooling, shown
+as an amber portion inside the normal bar, not a fourth category. No donut is
+added: the bar view makes durations and the included overlap easier to compare.
+Coverage stays visible in both views. Unknown time is not zero operation and is
+excluded from mode-share percentages. The Overview matrix remains unchanged.
+Data Sources & Methodology remains available; these are not measured AC runtimes.
 
 ### Calculation definitions
 
@@ -184,7 +217,7 @@ An interval is half-open `[start, end)` and clipped to the selected window:
 | Metric | Definition |
 | --- | --- |
 | Normal cooling requested | Sum of known intervals in `OCCUPIED` requested mode, independent of occupancy. |
-| Reduced / standby | `SHORT_VACANCY` plus `LONG_VACANCY` duration. The individual categories remain visible in charts. |
+| Reduced / standby | `SHORT_VACANCY` plus `LONG_VACANCY` duration, combined in Statistics. |
 | Pre-cooling | `PRECOOL` duration only; never also counted as normal cooling during vacancy. |
 | Normal during vacancy | `OCCUPIED` requested mode overlapping controller-reported `VACANT` occupancy. This is a review opportunity, not verified avoidable waste. |
 | Mode transitions | Changes between known requested modes across continuous evidence, including decision events within a frame interval. First observations and jumps across gaps are excluded. Changes exactly at the range start are included when a valid predecessor exists; changes exactly at the end are excluded. |
@@ -193,8 +226,9 @@ An interval is half-open `[start, end)` and clipped to the selected window:
 | Matched APPLIED report | Known time supported by an `APPLIED`, `SIMULATED` output with the exact decision and command IDs. Accepted/rejected/failed or absent reports remain unconfirmed. This is report coverage, not physical runtime. |
 
 Known plus unknown time equals the selected window. Requested mode categories
-partition known time; percentages in Mode Distribution use known time only.
-Daily bars and trends include unknown time explicitly. When nothing is known,
+partition known time; bar percentages use known time only. The calculator still
+exposes daily/transition/report totals for other consumers, but Statistics does
+not render these secondary analytics. When nothing is known,
 KPI durations display Unavailable. Small gaps never round up to 100% coverage.
 Display durations are floored to whole minutes (`<1 min` for positive sub-minute
 durations); chart readouts/titles provide seconds where appropriate.
@@ -249,20 +283,26 @@ published run remounts the page. The shell continues to show stale/connection wa
 - Order by `occurred_at DESC, sequence DESC, ordinal DESC`. These storage fields
   preserve order when events share a timestamp. UI pages contain 25 records and
   use exact server counts plus offset/range pagination over the pinned dataset.
-- Category filtering uses `event_type = ...` or an `IN` list. Operational events
-  (the default) include decisions, forecasts, output reports and override records.
-  Node evidence and configuration are available through their categories or All.
+- Quick categories are All / Decisions / Forecasts / Reports. The default is
+  Decisions to avoid filling the first page with frequent sensor samples. All
+  really includes every stored type, including sensor evidence, configuration
+  and override records. Advanced filters can select any individual stored type
+  or the operating-events subset. No less-common types are removed.
 - Requested-mode filtering uses `event->payload->>requested_mode = ...` directly.
   Only decision and SET_OVERRIDE request records contain that field. It deliberately
   excludes reports/forecasts rather than inferring their modes through a join.
-- Search is a server-side case-insensitive substring filter on `event->>payload`
-  (Recorded text), `event_id`, or `event->>correlation_id`. Percent, underscore and
-  backslash are escaped as literal characters. Input is passed through structured
-  query methods, not interpolated into an OR/filter expression. Search never filters
-  only the visible page. Human-readable generated labels are not searched.
+- The single default search is server-side and case-insensitive across payload
+  text, raw reason/status-description fields, event/correlation IDs, event type
+  and zone ID. Advanced Search scope can restrict it to recorded descriptions,
+  record ID or related-event ID. LIKE percent/underscore/backslash escaping and
+  PostgREST quoted-value escaping are separate, so commas, quotes and parentheses
+  cannot alter the OR expression. Search never filters only the visible page;
+  generated display labels are not indexed/searchable phrases.
 - Select 24h, 7d, or up to seven inclusive Malaysia-local calendar dates. Custom
   dates begin at UTC+08:00 midnight, and today is clipped to current browser time.
-  Invalid/reversed/future dates are rejected. Apply resets pagination to page one.
+  Invalid/reversed/future dates are rejected. Enter/Apply filters submits date,
+  search and advanced changes; quick-category buttons immediately apply the whole
+  current draft. Applying resets pagination to page one.
   Unapplied filter changes disable export, so a draft selection cannot download an
   older result set by accident.
 
@@ -358,11 +398,11 @@ timestamp, forecast issue/expiry and requested/reported output. Switch 24 hours 
 frame. On narrow screens the synchronized plot scrolls horizontally inside its
 own region; labels and details stay readable outside the plot.
 
-For AC Utilization, compare 24h and 7d, inspect daily/trend bars and the vacant ×
-normal-cooling cell. Verify pre-cooling is separate, partial days are clipped, and
-known plus unknown covers the window. Open metric definitions and compare times
-against recorded decisions. Test missing/stale/sparse states with intercepted local
-test responses, leaving the cloud dataset intact.
+For Cooling Statistics, compare 24h and 7d in Numbers and Bars. Verify there are
+three exclusive bars, the amber vacancy overlap is included in normal cooling,
+and known plus unknown covers the window. Compare with the Overview matrix and
+recorded decisions. Test missing/stale/sparse states using intercepted local test
+responses, leaving the cloud dataset intact.
 
 For Operating Records, combine category, requested mode, search and date filters;
 move between pages and verify newest-first timestamp/sequence/ordinal ordering.

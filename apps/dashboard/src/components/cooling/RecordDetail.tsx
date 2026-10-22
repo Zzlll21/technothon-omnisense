@@ -9,10 +9,11 @@ import { Badge } from "./ProductShell";
 
 export function RecordDetail({ context, snapshot, onClose }: { context: RecordContext; snapshot: RecordSnapshot; onClose: () => void }) {
   const dialog = useRef<HTMLDialogElement>(null);
-  useEffect(() => { dialog.current?.showModal(); }, []);
+  const trigger = useRef(document.activeElement instanceof HTMLElement ? document.activeElement : null);
+  useEffect(() => { const element = dialog.current; element?.showModal(); return () => { element?.close(); trigger.current?.focus(); }; }, []);
   const { row, frame, decision, forecast, outputs, warnings } = context, e = row.event, view = recordPresentation(context);
   const ownReport = e.event_type === "APPLIED_OUTPUT" ? e : null;
-  return <dialog ref={dialog} className="record-drawer" aria-labelledby="record-detail-title" onCancel={onClose} onClose={onClose} onClick={event => { if (event.target === event.currentTarget) onClose(); }}><div className="record-drawer-content">
+  return <dialog ref={dialog} className="record-drawer" aria-labelledby="record-detail-title" onCancel={event => { event.preventDefault(); onClose(); }} onClick={event => { if (event.target === event.currentTarget) onClose(); }}><div className="record-drawer-content">
     <header><div><Badge tone={view.tone}>{view.category}</Badge><h2 id="record-detail-title">{view.title}</h2></div><button className="icon-button" aria-label="Close record details" title="Close" onClick={onClose}><X size={20} /></button></header>
     <time className="record-detail-time" dateTime={e.occurred_at} title={e.occurred_at}>{malaysiaTime(e.occurred_at)} · MYT</time>
     <p className="record-detail-description">{view.reason || describeRecord(e).summary}</p>

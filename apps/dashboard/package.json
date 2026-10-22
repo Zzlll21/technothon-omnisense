@@ -9,6 +9,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host 127.0.0.1",
     "typecheck": "tsc --noEmit",
+    "test:console": "node --test test/decision-console.test.mjs test/landing-moments.test.mjs",
     "test:records": "node --test test/records.test.mjs",
     "test:overview": "npm --prefix ../../packages/sdp-contract run build && node --test test/overview.test.mjs",
     "test:nodes": "npm --prefix ../../packages/sdp-contract run build && node --test test/node-history.test.mjs",

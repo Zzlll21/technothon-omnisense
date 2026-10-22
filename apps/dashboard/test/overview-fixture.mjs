@@ -41,7 +41,14 @@ export function selectRows(rows, filters, orders, limit = Infinity) {
     let regex='';for(let i=0;i<pattern.length;i++){let c=pattern[i];if(c==='\\'&&i+1<pattern.length)c=pattern[++i];else if(c==='%'){regex+='.*';continue;}else if(c==='_'){regex+='.';continue;}regex+=c.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
     return raw!=null&&new RegExp(`^${regex}$`,'is').test(typeof raw==='object'?JSON.stringify(raw):String(raw));
   };
-  const result = rows.filter(row => filters.every(([method, field, value]) => {const actual=fieldValue(row,field);return method === 'eq' ? actual === value : method === 'neq' ? actual !== value : method === 'lte' ? actual <= value : method === 'lt' ? actual < value : method === 'gte' ? actual >= value : method === 'gt' ? actual > value : method === 'ilike' ? like(actual,value) : value.includes(actual);}));
+  const result = rows.filter(row => filters.every(([method, field, value]) => {
+    if(method==='or'){
+      const terms=[...value.matchAll(/(?:^|,)([a-z_>\-]+)\.ilike\."((?:\\.|[^"\\])*)"(?=,|$)/g)];
+      if(terms.length!==8)throw new Error('Unexpected test OR filter grammar');
+      return terms.some(([,key,quoted])=>like(fieldValue(row,key),quoted.replace(/\\([\\"])/g,'$1')));
+    }
+    const actual=fieldValue(row,field);return method === 'eq' ? actual === value : method === 'neq' ? actual !== value : method === 'lte' ? actual <= value : method === 'lt' ? actual < value : method === 'gte' ? actual >= value : method === 'gt' ? actual > value : method === 'ilike' ? like(actual,value) : value.includes(actual);
+  }));
   result.sort((a, b) => {
     for (const [field, ascending] of orders) {
       const comparison = a[field] < b[field] ? -1 : a[field] > b[field] ? 1 : 0;
@@ -65,6 +72,7 @@ export function fakeClient(tables, intercept) {
       gt(field, value) { query.filters.push(['gt', field, value]); return chain; },
       in(field, value) { query.filters.push(['in', field, value]); return chain; },
       ilike(field, value) { query.filters.push(['ilike', field, value]); return chain; },
+      or(value) { query.filters.push(['or', '', value]); return chain; },
       order(field, options = {}) { query.orders.push([field, options.ascending !== false]); return chain; },
       limit(value) { query.limit = value; return chain; },
       range(start, end) { query.offset = start; query.limit = end - start + 1; return chain; },

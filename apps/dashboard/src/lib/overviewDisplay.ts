@@ -2,7 +2,7 @@ import type { OverviewData, SdpSample } from "../types/overview";
 import type { CoolingMode, OutputSetting, SdpEvent, ZoneForecast } from "../../../../packages/sdp-contract/src";
 
 export type Tone = "good" | "info" | "attention" | "neutral" | "danger";
-export const modeLabels: Record<CoolingMode, string> = { OCCUPIED: "Occupied cooling", SHORT_VACANCY: "Reduced cooling", LONG_VACANCY: "Cooling on standby", PRECOOL: "Pre-cooling" };
+export const modeLabels: Record<CoolingMode, string> = { OCCUPIED: "Normal cooling", SHORT_VACANCY: "Reduced cooling", LONG_VACANCY: "Standby", PRECOOL: "Pre-cooling" };
 export const modeTones: Record<CoolingMode, Tone> = { OCCUPIED: "good", SHORT_VACANCY: "attention", LONG_VACANCY: "neutral", PRECOOL: "info" };
 export function number(value: number | null | undefined, places = 1) { return typeof value === "number" && Number.isFinite(value) ? value.toFixed(places) : "\u2014"; }
 export function time(value: string | null | undefined, date = false) {

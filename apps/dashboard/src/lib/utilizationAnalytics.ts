@@ -8,7 +8,7 @@ const DAY = 24 * HOUR;
 // This declared site timezone is UTC+08:00 with no daylight-saving changes.
 const OFFSET = 8 * HOUR;
 export const utilizationModeLabels: Record<CoolingMode, string> = { OCCUPIED: "Normal cooling", SHORT_VACANCY: "Reduced cooling", LONG_VACANCY: "Standby", PRECOOL: "Pre-cooling" };
-export const utilizationColors: Record<CoolingMode, string> = { OCCUPIED: "#25856d", SHORT_VACANCY: "#c69442", LONG_VACANCY: "#8c9e98", PRECOOL: "#407fa6" };
+export const utilizationColors: Record<CoolingMode, string> = { OCCUPIED: "#059669", SHORT_VACANCY: "#D97706", LONG_VACANCY: "#64748B", PRECOOL: "#0284C7" };
 export const modeOrder: CoolingMode[] = ["OCCUPIED", "SHORT_VACANCY", "LONG_VACANCY", "PRECOOL"];
 export interface UtilizationSegment { start: number; end: number; mode: CoolingMode | null; occupancy: OccupancyState | null; applied: boolean }
 export interface UtilizationTotals {

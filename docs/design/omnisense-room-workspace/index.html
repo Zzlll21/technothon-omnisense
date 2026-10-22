@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f3f5ef"><meta name="description" content="OmniSense — room evidence, anticipatory cooling and an inspectable operating record.">
+  <title>OmniSense · Floor & zone workspace</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%23183e35' stroke-width='2'/%3E%3Cpath d='m22 9-13 7 13 7' fill='none' stroke='%23183e35' stroke-width='2'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css?v=spatial-2"><script src="../omnisense-landing/vendor/gsap.min.js" defer></script><script src="../omnisense-office/office-scene.js?v=subareas-2" defer></script><script type="module" src="../omnisense-office/office-3d.js?v=rotation-hold-1"></script><script src="floor-plan.js?v=spatial-2" defer></script><script src="fixtures.js" defer></script><script src="app.js?v=spatial-2" defer></script><script src="vendor/alpine.min.js" defer></script>
+</head>
+<body>
+<svg class="sr-only" aria-hidden="true"><defs>
+  <symbol id="i-room" viewBox="0 0 24 24"><path d="m3 9 9-5 9 5v9l-9 4-9-4V9Zm0 0 9 5 9-5M12 14v8"/></symbol>
+  <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 4v16h18M6 15l4-5 4 2 6-8"/></symbol>
+  <symbol id="i-record" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6m-6 4h6m-6 4h4"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></symbol>
+  <symbol id="i-export" viewBox="0 0 24 24"><path d="M12 3v12m-4-4 4 4 4-4M5 15v5h14v-5"/></symbol>
+  <symbol id="i-match" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m7 12 3 3 7-7"/></symbol>
+  <symbol id="i-left" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></symbol>
+  <symbol id="i-right" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+</defs></svg>
+<div class="app entrance" x-data="omni" @animationend="if($event.animationName==='room-enter')$el.classList.remove('entrance')">
+  <header class="topbar">
+    <a href="./" class="brand" aria-label="OmniSense floor overview"><span class="logo"><svg class="icon" viewBox="0 0 24 24"><path d="m18 5-13 7 13 7"/></svg></span>omnisense</a>
+    <div class="zone-context"><strong x-text="view==='floor'?'Office floor':'Open Office'"></strong><span x-text="view==='floor'?'Spatial overview':'One shared cooling zone'"></span></div>
+    <div class="top-right"><span class="dataset"><i></i>Synthetic operating records</span><span class="timezone">22 Oct 2026 · MYT</span><div class="avatar" aria-label="Operator">OP</div></div>
+  </header>
+  <div class="navrow">
+    <nav class="lenses" aria-label="Workspace views"><button class="floor-return" @click="navigate('floor')" :class="{active:view==='floor'}" :aria-current="view==='floor'?'page':null"><svg class="icon"><use href="#i-left"/></svg>Floor overview</button><button x-show="view!=='floor'" @click="navigate('room')" :class="{active:view==='room'}" :aria-current="view==='room'?'page':null"><svg class="icon"><use href="#i-room"/></svg>Zone</button><button x-show="view!=='floor'" @click="navigate('history')" :class="{active:view==='history'}" :aria-current="view==='history'?'page':null"><svg class="icon"><use href="#i-history"/></svg>Usage &amp; cooling</button><button x-show="view!=='floor'" @click="navigate('records')" :class="{active:view==='records'}" :aria-current="view==='records'?'page':null"><svg class="icon"><use href="#i-record"/></svg>Operating record</button></nav>
+    <span class="record-clock" x-text="view==='floor'?'1 supported demo zone · 5 illustrative spaces':'Snapshot · 13:20:00 MYT'"></span>
+  </div>
+  <main class="workspace">
+    <section x-show="view==='floor'" x-cloak class="floor-overview" aria-label="Office floor overview">
+      <div class="viewhead floor-head"><div><h1 tabindex="-1" x-ref="floorHeading">The floor, at a glance.</h1><p>Select Open Office to explore its sensing infrastructure and cooling decisions.</p></div><div class="floor-key"><span><i></i>Supported demo zone</span><span><i class="unavailable"></i>Illustrative space</span></div></div>
+      <div class="floor-layout">
+        <div class="floor-drawing"><div class="drawing-title"><strong>Office floor</strong><span>Proposed spatial layout</span></div><omni-floor :selected-zone="floorSelection" @floor-zone-select="selectFloorZone($event.detail.id)"></omni-floor>
+<nav class="space-index" aria-label="Choose a floor space"><template x-for="space in floorSpaces" :key="space.id"><button @click="selectFloorZone(space.id)" :class="{selected:floorSelection===space.id}" :aria-pressed="floorSelection===space.id"><span x-text="space.name"></span><small x-text="space.id==='open-office'?'Supported demo ↗':'Illustrative'"></small></button></template></nav>
+ 
+</div>
+        <aside x-ref="floorInspector" class="floor-inspector" aria-label="Selected floor space" aria-live="polite">
+          <span class="connection-status" x-text="floorSelection==='open-office'?'Supported demo zone':'Illustrative space'"></span>
+          <h2 x-text="floorSpaceName"></h2>
+          <template x-if="floorSelection==='open-office'"><div><p class="floor-zone-description">One shared cooling zone<br>Two ceiling-mounted sensing nodes</p><div class="floor-zone-state"><span class="zone-status vacant"><i class="occ-dot"></i>Vacant</span><span>2 of 2 fresh</span></div><div class="floor-environment"><strong><span x-text="zoneTemp"></span><small>°C</small></strong><strong><span x-text="zoneHumidity"></span><small>% RH</small></strong></div><dl class="floor-facts"><div><dt>Cooling request</dt><dd>Reduced</dd></div><div><dt>Planned restart</dt><dd x-text="time(forecast.restart)"></dd></div><div><dt>Next expected use</dt><dd x-text="time(forecast.expected)"></dd></div></dl><button class="enter-zone" @click="enterZone()">Explore 3D workspace<svg class="icon"><use href="#i-arrow"/></svg></button><p class="floor-data-note">Synthetic records · 22 Oct, 13:20 MYT.<br> Reported cooling output is simulated.</p></div></template>
+          <template x-if="floorSelection!=='open-office'"><div class="unconnected-space"><p>No operational data</p><p>This space illustrates the proposed floor experience. No sensor readings, cooling outputs or forecasts are connected.</p><button class="enter-zone" @click="enterZone()">Open supported demo zone<svg class="icon"><use href="#i-arrow"/></svg></button></div></template>
+        </aside>
+      </div>
+      <p class="floor-boundary">Only Open Office has the complete monitoring experience. The surrounding spaces demonstrate a future multi-zone layout; they are not connected zones.</p>
+    </section>
+    <section x-show="view==='room'" x-cloak aria-label="Current shared-zone observation and cooling decision">
+      <div class="viewhead"><div><h1 tabindex="-1" x-ref="zoneHeading">Vacant now. Next expected use <span x-text="time(forecast.expected)">14:00</span>.</h1></div><span class="zone-identity">Open Office · Supported demo zone</span></div>
+      <div class="mobile-glance"><div class="current-environment"><strong><span x-text="zoneTemp">25.8</span>°C</strong><span class="divider"></span><strong><span x-text="zoneHumidity">59</span><small>% RH</small></strong><small>Valid-node averages</small></div><span class="evidence-status"><i></i>2 of 2 fresh · evidence valid</span></div>
+      <div class="room-layout">
+        <section class="room-stage" aria-label="Shared zone and its two sensor nodes">
+          <div class="stage-top"><div class="current-environment"><strong><span x-text="zoneTemp">25.8</span>°C</strong><span class="divider"></span><strong><span x-text="zoneHumidity">59</span><small>% RH</small></strong><small>Valid-node averages</small></div><span class="evidence-status"><i></i>2 of 2 fresh · evidence valid</span></div>
+          <div class="room-art">
+            <omni-office-3d variant="workspace"
+              :node-one-temperature="nodes[0].temperature ?? ''" :node-one-humidity="nodes[0].humidity ?? ''" :node-one-occupancy="nodes[0].occupancy"
+              :node-two-temperature="nodes[1].temperature ?? ''" :node-two-humidity="nodes[1].humidity ?? ''" :node-two-occupancy="nodes[1].occupancy"
+              :selected-node="selectedNode" @office-node-select="openNode($event.detail.id)"></omni-office-3d>
+          </div>
+          <div class="stage-bottom"><span>Ceiling mounted · coverage schematic</span><span class="zone-status vacant"><i class="occ-dot"></i>Vacant · both nodes agree</span></div>
+        </section>
+        <section class="decision-column" aria-label="Current cooling request and next plan">
+          <h2 class="section-title">Current request <span class="tiny" x-text="time(decision.t)">13:15</span></h2>
+          <div class="request-title"><i class="mode-mark" aria-hidden="true"></i><h2>Reduced</h2></div>
+          <p class="subtle" style="font-size:13px;margin:0">Standby while the zone is vacant</p>
+          <p class="reason">Both nodes support vacancy. Expected use is outside the pre-cooling lead window.</p>
+          <div class="output-line"><span>Reported output · simulated</span><strong><svg class="match-symbol" viewBox="0 0 24 24"><use href="#i-match"/></svg>Reduced</strong></div>
+          <div class="output-meta" x-text="time(latestOutput.t,true)+' · matches the latest request'"></div>
+          <button class="decision-link" @click="openEvent(decision.id)"><span>Follow this decision to its evidence</span><svg class="icon"><use href="#i-arrow"/></svg></button>
+          <div class="plan-pair"><div><span class="label">Planned cooling restart</span><strong x-text="time(forecast.restart)">13:40</strong><small>20 min before expected use</small></div><div><span class="label">Next expected use</span><strong x-text="time(forecast.expected)">14:00</strong><small>13:55–14:10 window</small></div></div>
+          <button class="forecast-link" @click="openForecast()">Historical pattern · Moderate quality ↗</button>
+        </section>
+      </div>
+      <section class="horizon" aria-label="Recorded conditions and upcoming cooling plan">
+        <div class="section-heading"><h2>From vacancy to the next use</h2><button @click="navigate('history')">Explore usage &amp; cooling<svg class="icon"><use href="#i-arrow"/></svg></button></div>
+        <div class="legend"><span><i class="reduced"></i>Recorded request</span><span><i class="uncertain"></i>Uncertain occupancy</span><span><i class="planned"></i>Planned / forecast</span><span>Future times are expectations, not recorded outcomes</span></div>
+        <div class="horizon-chart" x-html="horizonSVG"></div>
+        <p class="scroll-hint">Swipe the timeline to see the full interval →</p>
+      </section>
+    </section>
+
+    <section x-show="view==='history'" x-cloak aria-label="Historical usage and requested cooling analysis">
+      <div class="viewhead"><div><h1>Usage &amp; cooling, on the same clock.</h1><p>Observed occupancy, requested operation and the records connecting them.</p></div><div class="range" role="group" aria-label="Analysis time range"><button @click="setRange('24h')" :class="{active:range==='24h'}" :aria-pressed="range==='24h'">24 hours</button><button @click="setRange('7d')" :class="{active:range==='7d'}" :aria-pressed="range==='7d'">7 days</button></div></div>
+      <section class="history-panel">
+        <div class="section-heading"><h2 x-text="date(windowStart)+' – '+date(OMNI.end)+' · ending 13:20 MYT'"></h2><div class="legend"><span><i></i>Normal</span><span><i class="reduced"></i>Reduced</span><span><i class="precool"></i>Pre-cooling</span><span><i class="unknown"></i>No record</span></div></div>
+        <div class="legend"><span><i style="height:2px"></i>Node 01 temperature</span><span><i style="height:2px;background:#a78232"></i>Node 02 temperature</span><span><i></i>Occupied</span><span><i class="vacant"></i>Vacant</span><span><i class="uncertain"></i>Uncertain</span></div>
+        <div class="history-chart" x-html="historySVG"></div>
+        <p class="scroll-hint">Swipe the timeline to see the full interval →</p>
+        <div class="history-caption"><span>Tinted windows show recorded usage forecasts. Event markers open supporting records.</span><span>Reported outputs are simulated events, not continuous physical measurements.</span></div>
+        <div class="cursor-inspection" x-show="selectedTime" x-cloak><time x-text="date(historyPoint.t)+' '+time(historyPoint.t)"></time><strong x-text="historyPoint.occupancy"></strong><span x-text="(historyPoint.mode||'Unknown')+' requested'"></span><button @click="openEvent(selectedTimeEvent.id)">Inspect nearest decision<svg class="icon"><use href="#i-arrow"/></svg></button></div>
+      </section>
+      <section class="analysis-section" aria-label="Requested operation duration statistics">
+        <div class="analysis-heading"><h2>How the zone was requested to run</h2><p>Duration of simulated requested operation · not measured electricity use</p></div>
+        <div class="duration-row"><template x-for="mode in OMNI.modes" :key="mode"><div class="duration-item"><span class="label"><i class="mode-dot" :class="modeClass(mode)"></i><span x-text="mode"></span></span><strong x-text="duration(stats[mode])"></strong><button @click="showRecords(mode)">Inspect records</button></div></template><div class="duration-item"><span class="label">Requested-mode coverage</span><strong><span x-text="stats.coverage"></span><small style="font:17px var(--sans);margin-left:3px">%</small></strong><span style="font-size:12px;color:var(--muted)" x-text="duration(stats.Unknown)+' unavailable'"></span></div></div>
+        <div class="duration-bar" x-html="operationBar" role="img" :aria-label="OMNI.modes.map(m=>m+': '+duration(stats[m])).join(', ')+', unknown '+duration(stats.Unknown)"></div>
+        <div class="coverage-line"><span><strong x-text="duration(stats.known)"></strong> of <span x-text="duration(stats.total)"></span> classified</span><span>Missing intervals stay unclassified.</span></div>
+        <div class="matrix-grid"><div><table class="matrix"><caption>What occupancy looked like during each mode</caption><thead><tr><th scope="col">Occupancy</th><template x-for="mode in OMNI.modes"><th scope="col" x-text="mode"></th></template></tr></thead><tbody><template x-for="occupancy in ['Occupied','Vacant','Uncertain']"><tr><th scope="row" class="row-label" x-text="occupancy"></th><template x-for="mode in OMNI.modes"><td><button @click="showRecords(mode,occupancy)" :aria-label="occupancy+', '+mode+': '+duration(stats.matrix[occupancy][mode])+'. Inspect associated records.'" x-text="duration(stats.matrix[occupancy][mode])"></button></td></template></tr></template></tbody></table><p class="matrix-note">Cells show duration, not event counts. Select one to inspect associated decision and output records.</p></div><aside class="vacancy-note"><h3>Normal cooling during vacancy</h3><strong x-text="duration(stats.vacantNormal)"></strong><p>A subset of Normal operation while occupancy was recorded as Vacant. This can include transition periods; it does not establish energy waste.</p><button @click="showRecords('Normal','Vacant')">Review the vacancy periods<svg class="icon"><use href="#i-arrow"/></svg></button></aside></div>
+      </section>
+    </section>
+
+    <section x-show="view==='records'" x-cloak aria-label="Searchable operating record">
+      <div class="viewhead"><div><h1>Operating record</h1><p>Inspect decision evidence and linked simulated reports.</p></div><div class="range" role="group" aria-label="Record time range"><button @click="setRange('24h')" :class="{active:range==='24h'}" :aria-pressed="range==='24h'">24 hours</button><button @click="setRange('7d')" :class="{active:range==='7d'}" :aria-pressed="range==='7d'">7 days</button></div></div>
+      <div class="record-toolbar"><label class="search"><svg class="icon"><use href="#i-search"/></svg><span class="sr-only">Search operating records</span><input x-ref="search" type="search" placeholder="Find a reason or record ID" x-model="query" @input="page=1"></label><select class="filter" aria-label="Event type" x-model="typeFilter" @change="page=1"><option>All events</option><option>Decision</option><option>Reported output</option><option>Evidence</option><option>Forecast</option><option>Coverage</option></select><select class="filter" aria-label="Requested mode filter" x-model="modeFilter" @change="page=1"><option>All modes</option><option>Normal</option><option>Reduced</option><option>Pre-cooling</option></select><select class="filter" aria-label="Occupancy filter" x-model="occupancyFilter" @change="page=1"><option>All occupancy</option><option>Occupied</option><option>Vacant</option><option>Uncertain</option></select><button class="text-button" @click="clearFilters()" x-show="query||typeFilter!=='All events'||modeFilter!=='All modes'||occupancyFilter!=='All occupancy'">Reset</button><button class="export" @click="exportCSV()" :disabled="!filtered.length"><svg class="icon"><use href="#i-export"/></svg><span x-text="exported?'CSV exported':'Export CSV'">Export CSV</span></button></div>
+      <table class="records-table" x-show="filtered.length"><thead><tr><th scope="col">Time · MYT</th><th scope="col">Record</th><th scope="col" class="kind-col">Event</th><th scope="col" class="mode-col">Requested</th><th scope="col" class="report-col">Reported · simulated</th><th scope="col" class="id-col">Occupancy</th></tr></thead><tbody><template x-for="record in pageEvents" :key="record.id"><tr><td class="timestamp"><span x-text="time(record.t,true)"></span><small x-text="date(record.t)"></small></td><td><button class="record-link" @click="openEvent(record.id)"><span x-text="record.title"></span><span class="mobile-summary" x-text="record.kind+' · '+record.occupancy"></span></button><span class="record-id" x-text="record.id"></span></td><td class="kind-col event-kind" x-text="record.kind"></td><td class="mode-col"><span class="mode-text" :class="modeClass(record.mode)"><i class="dot"></i><span x-text="record.mode||'Unknown'"></span></span></td><td class="report-col"><span class="report-state" :class="{mismatch:record.mismatch}"><svg class="icon" x-show="reportSummary(record)!=='—'&&!record.mismatch"><use href="#i-match"/></svg><span x-text="reportSummary(record)"></span></span></td><td class="id-col" x-text="record.occupancy"></td></tr></template></tbody></table>
+      <div class="empty" x-show="!filtered.length"><h2>No records match these filters.</h2><p>Keep the time window, or reset the search and filters.</p><button @click="clearFilters()">Reset search and filters</button></div>
+      <div class="pagination" x-show="filtered.length"><span class="range-info"><span x-text="(page-1)*12+1"></span>–<span x-text="Math.min(page*12,filtered.length)"></span> of <span x-text="filtered.length"></span> records · <span x-text="date(windowStart)+' – '+date(OMNI.end)"></span></span><div class="buttons"><button @click="page=Math.max(1,page-1)" :disabled="page===1" aria-label="Previous records"><svg class="icon"><use href="#i-left"/></svg></button><span x-text="page+' / '+pages"></span><button @click="page=Math.min(pages,page+1)" :disabled="page===pages" aria-label="Next records"><svg class="icon"><use href="#i-right"/></svg></button></div></div>
+    </section>
+    <footer class="page-footer"><span class="scope"><span class="scope-strong">Synthetic records · simulated output.</span> No physical HVAC actuation or measured electricity use.</span><span>Shared zone · Node 01 + Node 02 · Snapshot 22 Oct, 13:20 MYT</span></footer>
+  </main>
+
+  <dialog x-ref="detail" @cancel.prevent="closeDrawer()" @close="drawer=null" aria-label="Contextual evidence inspector">
+    <div class="drawer-top"><span x-text="drawer==='node'?'Sensor inspection':drawer==='forecast'?'Next-use forecast':'Operating record'">Inspection</span><button class="close" x-ref="close" @click="closeDrawer()" aria-label="Close inspector"><svg class="icon"><use href="#i-close"/></svg></button></div>
+    <section class="drawer-body" x-show="drawer==='node'">
+      <h2 x-text="node.name">Node 01</h2><p class="subhead">Shared cooling zone · Sensor evidence</p>
+      <div class="drawer-readings"><div><span class="label">Temperature</span><strong x-text="node.temperature.toFixed(1)"></strong><span>°C</span></div><div><span class="label">Relative humidity</span><strong x-text="node.humidity"></strong><span>%</span></div></div>
+      <div class="keyrows"><div class="keyrow"><span>Occupancy classification</span><strong class="zone-status" :class="occupancyClass(node.occupancy)"><i class="occ-dot"></i><span x-text="node.occupancy"></span></strong></div><div class="keyrow"><span>Sensor status</span><span x-text="node.status"></span></div><div class="keyrow"><span>Last reading · MYT</span><span x-text="time(OMNI.end-node.ageSeconds*1000,true)"></span></div><div class="keyrow"><span>Age at the 13:20 snapshot</span><span x-text="node.ageSeconds+' seconds'"></span></div><div class="keyrow"><span>Evidence validity</span><span>Valid · fresh and usable</span></div></div>
+      <div class="drawer-heading"><h3>Recorded conditions</h3><div class="range" role="group" aria-label="Sensor history range"><template x-for="r in ['1h','24h','7d']"><button @click="nodeRange=r" :class="{active:nodeRange===r}" :aria-pressed="nodeRange===r" x-text="r==='1h'?'1 hour':r==='24h'?'24 hours':'7 days'"></button></template></div></div>
+      <div class="mini-chart"><div class="mini-label">Temperature · °C</div><div x-html="nodeChart('temperature')"></div></div><div class="mini-chart"><div class="mini-label">Relative humidity · %</div><div x-html="nodeChart('humidity')"></div></div><div class="mini-chart"><div class="mini-label">Occupancy classification</div><div x-html="nodeOccupancySVG"></div></div>
+      <div class="legend"><span><i></i>Occupied</span><span><i class="vacant"></i>Vacant</span><span><i class="uncertain"></i>Uncertain</span></div><p class="drawer-note">Gaps in the measurement traces remain unavailable. Uncertain occupancy can include stale or conflicting evidence.</p>
+      <h3 style="font-size:14px;margin:23px 0 10px">Readings across this interval</h3><ul class="evidence-list"><template x-for="point in nodeHistory" :key="point.t"><li><div class="evidence-name"><span x-text="date(point.t)+' '+time(point.t)"></span><small x-text="point.nodes[selectedNode==='node-01'?0:1].occupancy"></small></div><div class="evidence-values"><span x-text="point.nodes[selectedNode==='node-01'?0:1].temperature===null?'Temperature unavailable':point.nodes[selectedNode==='node-01'?0:1].temperature.toFixed(1)+'°C'"></span><span x-text="point.nodes[selectedNode==='node-01'?0:1].humidity===null?'Humidity unavailable':point.nodes[selectedNode==='node-01'?0:1].humidity+'% RH'"></span></div><div class="evidence-valid" :class="{invalid:!point.nodes[selectedNode==='node-01'?0:1].valid}" x-text="point.nodes[selectedNode==='node-01'?0:1].valid?'Valid evidence':'Invalid evidence · stale'"></div></li></template></ul>
+    </section>
+    <section class="drawer-body" x-show="drawer==='forecast'">
+      <h2>Next expected use</h2><p class="subhead">Usage forecast · shared cooling zone</p>
+      <div class="forecast-clock"><div><strong x-text="time(forecast.restart)"></strong><small>Planned restart</small></div><svg class="icon"><use href="#i-arrow"/></svg><div><strong x-text="time(forecast.expected)"></strong><small>Expected use</small></div></div>
+      <div class="keyrows"><div class="keyrow"><span>Expected-use window</span><span x-text="time(forecast.windowStart)+'–'+time(forecast.windowEnd)"></span></div><div class="keyrow"><span>Forecast source</span><span x-text="forecast.source"></span></div><div class="keyrow"><span>Forecast quality</span><span x-text="forecast.quality"></span></div><div class="keyrow"><span>Recorded pre-cooling lead</span><span>20 minutes</span></div><div class="keyrow"><span>Forecast recorded</span><span x-text="date(forecast.generated)+' '+time(forecast.generated)+' MYT'"></span></div></div>
+      <div class="trace-step"><div class="label">Now · observed</div><strong>Vacant, with consistent fresh evidence</strong><p>Both nodes support vacancy. The current request remains Reduced.</p></div><div class="trace-step"><div class="label">13:40 · planned</div><strong>Pre-cooling request is due to begin</strong><p>The recorded lead time places restart 20 minutes before the expected use.</p></div><div class="trace-step"><div class="label">14:00 · expected</div><strong>Room usage is anticipated</strong><p>The 13:55–14:10 window expresses timing uncertainty. It is not confirmed occupancy.</p></div>
+      <button class="drawer-primary" @click="openEvent(OMNI.events.find(e=>e.kind==='Forecast'&&e.t===forecast.generated).id)"><span>Inspect the forecast record</span><svg class="icon"><use href="#i-arrow"/></svg></button>
+    </section>
+    <section class="drawer-body" x-show="drawer==='event'">
+      <h2 x-text="event.title"></h2><p class="subhead"><span x-text="date(event.t)+' 2026 · '+time(event.t,true)+' MYT'"></span></p><p class="record-id" x-text="event.id" style="margin:12px 0 22px"></p>
+      <div class="output-comparison" x-show="event.kind==='Reported output'" :class="{mismatch:event.mismatch}"><div><span>Requested</span><strong x-text="event.mode"></strong></div><svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg><div><span>Reported · simulated</span><strong x-text="event.reported"></strong></div></div>
+      <div class="trace-step"><div class="label" x-text="event.kind==='Reported output'?'Linked cooling decision':'Recorded explanation'"></div><strong x-text="event.kind==='Reported output'?linkedDecision.title:event.title"></strong><p x-text="event.kind==='Reported output'?linkedDecision.explanation:event.explanation"></p><time x-text="time(event.kind==='Reported output'?linkedDecision.t:event.t,true)+' MYT'"></time></div>
+      <div class="drawer-heading"><h3>Evidence at the decision time</h3></div>
+      <p class="drawer-note" style="margin-top:-7px" x-text="'Snapshot '+time(event.snapshot.t,true)+' MYT · '+event.occupancy+' zone classification'"></p>
+      <ul class="evidence-list"><template x-for="nodeRecord in event.snapshot.nodes" :key="nodeRecord.id"><li><div class="evidence-name"><span x-text="nodeRecord.name"></span><small x-text="nodeRecord.occupancy"></small></div><div class="evidence-values"><span x-text="nodeRecord.temperature===null?'Temperature unavailable':nodeRecord.temperature.toFixed(1)+'°C'"></span><span x-text="nodeRecord.humidity===null?'Humidity unavailable':nodeRecord.humidity+'% RH'"></span></div><div class="evidence-valid" :class="{invalid:!nodeRecord.valid}" x-text="nodeRecord.valid?'Valid · '+nodeRecord.ageSeconds+'s before this snapshot':'Invalid · stale reading excluded'"></div></li></template></ul>
+      <div class="keyrows"><div class="keyrow"><span>Requested mode</span><span x-text="event.mode||'Unavailable'"></span></div><div class="keyrow"><span>Expected use in this record</span><span x-text="time(event.forecast.expected)"></span></div><div class="keyrow"><span>Planned restart in this record</span><span x-text="time(event.forecast.restart)"></span></div><div class="keyrow"><span>Forecast source / quality</span><span x-text="event.forecast.source+' / '+event.forecast.quality"></span></div></div>
+      <div x-show="correlatedOutputs.length"><h3 style="font-size:15px;margin:23px 0 10px">Correlated simulated outputs</h3><template x-for="output in correlatedOutputs" :key="output.id"><div class="linked-output" :class="{mismatch:output.mismatch}"><div class="row"><strong x-text="output.reported"></strong><time x-text="time(output.t,true)"></time></div><small x-text="output.mismatch?'Differs from requested '+output.mode:'Matches requested '+output.mode"></small><small x-text="output.id"></small></div></template><p class="drawer-note">These reports describe the software simulation. They do not confirm a physical cooling output.</p></div>
+      <button class="drawer-primary" x-show="eventDecision&&event.kind!=='Decision'" @click="openEvent(eventDecision.id)"><span>Open the associated decision</span><svg class="icon"><use href="#i-arrow"/></svg></button>
+    </section>
+  </dialog>
+  <div class="sr-only" aria-live="polite" x-text="exported?'Filtered operating records exported as CSV':''"></div>
+</div>
+<noscript><p>Enable JavaScript to inspect the OmniSense room evidence and operating records.</p></noscript>
+</body>
+</html>

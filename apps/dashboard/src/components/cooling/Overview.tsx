@@ -1,70 +1,50 @@
-import { Activity, ArrowDown, ArrowRight, Check, Clock3, Droplets, Fan, Radio, ShieldCheck, Snowflake, Thermometer, Users, WifiOff } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-import type { ReactNode } from "react";
+import { useMemo, useState } from "react";
+import { ArrowRight, Clock3, Radio, Snowflake } from "lucide-react";
 import type { OverviewData } from "../../types/overview";
-import { activityLabel, forecastState, modeLabels, modeTones, nodeStatus, number, outputLabel, relative, time } from "../../lib/overviewDisplay";
-import type { Tone } from "../../lib/overviewDisplay";
-import { Badge } from "./ProductShell";
+import { modeLabels, nodeStatus, number, outputLabel, time } from "../../lib/overviewDisplay";
+import { usePredictiveHistory } from "../../hooks/usePredictiveHistory";
+import { useUtilizationHistory } from "../../hooks/useUtilizationHistory";
+import { calculateUtilization, coverageLabel, durationLabel, modeOrder, utilizationColors, utilizationModeLabels } from "../../lib/utilizationAnalytics";
+import { activeLandingForecast, landingMoments, landingSnapshot } from "../../lib/landingMoments";
+import { decisionExplanation } from "../../lib/predictiveDisplay";
 
-function Metric({ label, value, unit, note, icon: Icon, tone = "neutral" }: { label: string; value: string; unit?: string; note: string; icon: LucideIcon; tone?: Tone }) {
-  return <article className={`metric metric-${tone}`}><div className="metric-top"><span>{label}</span><Icon size={19} /></div><div className="metric-value">{value}{unit && <span>{unit}</span>}</div><div className="metric-note"><span className={`tiny-dot dot-${tone}`} />{note}</div></article>;
+interface Props {
+  data: OverviewData; now: number; refreshToken: string | null;
+  onInspectNode: (id: string) => void; onInspectTime: (at: number) => void;
+  onAudit: (eventId?: string) => void; onUtilization: () => void; onNodes: () => void;
 }
-function SectionTitle({ title, eyebrow, trailing }: { title: string; eyebrow?: string; trailing?: ReactNode }) {
-  return <div className="section-heading"><div>{eyebrow && <span className="eyebrow">{eyebrow}</span>}<h2>{title}</h2></div>{trailing}</div>;
-}
-export function Overview({ data, now }: { data: OverviewData; now: number }) {
-  const config = data.zone.config.payload;
-  const reference = data.samples.find(s => s.node_id === config.representative_environment_node_id);
-  const referenceName = config.required_nodes.find(n => n.node_id === config.representative_environment_node_id)?.label ?? "Reference sensor";
-  const mode = data.decision.payload.requested_mode;
-  const forecast = data.forecast.payload;
-  const forecastStatus = forecastState(data.forecast, now);
-  const occupied = data.frame.occupancy === "OCCUPIED";
-  const uncertain = data.frame.occupancy === "UNCERTAIN";
-  const required = config.required_nodes.map(expected => {
-    const stored = data.nodes.find(node => node.node_id === expected.node_id);
-    return stored ? { ...expected, label: stored.label, x: stored.x, y: stored.y } : expected;
-  });
-  const healthy = required.filter(node => nodeStatus(data.samples.find(s => s.node_id === node.node_id), data, now).label === "Connected").length;
-  const applied = data.output.payload.status === "APPLIED";
-  return <div className="overview-content">
-    <section className="metric-grid" aria-label="Current zone conditions">
-      <Metric label="Zone occupancy" value={occupied ? "Occupied" : uncertain ? "Uncertain" : "Vacant"} note={data.frame.coverage === "COMPLETE" ? "Complete node evidence" : "Reduced evidence coverage"} icon={Users} tone={uncertain ? "attention" : occupied ? "good" : "neutral"} />
-      <Metric label="Cooling mode" value={modeLabels[mode]} note="Latest stored decision" icon={Fan} tone={modeTones[mode]} />
-      <Metric label="Room temperature" value={number(reference?.temperature_c)} unit="°C" note={`${referenceName} reference`} icon={Thermometer} tone="info" />
-      <Metric label="Relative humidity" value={number(reference?.humidity_percent)} unit="%" note={`${referenceName} reference`} icon={Droplets} tone="neutral" />
+const momentNames = { PRECOOL: "Pre-cooling restart", OCCUPIED: "Occupied cooling", SHORT_VACANCY: "Short-gap reduced", LONG_VACANCY: "Standby" };
+
+export function Overview({ data, now, refreshToken, onInspectNode, onInspectTime, onAudit, onUtilization, onNodes }: Props) {
+  const history = usePredictiveHistory(data, 24, refreshToken);
+  const utilization = useUtilizationHistory(data, 24, refreshToken);
+  const [sequence, setSequence] = useState<number | undefined>();
+  const moments = useMemo(() => landingMoments(history.data), [history.data]);
+  const snapshot = landingSnapshot(data, history.data, sequence);
+  const result = useMemo(() => utilization.end > utilization.start ? calculateUtilization(utilization.data, { start: utilization.start, end: utilization.end, liveAnchor: data.run.live_anchor, staleAfterMs: data.zone.config.payload.freshness.stale_after_ms }) : null, [utilization.data, utilization.start, utilization.end, data.run.live_anchor, data.zone.config.payload.freshness.stale_after_ms]);
+  const asOf = snapshot?.historical ? Date.parse(snapshot.frame.simulated_at) : now;
+  const plan = activeLandingForecast(snapshot?.forecast ?? null, asOf)?.payload;
+  const lead = plan?.next_use_window && plan.planned_restart_at ? Date.parse(plan.next_use_window.start) - Date.parse(plan.planned_restart_at) : null;
+  const mode = snapshot?.decision?.payload.requested_mode;
+  const linked = snapshot?.decision?.payload.forecast_event_id;
+  const support = linked ? history.data.events.find(e => e.event_id === linked && e.event_type === "ZONE_FORECAST") ?? (data.forecast.event_id === linked ? data.forecast : null) : null;
+  const latestForecast = activeLandingForecast(data.forecast, now)?.payload;
+  return <div className="stage-overview">
+    <section className="climate-stage" aria-label="Sense predict actuate pipeline">
+      <header className="stage-heading"><h2>Sense. Predict. Actuate.</h2><div className="stage-snapshot"><span className={sequence === undefined ? "stage-live" : "stage-history"}>{sequence === undefined ? "Latest stored snapshot" : "Historical preview"}</span><time title={snapshot?.frame.simulated_at}>{snapshot ? time(snapshot.frame.simulated_at, true) : "Outside retained history"}</time></div></header>
+      {!snapshot ? <div className="stage-unavailable" role="status">This moment is outside the retained 24-hour history. <button onClick={() => setSequence(undefined)}>Return to current</button></div> : <div className="pipeline" key={sequence ?? "current"}>
+        <section className="pipeline-sense"><div className="pipeline-label"><span>01</span>Sense <Radio size={18} /></div><h3>{data.zone.name}</h3><div className="sense-visual"><img src="/zone-plan.svg" alt="Illustrative shared cooling zone" />{data.zone.config.payload.required_nodes.map(n => <i key={n.node_id} style={{ left: `${16 + n.x * 68}%`, top: `${20 + n.y * 60}%` }} />)}</div><div className="stage-readings"><strong>{number(snapshot.sample?.temperature_c)}<small> °C</small></strong><span>{number(snapshot.sample?.humidity_percent)}% RH</span></div><span className="stage-occupancy">Room {snapshot.frame.occupancy.toLowerCase()}</span></section>
+        <section className="pipeline-predict"><div className="pipeline-label"><span>02</span>Predict <Clock3 size={18} /></div><dl><div><dt>Next expected use</dt><dd>{plan?.next_use_window ? time(plan.next_use_window.start, true) : "No active forecast"}</dd></div><div><dt>Planned cooling restart</dt><dd>{plan?.planned_restart_at ? time(plan.planned_restart_at, true) : "Not available"}</dd></div></dl><span className="restart-lead">{lead !== null && lead >= 0 ? `${durationLabel(lead)} before expected use` : "Awaiting a valid restart plan"}</span><small>{plan ? `${plan.source === "BOOKING" ? "Booking timetable" : "Usage history"} · ${plan.quality.toLowerCase()} quality` : "No valid prediction at this timestamp"}</small></section>
+        <section className="pipeline-actuate"><div className="pipeline-label"><span>03</span>Actuate <Snowflake size={18} /></div><h3>{mode ? modeLabels[mode] : "No linked decision"}</h3><div className="stage-output"><span>Requested</span><strong>{outputLabel(snapshot.decision?.payload.requested_output ?? null)}</strong><ArrowRight size={20} /><span>Simulated report · {snapshot.output?.payload.status.toLowerCase() ?? "unavailable"}</span><strong>{outputLabel(snapshot.output?.payload.status === "APPLIED" ? snapshot.output.payload.reported_output : null)}</strong></div></section>
+      </div>}
+      <div className="stage-reason"><span>Why this cooling mode?</span><p>{decisionExplanation(snapshot?.decision ?? null, support?.event_type === "ZONE_FORECAST" ? support : null)}</p>{snapshot?.decision && <button onClick={() => onAudit(snapshot.decision!.event_id)} title="Open exact decision record" aria-label="Open exact decision record"><ArrowRight size={20} /></button>}</div>
     </section>
-    <div className="workspace-grid">
-      <section className="zone-section" aria-label="Zone monitor">
-        <SectionTitle title={data.zone.name} eyebrow="Zone monitor" trailing={<Badge tone={healthy === required.length ? "good" : "attention"}>{healthy}/{required.length} nodes connected</Badge>} />
-        <div className="zone-layout"><div className="room-plan"><img src="/zone-plan.svg" alt="Illustrative cooling zone floorplan" /><span className="room-plan-label">{data.zone.zone_id}</span>{required.map(node => {
-          const sample = data.samples.find(s => s.node_id === node.node_id);
-          const status = nodeStatus(sample, data, now);
-          return <div key={node.node_id} className={`sensor-marker marker-${status.tone}`} style={{ left: `${16 + node.x * 68}%`, top: `${20 + node.y * 60}%` }}><span className="sensor-symbol"><Radio size={17} /></span><span className="sensor-reading">{sample ? `${number(sample.temperature_c)} °C` : "No data"}<small>{node.label}</small></span></div>;
-        })}<span className="plan-legend"><span className="tiny-dot dot-good" />Required sensor nodes</span></div></div>
-        <div className="decision-strip"><span className={`decision-icon tone-${modeTones[mode]}`}><Fan size={20} /></span><div><span className="small-label">Cooling decision</span><strong>{data.decision.payload.reason_text.replace(/^Scripted demo:\s*/i, "").replace(/^./, c => c.toUpperCase())}</strong></div><span className="decision-time" title={data.decision.occurred_at}>{time(data.decision.occurred_at)}</span></div>
-        <div className="output-comparison">
-          <div><span className="small-label">Requested output</span><strong>{outputLabel(data.decision.payload.requested_output)}</strong><span>{time(data.decision.payload.evaluated_at, true)}</span></div>
-          <ArrowRight size={18} className="output-arrow" />
-          <div><span className="small-label">Reported output <Badge tone={applied ? "good" : data.output.payload.status === "ACCEPTED" ? "info" : "danger"}>{applied ? "Applied" : data.output.payload.status.toLowerCase()}</Badge></span><strong>{outputLabel(applied ? data.output.payload.reported_output : null)}</strong><span>Simulated report · {time(data.output.occurred_at, true)}</span></div>
-        </div>
-      </section>
-      <section className="forecast-section" aria-label="Upcoming room use"><SectionTitle title="Next room use" eyebrow="Looking ahead" trailing={<span className="section-icon"><Clock3 size={19} /></span>} />
-        <div className="forecast-meta"><Badge tone={forecastStatus === "ACTIVE" ? "info" : "neutral"}>{forecastStatus === "ACTIVE" ? "Forecast" : forecastStatus.toLowerCase()}</Badge><span>{forecast.source === "BOOKING" ? "Booking timetable" : forecast.source === "HISTORY" ? "Usage history" : "Source unavailable"}</span></div>
-        {forecastStatus === "ACTIVE" && forecast.next_use_window ? <><p className="forecast-date">{new Intl.DateTimeFormat(undefined, { weekday: "long", month: "short", day: "numeric" }).format(new Date(forecast.next_use_window.start))}</p><div className="forecast-window">{time(forecast.next_use_window.start)}<span>to {time(forecast.next_use_window.end)}</span></div><div className="restart-row"><span className="restart-icon"><Snowflake size={22} /></span><div><span className="small-label">Planned cooling restart</span><strong>{time(forecast.planned_restart_at)}</strong></div><ArrowDown size={17} /></div></> : <div className="forecast-unavailable"><Clock3 size={30} /><h3>{forecastStatus === "EXPIRED" ? "Forecast window has elapsed" : "No active prediction"}</h3><p>{forecast.status_reason ?? "Waiting for the next stored forecast."}</p></div>}
-        <dl className="forecast-facts"><div><dt>Forecast quality</dt><dd>{forecast.quality === "UNAVAILABLE" ? "Unavailable" : forecast.quality.charAt(0) + forecast.quality.slice(1).toLowerCase()}</dd></div><div><dt>Valid until</dt><dd title={forecast.expires_at}>{time(forecast.expires_at, true)}</dd></div><div><dt>Issued</dt><dd title={data.forecast.occurred_at}>{time(data.forecast.occurred_at, true)}</dd></div></dl><div className="forecast-footnote"><SparkleIcon />Timetable estimate, separate from current occupancy</div>
-      </section>
+    <section className="key-moments" aria-label="24 hour key moments"><div><strong>24-hour key moments</strong><span>{history.loading ? "Loading recorded moments…" : "Inspect the cooling loop"}</span></div><div className="moment-buttons"><button aria-pressed={sequence === undefined} onClick={() => setSequence(undefined)}><i className="tiny-dot dot-good" />Current {modeLabels[data.decision.payload.requested_mode].toLowerCase()}<small>{time(data.frame.simulated_at)}</small></button>{moments.map(moment => <button key={moment.mode} disabled={moment.sequence === undefined} aria-pressed={sequence !== undefined && sequence === moment.sequence} title={moment.at ? time(moment.at, true) : "No matching recorded moment in the last 24 hours"} onClick={() => setSequence(moment.sequence)}>{momentNames[moment.mode]}<small>{moment.at ? time(moment.at) : history.loading ? "Loading…" : "Not in range"}</small></button>)}</div></section>
+    {history.error && <p className="notice notice-error" role="alert">Key moments: {history.error}</p>}
+    <div className="stage-entries">
+      <section className="stage-entry node-entry"><div className="entry-heading"><h3><button className="entry-title" onClick={onNodes}>Room & Nodes<ArrowRight size={20} /></button></h3></div><div className="entry-nodes">{data.zone.config.payload.required_nodes.map(expected => { const sample = data.samples.find(s => s.node_id === expected.node_id), status = nodeStatus(sample, data, now); return <button key={expected.node_id} onClick={() => onInspectNode(expected.node_id)}><span className={`tiny-dot dot-${status.tone}`} /><span>{expected.label}<small>{status.label}</small></span><strong>{number(sample?.temperature_c)} °C</strong><ArrowRight size={16} /></button>; })}</div><small>Latest readings · one shared cooling zone</small></section>
+      <button className="stage-entry forecast-entry" onClick={() => onInspectTime(Date.parse(snapshot?.frame.simulated_at ?? data.frame.simulated_at))}><div className="entry-heading"><h3>Predictive Cooling</h3><ArrowRight size={20} /></div><div className="entry-plan"><span>Occupied target<strong>{number(data.zone.config.payload.limits.occupied_target_c)} °C</strong></span><div className="plan-sequence"><span><i />{latestForecast?.planned_restart_at ? time(latestForecast.planned_restart_at) : "—"}<small>Restart</small></span><span><i />{latestForecast?.next_use_window ? time(latestForecast.next_use_window.start) : "—"}<small>Expected use</small></span></div></div><small>Latest plan · inspect recorded operation</small></button>
+      <button className="stage-entry share-entry" onClick={onUtilization}><div className="entry-heading"><h3>Cooling Statistics <small>24h</small></h3><ArrowRight size={20} /></div>{utilization.error ? <p role="status">Cooling history unavailable</p> : result?.knownMs ? <><div className="regime-share" role="img" aria-label="Share of known requested-mode duration">{modeOrder.map(m => <span key={m} title={`${utilizationModeLabels[m]} ${(result.modeMs[m] / result.knownMs * 100).toFixed(1)}%`} style={{ width: `${result.modeMs[m] / result.knownMs * 100}%`, background: utilizationColors[m] }} />)}</div><div className="regime-labels">{modeOrder.filter(m => result.modeMs[m] > 0).map(m => <span key={m}><i style={{ background: utilizationColors[m] }} />{utilizationModeLabels[m]} <b>{(result.modeMs[m] / result.knownMs * 100).toFixed(1)}%</b></span>)}</div><span className="vacancy-review">{durationLabel(result.normalVacantMs)} normal during vacancy</span><small>{coverageLabel(result.knownMs, result.elapsedMs)} known coverage · requested operation</small></> : <p>{utilization.loading ? "Loading duration records…" : "No continuous operating coverage in range"}</p>}</button>
     </div>
-    <div className="bottom-grid">
-      <section className="nodes-section"><SectionTitle title="Required sensor nodes" trailing={<span className="quiet-label">{required.length} mapped to this zone</span>} /><div className="node-table"><div className="node-table-head"><span>Sensor</span><span>Connection</span><span>Temperature</span><span>Humidity</span><span>Latest record</span></div>{required.map(node => {
-        const sample = data.samples.find(s => s.node_id === node.node_id);
-        const status = nodeStatus(sample, data, now);
-        const missing = status.label === "Missing" || status.label === "Disconnected";
-        return <div key={node.node_id} className="node-row"><div className="node-name"><span className={`node-symbol tone-${status.tone}`}>{missing ? <WifiOff size={18} /> : <Radio size={18} />}</span><div><strong>{node.label}</strong><small>{node.node_id}</small></div></div><Badge tone={status.tone}>{status.label}</Badge><span className="node-metric">{number(sample?.temperature_c)} <small>°C</small></span><span className="node-metric">{number(sample?.humidity_percent)}<small>%</small></span><span className="node-updated" title={sample?.observed_at}>{sample ? relative(sample.observed_at, now) : "No sample"}</span></div>;
-      })}</div>{healthy < required.length && <div className="node-warning">Some required evidence is missing or delayed. The stored zone decision remains unchanged.</div>}</section>
-      <section className="activity-section"><SectionTitle title="Latest activity" trailing={<Activity size={18} className="quiet-icon" />} /><ol className="activity-list">{data.activity.map(row => <li key={row.event_id}><span className={`activity-symbol ${row.event.event_type === "APPLIED_OUTPUT" ? "tone-good" : "tone-info"}`}>{row.event.event_type === "APPLIED_OUTPUT" ? <Check size={13} /> : row.event.event_type === "ZONE_FORECAST" ? <Clock3 size={13} /> : <Fan size={13} />}</span><div><strong>{activityLabel(row.event)}</strong><span>{time(row.occurred_at, true)}</span></div></li>)}</ol>{!data.activity.length && <p className="empty-inline">No operating events recorded.</p>}</section>
-    </div>
-    <div className="snapshot-footer"><ShieldCheck size={15} /><span>Committed snapshot</span><time dateTime={data.frame.simulated_at} title={data.frame.simulated_at}>{time(data.frame.simulated_at, true)}</time><span className="snapshot-zone">{data.zone.zone_id}</span></div>
   </div>;
 }
-function SparkleIcon() { return <Snowflake size={14} />; }

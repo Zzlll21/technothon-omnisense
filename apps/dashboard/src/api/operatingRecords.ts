@@ -5,7 +5,7 @@ import type { SdpFrame, StoredEvent } from "../types/overview";
 
 export interface RecordSnapshot { runId: string; zoneId: string; zoneName: string; sequence: number; at: string }
 export type RecordCategory = "OPERATIONS" | "ALL" | SdpEvent["event_type"];
-export type SearchField = "text" | "event_id" | "correlation_id";
+export type SearchField = "all" | "text" | "event_id" | "correlation_id";
 export interface RecordFilters { start: string; end: string; category: RecordCategory; mode: CoolingMode | ""; search: string; searchField: SearchField }
 export interface RecordRow extends StoredEvent { run_id: string; zone_id: string; event_type: SdpEvent["event_type"] }
 export interface RecordContext {
@@ -44,9 +44,14 @@ export function validateRecordFilters(filters: RecordFilters) {
   const start = Date.parse(filters.start), end = Date.parse(filters.end);
   if (!Number.isFinite(start) || !Number.isFinite(end) || start >= end || end - start > 7 * 86400_000) throw new Error("Choose a date range of up to seven days.");
   if (!TYPES.includes(filters.category) && !["ALL", "OPERATIONS"].includes(filters.category)) throw new Error("Select a valid event category.");
-  if (!["", "OCCUPIED", "SHORT_VACANCY", "LONG_VACANCY", "PRECOOL"].includes(filters.mode) || !["text", "event_id", "correlation_id"].includes(filters.searchField) || filters.search.length > 120) throw new Error("Check the record filters. Search supports up to 120 characters.");
+  if (!["", "OCCUPIED", "SHORT_VACANCY", "LONG_VACANCY", "PRECOOL"].includes(filters.mode) || !["all", "text", "event_id", "correlation_id"].includes(filters.searchField) || filters.search.length > 120) throw new Error("Check the record filters. Search supports up to 120 characters.");
 }
 export function literalSearch(value: string) { return `%${value.trim().replace(/[\\%_]/g, char => `\\${char}`)}%`; }
+export function universalSearchFilter(value: string) {
+  // PostgREST OR values require quoted strings; escape grammar separately from LIKE wildcards.
+  const quoted = `"${literalSearch(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
+  return ["event->>payload", "event->payload->>reason_text", "event->payload->>reason", "event->payload->>status_reason", "event_id", "event->>correlation_id", "event_type", "zone_id"].map(field => `${field}.ilike.${quoted}`).join(",");
+}
 
 export async function fetchOperatingPage(client: Client, snapshot: RecordSnapshot, filters: RecordFilters, page: number, pageSize: number, signal: AbortSignal): Promise<RecordPage> {
   validateRecordFilters(filters);
@@ -55,7 +60,7 @@ export async function fetchOperatingPage(client: Client, snapshot: RecordSnapsho
   if (filters.category === "OPERATIONS") query = query.in("event_type", OPERATIONS);
   else if (filters.category !== "ALL") query = query.eq("event_type", filters.category);
   if (filters.mode) query = query.eq("event->payload->>requested_mode", filters.mode);
-  if (filters.search.trim()) query = query.ilike(filters.searchField === "text" ? "event->>payload" : filters.searchField === "event_id" ? "event_id" : "event->>correlation_id", literalSearch(filters.search));
+  if (filters.search.trim()) query = filters.searchField === "all" ? query.or(universalSearchFilter(filters.search)) : query.ilike(filters.searchField === "text" ? "event->>payload" : filters.searchField === "event_id" ? "event_id" : "event->>correlation_id", literalSearch(filters.search));
   const offset = (page - 1) * pageSize;
   const result = await read<RecordRow>(query.order("occurred_at", { ascending: false }).order("sequence", { ascending: false }).order("ordinal", { ascending: false }).range(offset, offset + pageSize - 1).abortSignal(signal));
   if (!Number.isSafeInteger(result.count) || result.count! < 0) throw new Error("The matching record count is unavailable. Retry the query.");

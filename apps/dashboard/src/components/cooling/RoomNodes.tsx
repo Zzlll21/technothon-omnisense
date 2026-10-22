@@ -7,12 +7,14 @@ import { classification, classLabels } from "../../lib/nodeHistoryDisplay";
 import { nodeStatus, number, relative, time } from "../../lib/overviewDisplay";
 import { Badge } from "./ProductShell";
 import { NodeHistoryCharts } from "./NodeHistoryCharts";
+import { NodeComparison } from "./NodeComparison";
 
-export function RoomNodes({ data, now, refreshToken }: { data: OverviewData; now: number; refreshToken: string | null }) {
+export function RoomNodes({ data, now, refreshToken, initialNode }: { data: OverviewData; now: number; refreshToken: string | null; initialNode?: string }) {
   const nodes = data.zone.config.payload.required_nodes.map(expected => data.nodes.find(node => node.node_id === expected.node_id) ?? { ...expected, run_id: data.run.run_id, zone_id: data.zone.zone_id, required: true });
-  const [selectedId, setSelectedId] = useState(nodes[0]?.node_id ?? "");
+  const [selectedId, setSelectedId] = useState(initialNode ?? nodes[0]?.node_id ?? "");
   const [hours, setHours] = useState<HistoryRange>(24);
   const [retry, setRetry] = useState(0);
+  const [compare, setCompare] = useState(false);
   const node = nodes.find(n => n.node_id === selectedId) ?? nodes[0];
   const history = useNodeHistory(data, node?.node_id ?? "", hours, `${refreshToken}/${retry}`);
   if (!node) return <div className="empty-workspace"><h2>No nodes configured</h2><p>This cooling zone has no required sensor mapping.</p></div>;
@@ -26,7 +28,7 @@ export function RoomNodes({ data, now, refreshToken }: { data: OverviewData; now
     <div className="room-monitor-grid">
       <section className="monitor-map" aria-label="Room floorplan">
         <div className="section-heading"><div><span className="eyebrow">Cooling zone · {data.zone.zone_id}</span><h2>{data.zone.name}</h2></div><Badge tone={occupancyTone}>{data.frame.occupancy.toLowerCase()}</Badge></div>
-        <div className="interactive-plan">
+        <div className={`interactive-plan thermal-${data.decision.payload.requested_mode === "LONG_VACANCY" ? "standby" : data.decision.payload.requested_mode === "SHORT_VACANCY" ? "reduced" : "cooling"}`}>
           <img src="/zone-plan.svg" alt="Illustrative room layout within one cooling zone" />
           <div className="zone-boundary" aria-hidden="true" />
           <span className="zone-boundary-label">Shared cooling zone</span>
@@ -54,10 +56,11 @@ export function RoomNodes({ data, now, refreshToken }: { data: OverviewData; now
       </section>
     </div>
     <section className="node-history" aria-label="Selected node history">
+      <div className="node-compare-toggle"><label><input type="checkbox" checked={compare} onChange={e => setCompare(e.target.checked)} />Compare both sensors</label><span>Stored temperature & humidity</span></div>
       <div className="section-heading"><div><span className="eyebrow">{node.label} · {node.node_id}</span><h2>Sensor history</h2></div><div className="history-range" role="group" aria-label="History time range">{([1, 24, 168] as const).map(value => <button key={value} aria-pressed={hours === value} onClick={() => setHours(value)}>{value === 168 ? "7 days" : `${value} ${value === 1 ? "hour" : "hours"}`}</button>)}</div></div>
       <div className="history-context"><span>Stored observation timestamps · {Intl.DateTimeFormat().resolvedOptions().timeZone}</span><span>{history.loading ? "Loading history…" : `${history.points.length.toLocaleString()} samples`}</span></div>
       {history.error && <div className="notice notice-error" role="alert"><div><strong>History unavailable</strong><p>{history.error}{history.points.length ? " Previous records remain visible." : ""}</p></div><button className="text-action" onClick={() => setRetry(n => n + 1)}><RefreshCw size={15} />Retry</button></div>}
-      {history.loading && !history.points.length ? <div className="history-empty" role="status" aria-busy="true"><RefreshCw size={22} className="spinning" /><p>Loading {node.label} history</p></div> : history.points.length ? <NodeHistoryCharts key={`${data.run.run_id}/${node.node_id}/${hours}`} points={history.points} start={history.start} end={history.end} anchor={data.run.live_anchor} /> : !history.error ? <div className="history-empty"><Radio size={26} /><h3>No samples in this time range</h3><p>Select a longer range or check the generator connection.</p></div> : null}
+      {compare ? <NodeComparison data={data} hours={hours} refreshToken={`${refreshToken}/${retry}`} /> : history.loading && !history.points.length ? <div className="history-empty" role="status" aria-busy="true"><RefreshCw size={22} className="spinning" /><p>Loading {node.label} history</p></div> : history.points.length ? <NodeHistoryCharts key={`${data.run.run_id}/${node.node_id}/${hours}`} points={history.points} start={history.start} end={history.end} anchor={data.run.live_anchor} /> : !history.error ? <div className="history-empty"><Radio size={26} /><h3>No samples in this time range</h3><p>Select a longer range or check the generator connection.</p></div> : null}
       <p className="history-footnote">Gaps indicate missing samples. Classifications are stored node evidence; combined occupancy belongs to the zone.</p>
     </section>
   </div>;

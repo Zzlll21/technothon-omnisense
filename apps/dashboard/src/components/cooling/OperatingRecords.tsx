@@ -13,27 +13,30 @@ import { supabase } from "../../lib/supabase";
 import { Badge } from "./ProductShell";
 import { RecordDetail } from "./RecordDetail";
 
+const quickCategories = [{ value: "ALL", label: "All" }, { value: "ZONE_DECISION", label: "Decisions" }, { value: "ZONE_FORECAST", label: "Forecasts" }, { value: "APPLIED_OUTPUT", label: "Reports" }] as const;
 function snapshotFor(data: OverviewData): RecordSnapshot { return { runId: data.run.run_id, zoneId: data.zone.zone_id, zoneName: data.zone.name, sequence: data.frame.sequence, at: data.frame.simulated_at }; }
-export function OperatingRecords({ data }: { data: OverviewData }) {
+export function OperatingRecords({ data, initialEventId }: { data: OverviewData; initialEventId?: string }) {
   const [snapshot, setSnapshot] = useState(() => snapshotFor(data));
-  const [range, setRange] = useState<"24" | "168" | "custom">("24");
+  const [range, setRange] = useState<"24" | "168" | "custom">(initialEventId ? "168" : "24");
   const [from, setFrom] = useState(() => malaysiaDay(Date.now())), [to, setTo] = useState(() => malaysiaDay(Date.now()));
-  const [category, setCategory] = useState<RecordCategory>("OPERATIONS"), [mode, setMode] = useState<CoolingMode | "">("");
-  const [search, setSearch] = useState(""), [searchField, setSearchField] = useState<SearchField>("text");
+  const [category, setCategory] = useState<RecordCategory>(initialEventId ? "ALL" : "ZONE_DECISION"), [mode, setMode] = useState<CoolingMode | "">("");
+  const [search, setSearch] = useState(initialEventId ?? ""), [searchField, setSearchField] = useState<SearchField>(initialEventId ? "event_id" : "all");
+  const [advancedOpen, setAdvancedOpen] = useState(!!initialEventId);
+  const advancedCount = Number(!!mode) + Number(searchField !== "all") + Number(!quickCategories.some(item => item.value === category));
   const draftKey = JSON.stringify([range, from, to, category, mode, search.trim(), searchField]);
   const [appliedKey, setAppliedKey] = useState(draftKey);
   const dirty = draftKey !== appliedKey;
-  const [filters, setFilters] = useState<RecordFilters>(() => ({ ...recordRange("24", Date.now(), "", ""), category: "OPERATIONS", mode: "", search: "", searchField: "text" }));
+  const [filters, setFilters] = useState<RecordFilters>(() => ({ ...recordRange(initialEventId ? "168" : "24", Date.now(), "", ""), category: initialEventId ? "ALL" : "ZONE_DECISION", mode: "", search: initialEventId ?? "", searchField: initialEventId ? "event_id" : "all" }));
   const [page, setPage] = useState(1), [retry, setRetry] = useState(0), [filterError, setFilterError] = useState<string | null>(null), [selected, setSelected] = useState<string | null>(null);
   const state = useOperatingRecords(snapshot, filters, page, retry);
   const exportController = useRef<AbortController | null>(null);
   const [exportState, setExportState] = useState({ pending: false, done: 0, total: 0, message: "", error: false });
   useEffect(() => () => exportController.current?.abort(), []);
-  function apply() {
+  function apply(nextCategory: RecordCategory = category) {
     if (exportController.current) return;
     try {
-      const next = { ...recordRange(range, Date.now(), from, to), category, mode, search: search.trim(), searchField };
-      validateRecordFilters(next); setFilters(next); setSnapshot(snapshotFor(data)); setPage(1); setSelected(null); setFilterError(null); setAppliedKey(draftKey); setExportState({ pending: false, done: 0, total: 0, message: "", error: false });
+      const next = { ...recordRange(range, Date.now(), from, to), category: nextCategory, mode, search: search.trim(), searchField };
+      validateRecordFilters(next); setFilters(next); setSnapshot(snapshotFor(data)); setPage(1); setSelected(null); setFilterError(null); setAppliedKey(JSON.stringify([range, from, to, nextCategory, mode, search.trim(), searchField])); setExportState({ pending: false, done: 0, total: 0, message: "", error: false });
     } catch (error) { setFilterError(error instanceof Error ? error.message : "Check the filters."); }
   }
   async function exportCsv() {
@@ -54,16 +57,19 @@ export function OperatingRecords({ data }: { data: OverviewData }) {
   const rows = state.result?.rows ?? [], total = state.result?.total ?? 0;
   const detail = selected ? rows.find(context => context.row.event_id === selected) : null;
   return <div className="operating-records">
-    <div className="records-toolbar"><div><span className="eyebrow">Operational history</span><p>Decisions, forecasts and reported responses.</p></div><div><button className="refresh-button" disabled={state.loading || exportState.pending} onClick={apply} title="Refresh pinned records"><RefreshCw size={16} />Refresh records</button><button className="records-export" disabled={dirty || state.loading || !!state.error || exportState.pending || !total} onClick={() => void exportCsv()}><Download size={16} />{exportState.pending ? "Exporting…" : "Export CSV"}</button></div></div>
-    <form className="record-filters" onSubmit={event => { event.preventDefault(); apply(); }}><fieldset disabled={exportState.pending}>
-      <label>Time range<select aria-label="Time range" value={range} onChange={event => setRange(event.target.value as typeof range)}><option value="24">Last 24 hours</option><option value="168">Last 7 days</option><option value="custom">Custom dates</option></select></label>
-      <label>Category<select aria-label="Category" value={category} onChange={event => setCategory(event.target.value as RecordCategory)}><option value="OPERATIONS">Operational events</option><option value="ALL">All stored events</option>{Object.entries(eventTypeLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-      <label>Requested mode<select aria-label="Requested mode" value={mode} onChange={event => setMode(event.target.value as CoolingMode | "")}><option value="">Any mode</option>{Object.entries(modeLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-      <label>Search in<select aria-label="Search in" value={searchField} onChange={event => setSearchField(event.target.value as SearchField)}><option value="text">Recorded text</option><option value="event_id">Event identifier</option><option value="correlation_id">Correlation identifier</option></select></label>
-      <label className="record-search">Search<input type="search" maxLength={120} placeholder="Reason, stored text or selected identifier" value={search} onChange={event => setSearch(event.target.value)} /></label><button className="records-apply" type="submit"><Search size={16} />Apply filters</button>
+    <div className="records-toolbar"><div><button className="records-export" disabled={dirty || state.loading || !!state.error || exportState.pending || !total} onClick={() => void exportCsv()}><Download size={16} />{exportState.pending ? "Exporting…" : "Export CSV"}</button></div></div>
+    <form className="record-filters record-filters-simple" onSubmit={event => { event.preventDefault(); apply(); }}><fieldset disabled={exportState.pending}>
+      <div className="record-filter-main"><label>Date range<select aria-label="Date range" value={range} onChange={event => setRange(event.target.value as typeof range)}><option value="24">Last 24 hours</option><option value="168">Last 7 days</option><option value="custom">Custom dates</option></select></label>
+      <label className="record-search">Search records<input aria-label="Search records" type="search" maxLength={120} placeholder="Search reasons, nodes or record IDs" value={search} onChange={event => setSearch(event.target.value)} /></label><button className="records-apply" type="submit"><Search size={16} />Apply filters</button></div>
       {range === "custom" && <div className="record-date-fields"><label>From · Malaysia date<input type="date" value={from} max={malaysiaDay(Date.now())} onChange={event => setFrom(event.target.value)} /></label><label>Through · Malaysia date<input type="date" value={to} max={malaysiaDay(Date.now())} onChange={event => setTo(event.target.value)} /></label></div>}
+      <div className="record-quick-categories" role="group" aria-label="Record categories">{quickCategories.map(item => <button type="button" key={item.value} aria-pressed={category === item.value} onClick={() => { setCategory(item.value); apply(item.value); }}>{item.label}</button>)}</div>
+      <details className="records-advanced" open={advancedOpen} onToggle={event => setAdvancedOpen(event.currentTarget.open)}><summary>Advanced filters{advancedCount > 0 && <span> · {advancedCount} active</span>}</summary><div className="record-advanced-fields">
+        <label>Cooling mode<select aria-label="Cooling mode" value={mode} onChange={event => setMode(event.target.value as CoolingMode | "")}><option value="">Any mode</option>{Object.entries(modeLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+        <label>Record type<select aria-label="Record type" value={category} onChange={event => setCategory(event.target.value as RecordCategory)}><option value="ALL">All stored records</option><option value="OPERATIONS">Operating records only</option>{Object.entries(eventTypeLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+        <label>Search scope<select aria-label="Search scope" value={searchField} onChange={event => setSearchField(event.target.value as SearchField)}><option value="all">Descriptions and IDs</option><option value="text">Recorded descriptions only</option><option value="event_id">Record ID only</option><option value="correlation_id">Related-event ID only</option></select></label>
+      </div>{mode && <p className="records-filter-note">Cooling mode matches decision and override-request records, not reports or forecasts.</p>}</details>
     </fieldset></form>
-    <p className="records-filter-note">{dirty && <strong>Unapplied filter changes · Export paused. </strong>}Search matches stored text, not generated display labels. Maximum range: seven days.{filters.mode ? " Mode filtering includes decision and override-request records only; other event types do not store a requested mode." : ""}</p>
+    {dirty && <p className="records-filter-note" role="status"><strong>Unapplied changes · CSV export paused.</strong></p>}
     {filterError && <div className="notice notice-error" role="alert">{filterError}</div>}
     <div className="records-snapshot"><span>{state.loading ? "Loading records…" : `${total.toLocaleString()} matching records`} · Newest first</span><span title={snapshot.at}>Snapshot {malaysiaTime(snapshot.at)} MYT</span></div>
     {exportState.message && <div className={`record-export-status ${exportState.error ? "export-error" : ""}`} role={exportState.error ? "alert" : "status"}><div><strong>{exportState.message}</strong>{exportState.pending && <><progress max={Math.max(1, exportState.total)} value={exportState.done} /><span>{exportState.done.toLocaleString()} / {exportState.total.toLocaleString()} records</span></>}</div>{exportState.pending && <button className="icon-button" title="Cancel export" aria-label="Cancel export" onClick={() => exportController.current?.abort()}><X size={18} /></button>}</div>}

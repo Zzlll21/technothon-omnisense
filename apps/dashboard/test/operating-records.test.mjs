@@ -42,6 +42,40 @@ test('search treats wildcard and filter-like characters literally and supports i
   const id=await load(fakeClient(tables),{...filters,search:row.event_id,searchField:'event_id'});assert.equal(id.total,1);
   assert.equal(api.literalSearch('%_\\'),'%\\%\\_\\\\%');
 });
+
+test('universal search uses one server OR across descriptions, identifiers, type and zone within the same scope',async()=>{
+  const target=tables.sdp_events.find(r=>r.event_type==='ZONE_DECISION'&&Date.parse(r.occurred_at)>Date.parse(filters.start));
+  for(const search of [target.event_id,target.event.correlation_id,'FORECAST_RESTART','zone-1','ZONE_FORECAST']){
+    const client=fakeClient(tables),result=await load(client,{...filters,category:'ALL',search,searchField:'all'},1,500);
+    assert.ok(result.total>0);
+    assert.ok(result.rows.every(({row})=>[JSON.stringify(row.event.payload),row.event_id,row.event.correlation_id,row.event_type,row.zone_id].some(value=>value.toLowerCase().includes(search.toLowerCase()))));
+    assert.equal(client.queries[0].filters.filter(([op])=>op==='or').length,1);
+    assert.ok(client.queries[0].filters.some(([op,key,value])=>op==='eq'&&key==='run_id'&&value===snapshot.runId));
+  }
+  const exact=await load(fakeClient(tables),{...filters,category:'ALL',search:target.event_id,searchField:'event_id'});assert.equal(exact.total,1);
+});
+
+test('universal search quotes reserved OR grammar and escapes percent, underscore, quotes and backslash independently',async()=>{
+  const changed=structuredClone(tables),row=changed.sdp_events.find(r=>r.event_type==='ZONE_DECISION'&&Date.parse(r.occurred_at)>Date.parse(filters.start));
+  for(const search of ['100% load_1, "quoted" (text) \\folder','"),zone_id.neq.other,or(event_id.neq.any)']){
+    row.event.payload.reason_text=search;
+    const result=await load(fakeClient(changed),{...filters,category:'ALL',search,searchField:'all'});
+    assert.equal(result.total,1);assert.equal(result.rows[0].row.event_id,row.event_id);
+  }
+});
+
+test('universal search, category and mode compose identically for pagination and full CSV export',async()=>{
+  const query={...filters,category:'ALL',search:'sim-1',searchField:'all'},client=fakeClient(tables);
+  const first=await load(client,query,1,25),second=await load(client,query,2,25);
+  assert.ok(first.total>500);assert.equal(first.total,second.total);
+  assert.equal(new Set([...first.rows,...second.rows].map(c=>c.row.event_id)).size,50);
+  const result=await buildOperatingCsv(client,snapshot,query,new AbortController().signal,()=>{}),csv=parseCsv(result.parts.join(''));
+  assert.equal(result.count,first.total);assert.equal(csv.length,result.count+1);
+  const ids=new Set(csv.slice(1).map(row=>row[csv[0].indexOf('Event ID')]));
+  assert.ok([...first.rows,...second.rows].every(c=>ids.has(c.row.event_id)));
+  const restricted=await load(fakeClient(tables),{...filters,category:'ZONE_DECISION',mode:'PRECOOL',search:'FORECAST_RESTART',searchField:'all'},1,500);
+  assert.ok(restricted.total>0);assert.ok(restricted.rows.every(c=>c.row.event_type==='ZONE_DECISION'&&c.decision.payload.requested_mode==='PRECOOL'));
+});
 test('correlation uses exact frames, decision IDs, command IDs and historical forecast references',async()=>{
   const result=await load(fakeClient(tables),{...filters,category:'ZONE_DECISION'},1,500);
   for(const context of result.rows){assert.ok(context.frame);assert.equal(context.frame.sequence,context.row.sequence);assert.equal(context.warnings.length,0);assert.equal(context.outputs.length,1);assert.equal(context.outputs[0].payload.command_id,context.decision.payload.command_id);assert.equal(context.forecast.event_id,context.decision.payload.forecast_event_id);}

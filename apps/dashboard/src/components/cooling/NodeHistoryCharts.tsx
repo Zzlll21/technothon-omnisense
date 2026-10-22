@@ -60,7 +60,7 @@ function HistoryPlot({ points, start, end, anchor, metric, title, unit }: Props 
         onFocus={() => { if (activeAt === null && latest) setActiveAt(Date.parse(latest.observed_at)); }} onKeyDown={keyboard}
         onPointerMove={event => { if (!pinned && event.pointerType === "mouse") setActiveAt(pointAt(event)); }}
         onPointerLeave={() => { if (!pinned) setActiveAt(null); }}
-        onPointerDown={event => { setActiveAt(pointAt(event)); setPinned(true); }} onBlur={() => { setActiveAt(null); setPinned(false); }}>
+        onPointerDown={event => { setActiveAt(pointAt(event)); setPinned(true); }} onBlur={() => { if (!pinned) setActiveAt(null); }}>
         <title>{title} over stored observation time</title>
         {geometry.scale && geometry.scale.ticks.map(tick => {
           const y = geometry.y!(tick);
