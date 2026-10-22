@@ -1,0 +1,62 @@
+{
+  "project_ref": "onfzcxtejvxpcppcvkgk",
+  "tested_at_utc": "2026-10-22T19:50:08.2685692Z",
+  "identity": "publishable key only; no Authorization header",
+  "results": [
+    {
+      "table": "sdp_runs",
+      "http_status": 200,
+      "row_count": 0,
+      "error_code": null
+    },
+    {
+      "table": "sdp_zones",
+      "http_status": 200,
+      "row_count": 0,
+      "error_code": null
+    },
+    {
+      "table": "sdp_nodes",
+      "http_status": 200,
+      "row_count": 0,
+      "error_code": null
+    },
+    {
+      "table": "sdp_zone_frames",
+      "http_status": 200,
+      "row_count": 0,
+      "error_code": null
+    },
+    {
+      "table": "sdp_node_samples",
+      "http_status": 200,
+      "row_count": 0,
+      "error_code": null
+    },
+    {
+      "table": "sdp_events",
+      "http_status": 200,
+      "row_count": 0,
+      "error_code": null
+    },
+    {
+      "table": "sdp_hybrid_environment",
+      "http_status": 401,
+      "row_count": null,
+      "error_code": "42501"
+    },
+    {
+      "table": "sdp_hybrid_readers",
+      "http_status": 401,
+      "row_count": null,
+      "error_code": "42501"
+    },
+    {
+      "table": "sdp_hybrid_leases",
+      "http_status": 401,
+      "row_count": null,
+      "error_code": "42501"
+    }
+  ],
+  "limitation": "Empty-data baseline only; populated-data RLS unverified"
+}

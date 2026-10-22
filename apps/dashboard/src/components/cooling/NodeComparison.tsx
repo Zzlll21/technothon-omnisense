@@ -32,7 +32,7 @@ function ComparisonPlot({ series, start, end, anchor, metric }: { series: Series
   const values = filtered.flatMap(s => s.points.filter(p => p.evidence.payload[metric].validity === "VALID").map(p => p[metric]));
   const scale = chartScale(values.length ? values : [0, 1]);
   const x = (t: number) => 50 + (t - start) / Math.max(1, end - start) * (width - 66);
-  const y = (v: number) => 170 - (v - scale.min) / (scale.max - scale.min) * 140;
+  const y = (v: number | null) => v === null ? Number.NaN : 170 - (v - scale.min) / (scale.max - scale.min) * 140;
   const unit = metric === "temperature_c" ? "°C" : "%";
   function pointer(event: PointerEvent<SVGSVGElement>) { const rect = event.currentTarget.getBoundingClientRect(); return start + Math.max(0, Math.min(1, ((event.clientX - rect.left) / rect.width * width - 50) / (width - 66))) * (end - start); }
   const times = [...new Set(filtered.flatMap(s => s.points.map(p => Date.parse(p.observed_at))))].sort((a, b) => a - b);

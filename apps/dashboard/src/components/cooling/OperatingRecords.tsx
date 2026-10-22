@@ -14,7 +14,7 @@ import { Badge } from "./ProductShell";
 import { RecordDetail } from "./RecordDetail";
 
 const quickCategories = [{ value: "ALL", label: "All" }, { value: "ZONE_DECISION", label: "Decisions" }, { value: "ZONE_FORECAST", label: "Forecasts" }, { value: "APPLIED_OUTPUT", label: "Reports" }] as const;
-function snapshotFor(data: OverviewData): RecordSnapshot { return { runId: data.run.run_id, zoneId: data.zone.zone_id, zoneName: data.zone.name, sequence: data.frame.sequence, at: data.frame.simulated_at }; }
+function snapshotFor(data: OverviewData): RecordSnapshot { return { modelVersion: data.run.model_version, runId: data.run.run_id, zoneId: data.zone.zone_id, zoneName: data.zone.name, sequence: data.frame.sequence, at: data.frame.simulated_at }; }
 export function OperatingRecords({ data, initialEventId }: { data: OverviewData; initialEventId?: string }) {
   const [snapshot, setSnapshot] = useState(() => snapshotFor(data));
   const [range, setRange] = useState<"24" | "168" | "custom">(initialEventId ? "168" : "24");

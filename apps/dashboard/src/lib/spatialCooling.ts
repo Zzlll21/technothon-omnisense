@@ -44,7 +44,7 @@ export function inspectCooling(history: PredictiveHistory, nodes: NodeHistoryPoi
     // Exact frame sequence, not a nearest (possibly future) reading.
     temperatures: nodes.map(points => {
       const p = frame ? points.find(p => p.sequence === frame.sequence && Date.parse(p.observed_at) <= at) : undefined;
-      return p ? { value: p.evidence.payload.temperature_c.validity === "VALID" ? p.temperature_c : null, validity: p.evidence.payload.temperature_c.validity, at: p.observed_at, evidenceId: p.evidence_event_id } : { value: null, validity: "UNAVAILABLE", at: null, evidenceId: null };
+      return p ? { value: !p.stale && p.evidence.payload.temperature_c.validity === "VALID" ? p.temperature_c : null, validity: p.stale ? "UNAVAILABLE" : p.evidence.payload.temperature_c.validity, at: p.received_at ?? p.observed_at, evidenceId: p.evidence_event_id } : { value: null, validity: "UNAVAILABLE", at: null, evidenceId: null };
     }) };
 }
 export type CoolingInspection = ReturnType<typeof inspectCooling>;

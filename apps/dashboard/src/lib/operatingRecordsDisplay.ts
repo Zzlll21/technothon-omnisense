@@ -36,16 +36,24 @@ export const operatingCsvColumns = [
   "Decision reason code", "Decision reason", "Decision evaluated UTC", "Forecast source", "Forecast quality", "Forecast issued UTC", "Forecast expires UTC", "Forecast validity at decision/event time",
   "Correlation status", "Correlation warnings", "Event ID", "Correlation ID", "Run ID", "Sequence", "Ordinal", "Command ID", "Decision event ID", "Forecast event ID", "Override request ID", "Snapshot sequence", "Snapshot UTC", "Range start UTC", "Range end UTC", "Category filter", "Mode filter", "Search field", "Search text"
 ] as const;
+export function operatingCsvHeader(snapshot: RecordSnapshot): readonly string[] {
+  return snapshot.modelVersion === "sdp-hybrid-v1" ? [...operatingCsvColumns, "Schema version", "Clock", "Node ID", "Inference source", "Receipt UTC", "Temperature (C)", "Temperature validity", "Humidity (%)", "Humidity validity", "Stored event JSON"] : operatingCsvColumns;
+}
 export function operatingCsvRow(context: RecordContext, snapshot: RecordSnapshot, filters: RecordFilters): string {
   const e = context.row.event, p = recordPresentation(context), report = displayedReport(context), d = context.decision, f = context.forecast;
   const request = e.event_type === "OVERRIDE_REQUEST" && e.payload.action === "SET_OVERRIDE" ? e.payload : null;
   const values = [
-    "Simulated SDP operating records", malaysiaIso(e.occurred_at), e.occurred_at, p.category, p.title, snapshot.zoneName, e.zone_id,
+    e.data_sources.every(s => s === "SIMULATED") ? "Simulated SDP operating records" : `Hybrid SDP operating records: ${e.data_sources.join(" | ")}`, malaysiaIso(e.occurred_at), e.occurred_at, p.category, p.title, snapshot.zoneName, e.zone_id,
     "status" in e.payload ? e.payload.status : "", context.frame?.occupancy ?? "", d?.payload.requested_mode ?? request?.requested_mode ?? "", d?.payload.requested_output?.fan ?? "", d?.payload.requested_output?.setpoint_c ?? request?.requested_setpoint_c ?? "",
     report?.payload.status ?? "", report?.payload.reported_output?.fan ?? "", report?.payload.reported_output?.setpoint_c ?? "", report?.payload.feedback_basis ?? "", report?.occurred_at ?? "",
     d?.payload.reason_code ?? "", d?.payload.reason_text ?? describeRecord(e).reason, d?.payload.evaluated_at ?? "", f?.payload.source ?? "", f?.payload.quality ?? "", f?.occurred_at ?? "", f?.payload.expires_at ?? "", f ? forecastStatus(f, Date.parse(d?.payload.evaluated_at ?? e.occurred_at)) : "",
     context.warnings.length ? "Incomplete / unmatched" : "Frame matched", context.warnings.join(" | "), e.event_id, e.correlation_id, e.session_id, context.row.sequence, context.row.ordinal,
     d?.payload.command_id ?? (e.event_type === "APPLIED_OUTPUT" ? e.payload.command_id : ""), d?.event_id ?? "", f?.event_id ?? "", recordOverrideRequestId(e, d ? [e, d] : [e]), snapshot.sequence, snapshot.at, filters.start, filters.end, filters.category, filters.mode, filters.searchField, filters.search
   ];
+  if (snapshot.modelVersion === "sdp-hybrid-v1") {
+    const node = e.event_type === "NODE_EVIDENCE" ? e.payload : null;
+    values.push(e.schema_version, e.clock.time_base, node?.node_id ?? "", node?.hardware?.headcount_source ?? "", node?.hardware?.received_at ?? "",
+      node?.temperature_c.value ?? "", node?.temperature_c.validity ?? "", node?.humidity_percent.value ?? "", node?.humidity_percent.validity ?? "", JSON.stringify(e));
+  }
   return values.map(csvCell).join(",") + "\r\n";
 }

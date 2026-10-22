@@ -1,11 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { validateSdpEvent } from "../../../../packages/sdp-contract/src";
+import { validateStoredSdpEvent, eventMatchesRun } from "../../../../packages/sdp-contract/src";
 import type { AppliedOutput, ZoneDecision } from "../../../../packages/sdp-contract/src";
 import type { SdpFrame, StoredEvent } from "../types/overview";
 
 export type UtilizationEvent = ZoneDecision | AppliedOutput;
 export interface UtilizationHistory { frames: SdpFrame[]; events: UtilizationEvent[] }
-export interface UtilizationQuery { runId: string; zoneId: string; sequence: number; start: string; end: string; afterSequence?: number }
+export interface UtilizationQuery { runId: string; zoneId: string; sequence: number; start: string; end: string; afterSequence?: number; modelVersion?: string }
 const FRAME = "run_id,zone_id,sequence,simulated_at,inserted_at,phase,occupancy,coverage,decision_event_id,forecast_event_id,output_event_id";
 const EVENTS = "event_id,sequence,ordinal,occurred_at,event";
 const PAGE = 500;
@@ -52,10 +52,10 @@ export async function fetchUtilizationHistory(client: Pick<SupabaseClient, "from
   eventRows.sort((a, b) => Date.parse(a.occurred_at) - Date.parse(b.occurred_at) || a.sequence - b.sequence || a.ordinal - b.ordinal);
   const events = new Map<string, UtilizationEvent>();
   for (const row of eventRows) {
-    const checked = validateSdpEvent(row.event);
+    const checked = validateStoredSdpEvent(row.event);
     if (!checked.ok || !["ZONE_DECISION", "APPLIED_OUTPUT"].includes(checked.value.event_type)) inconsistent();
     const e = checked.value as UtilizationEvent;
-    if (e.event_id !== row.event_id || e.session_id !== scope.runId || e.zone_id !== scope.zoneId || e.clock.time_base !== "REPLAY" || e.clock.replay_id !== scope.runId || e.data_sources.some(s => s !== "SIMULATED") ||
+    if (e.event_id !== row.event_id || e.session_id !== scope.runId || e.zone_id !== scope.zoneId || !eventMatchesRun(e, scope.runId, scope.modelVersion) ||
       !Number.isSafeInteger(row.sequence) || row.sequence < 0 || row.sequence > scope.sequence || Date.parse(e.occurred_at) !== Date.parse(row.occurred_at) || Date.parse(e.occurred_at) > end ||
       (e.event_type === "ZONE_DECISION" && Date.parse(e.payload.evaluated_at) > Date.parse(e.occurred_at))) inconsistent();
     events.set(e.event_id, e);

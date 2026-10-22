@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { validateSdpEvent } from "../../../../packages/sdp-contract/src";
+import { validateStoredSdpEvent, eventMatchesRun, normalizeHybridSample } from "../../../../packages/sdp-contract/src";
 import type { AppliedOutput, ZoneDecision, ZoneForecast } from "../../../../packages/sdp-contract/src";
 import type { SdpFrame, SdpSample, StoredEvent } from "../types/overview";
 
@@ -7,7 +7,7 @@ export type CoolingEvent = ZoneDecision | ZoneForecast | AppliedOutput;
 export interface PredictiveHistory { frames: SdpFrame[]; samples: SdpSample[]; events: CoolingEvent[] }
 export interface PredictiveQuery {
   runId: string; zoneId: string; nodeId: string; sequence: number;
-  start: string; end: string; afterSequence?: number;
+  start: string; end: string; afterSequence?: number; modelVersion?: string; staleAfterMs?: number;
 }
 const PAGE = 500;
 const FRAME_COLUMNS = "run_id,zone_id,sequence,simulated_at,inserted_at,phase,occupancy,coverage,decision_event_id,forecast_event_id,output_event_id";
@@ -35,6 +35,7 @@ function invalid(): never { throw new Error("Predictive records have inconsisten
 
 export async function fetchPredictiveHistory(client: Client, scope: PredictiveQuery, signal: AbortSignal): Promise<PredictiveHistory> {
   const start = Date.parse(scope.start), end = Date.parse(scope.end);
+  const hybrid = scope.modelVersion === "sdp-hybrid-v1";
   if (!Number.isFinite(start) || !Number.isFinite(end) || end < start || end - start > 7 * 86400_000) throw new Error("Select a history range of up to seven days.");
   const bounded = (table: string, columns: string, timestamp: string, offset: number) => {
     let query = client.from(table).select(columns).eq("run_id", scope.runId).eq("zone_id", scope.zoneId)
@@ -44,7 +45,7 @@ export async function fetchPredictiveHistory(client: Client, scope: PredictiveQu
   };
   const [frames, samples, eventRows] = await Promise.all([
     pages<SdpFrame>(offset => bounded("sdp_zone_frames", FRAME_COLUMNS, "simulated_at", offset), 25_000),
-    pages<SdpSample>(offset => bounded("sdp_node_samples", SAMPLE_COLUMNS, "observed_at", offset).eq("node_id", scope.nodeId), 25_000),
+    pages<SdpSample & { evidence?: {event: unknown} }>(offset => bounded("sdp_node_samples", SAMPLE_COLUMNS + (hybrid ? ",sampled_at,temperature_observed_at,humidity_observed_at,evidence:sdp_events!sdp_node_samples_run_id_zone_id_evidence_event_id_fkey(event)" : ""), hybrid ? "sampled_at" : "observed_at", offset).eq("node_id", scope.nodeId), 25_000),
     pages<StoredEvent>(offset => bounded("sdp_events", EVENT_COLUMNS, "occurred_at", offset).in("event_type", TYPES).order("ordinal", { ascending: true }), 75_000)
   ]);
   const known = new Set(eventRows.map(row => row.event_id));
@@ -64,11 +65,11 @@ export async function fetchPredictiveHistory(client: Client, scope: PredictiveQu
   eventRows.sort((a, b) => Date.parse(a.occurred_at) - Date.parse(b.occurred_at) || a.sequence - b.sequence || a.ordinal - b.ordinal);
   const events = new Map<string, CoolingEvent>();
   for (const row of eventRows) {
-    const checked = validateSdpEvent(row.event);
+    const checked = validateStoredSdpEvent(row.event);
     if (!checked.ok || !TYPES.includes(checked.value.event_type)) invalid();
     const e = checked.value as CoolingEvent;
     if (e.event_id !== row.event_id || e.session_id !== scope.runId || e.zone_id !== scope.zoneId ||
-      e.clock.time_base !== "REPLAY" || e.clock.replay_id !== scope.runId || e.data_sources.some(s => s !== "SIMULATED") ||
+      !eventMatchesRun(e, scope.runId, scope.modelVersion) ||
       !Number.isSafeInteger(row.sequence) || row.sequence < 0 || row.sequence > scope.sequence ||
       Date.parse(e.occurred_at) !== Date.parse(row.occurred_at) || Date.parse(e.occurred_at) > end) invalid();
     events.set(e.event_id, e);
@@ -88,7 +89,15 @@ export async function fetchPredictiveHistory(client: Client, scope: PredictiveQu
   const frameTimes = new Map(frames.map(f => [f.sequence, Date.parse(f.simulated_at)]));
   for (let i = 0; i < samples.length; i++) {
     const s = samples[i];
-    if (!inScope(s, s.observed_at) || s.node_id !== scope.nodeId || !Number.isFinite(s.temperature_c) || !Number.isFinite(s.humidity_percent) ||
+    if (hybrid) {
+      const checked = s.evidence_event_id ? validateStoredSdpEvent(s.evidence?.event) : null;
+      if (s.evidence_event_id && (!checked?.ok || checked.value.event_type !== "NODE_EVIDENCE" || !eventMatchesRun(checked.value, scope.runId, scope.modelVersion) || checked.value.zone_id !== scope.zoneId)) invalid();
+      const source = checked?.ok && checked.value.event_type === "NODE_EVIDENCE" ? checked.value : undefined;
+      Object.assign(s, normalizeHybridSample(s, source, scope.end));
+      s.stale = s.received_at === null || Date.parse(s.observed_at) - Date.parse(s.received_at!) >= (scope.staleAfterMs ?? 90_000);
+      if (s.received_at) s.fresh_until = new Date(Date.parse(s.received_at) + (scope.staleAfterMs ?? 90_000)).toISOString();
+    }
+    if (!inScope(s, s.observed_at) || s.node_id !== scope.nodeId || (!hybrid && (!Number.isFinite(s.temperature_c) || !Number.isFinite(s.humidity_percent))) ||
       (frameTimes.has(s.sequence) && frameTimes.get(s.sequence) !== Date.parse(s.observed_at)) ||
       (i > 0 && (samples[i - 1].sequence >= s.sequence || Date.parse(samples[i - 1].observed_at) >= Date.parse(s.observed_at)))) invalid();
   }

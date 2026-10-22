@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { validateSdpEvent } from "../../../../packages/sdp-contract/src";
+import { validateStoredSdpEvent, eventMatchesRun, normalizeHybridSample } from "../../../../packages/sdp-contract/src";
 import type { SdpEvent, ZoneConfig } from "../../../../packages/sdp-contract/src";
 import type { OverviewData, SdpRun, SdpZone, SdpNode, SdpFrame, SdpSample, StoredEvent } from "../types/overview";
 
@@ -14,9 +14,9 @@ async function read<T>(query: PromiseLike<{ data: unknown; error: { code?: strin
   if (!Array.isArray(data)) fail();
   return data as T[];
 }
-function event(value: unknown, runId: string, zoneId: string, cutoff: string): SdpEvent {
-  const checked = validateSdpEvent(value);
-  if (!checked.ok || checked.value.session_id !== runId || checked.value.zone_id !== zoneId || checked.value.clock.time_base !== "REPLAY" || checked.value.clock.replay_id !== runId || checked.value.data_sources.some(s => s !== "SIMULATED") || Date.parse(checked.value.occurred_at) > Date.parse(cutoff)) fail();
+function event(value: unknown, runId: string, zoneId: string, cutoff: string, modelVersion: string): SdpEvent {
+  const checked = validateStoredSdpEvent(value);
+  if (!checked.ok || !eventMatchesRun(checked.value, runId, modelVersion) || checked.value.zone_id !== zoneId || Date.parse(checked.value.occurred_at) > Date.parse(cutoff)) fail();
   return checked.value;
 }
 export async function fetchOverview(client: Pick<SupabaseClient, "from">, signal: AbortSignal): Promise<OverviewData | null> {
@@ -43,25 +43,33 @@ async function fetchSnapshot(client: Pick<SupabaseClient, "from">, signal: Abort
   ]);
   if (!frames.length) throw new SnapshotChanged("The active dataset changed. Refresh to load the latest frame.");
   const frame = frames[0];
-  const config = event(zone.config, run.run_id, zone.zone_id, frame.simulated_at);
+  const config = event(zone.config, run.run_id, zone.zone_id, frame.simulated_at, run.model_version);
   if (config.event_type !== "ZONE_CONFIG" || frame.sequence !== run.last_sequence || frame.run_id !== run.run_id || frame.zone_id !== zone.zone_id || frame.simulated_at !== run.last_simulated_at) fail();
-  const samples = await read<SdpSample>(client.from("sdp_node_samples").select("run_id,zone_id,sequence,node_id,observed_at,inserted_at,temperature_c,humidity_percent,evidence_event_id").eq("run_id", run.run_id).eq("zone_id", zone.zone_id).eq("sequence", frame.sequence).order("node_id").limit(64).abortSignal(signal));
-  const ids = [...new Set([frame.decision_event_id, frame.forecast_event_id, frame.output_event_id, ...samples.map(s => s.evidence_event_id)])];
+  const hybrid = run.model_version === "sdp-hybrid-v1";
+  const samples = await read<SdpSample>(client.from("sdp_node_samples").select("run_id,zone_id,sequence,node_id,observed_at,inserted_at,temperature_c,humidity_percent,evidence_event_id" + (hybrid ? ",sampled_at,temperature_observed_at,humidity_observed_at" : "")).eq("run_id", run.run_id).eq("zone_id", zone.zone_id).eq("sequence", frame.sequence).order("node_id").limit(64).abortSignal(signal));
+  const ids = [...new Set([frame.decision_event_id, frame.forecast_event_id, frame.output_event_id, ...samples.flatMap(s => s.evidence_event_id ? [s.evidence_event_id] : [])])];
   const [linked, recent] = await Promise.all([
     read<StoredEvent>(client.from("sdp_events").select(EVENTS).eq("run_id", run.run_id).eq("zone_id", zone.zone_id).in("event_id", ids).lte("sequence", frame.sequence).limit(ids.length).abortSignal(signal)),
     read<StoredEvent>(client.from("sdp_events").select(EVENTS).eq("run_id", run.run_id).eq("zone_id", zone.zone_id).neq("event_type", "NODE_EVIDENCE").neq("event_type", "ZONE_CONFIG").lte("sequence", frame.sequence).order("occurred_at", { ascending: false }).order("sequence", { ascending: false }).order("ordinal", { ascending: false }).limit(5).abortSignal(signal))
   ]);
-  const checked = linked.map(row => event(row.event, run.run_id, zone.zone_id, frame.simulated_at));
+  const checked = linked.map(row => event(row.event, run.run_id, zone.zone_id, frame.simulated_at, run.model_version));
   const decision = checked.find(e => e.event_id === frame.decision_event_id);
   const forecast = checked.find(e => e.event_id === frame.forecast_event_id);
   const output = checked.find(e => e.event_id === frame.output_event_id);
   if (!decision || !forecast || !output) throw new SnapshotChanged("Linked records changed while loading. Refresh the dataset.");
   if (decision.event_type !== "ZONE_DECISION" || forecast.event_type !== "ZONE_FORECAST" || output.event_type !== "APPLIED_OUTPUT" || decision.payload.occupancy !== frame.occupancy || decision.payload.coverage !== frame.coverage || decision.payload.forecast_event_id !== forecast.event_id || decision.payload.config_event_id !== config.event_id || output.payload.decision_event_id !== decision.event_id || output.payload.command_id !== decision.payload.command_id) fail();
   const evidence = checked.filter(e => e.event_type === "NODE_EVIDENCE");
+  if (hybrid && (samples.length !== nodes.length || new Set(samples.map(s => s.node_id)).size !== nodes.length || samples.some(s => !nodes.some(n => n.node_id === s.node_id)))) fail();
   for (const sample of samples) {
     const source = evidence.find(e => e.event_id === sample.evidence_event_id);
+    if (hybrid) {
+      if (sample.run_id !== run.run_id || sample.zone_id !== zone.zone_id || sample.sequence !== frame.sequence || Date.parse(sample.sampled_at ?? "") !== Date.parse(frame.simulated_at)) fail();
+      Object.assign(sample, normalizeHybridSample(sample, source, frame.simulated_at));
+      sample.stale = sample.received_at === null || Date.parse(frame.simulated_at) - Date.parse(sample.received_at!) >= config.payload.freshness.stale_after_ms;
+      continue;
+    }
     if (sample.run_id !== run.run_id || sample.zone_id !== zone.zone_id || sample.sequence !== frame.sequence || !Number.isFinite(sample.temperature_c) || !Number.isFinite(sample.humidity_percent) || !Number.isFinite(Date.parse(sample.observed_at)) || Date.parse(sample.observed_at) > Date.parse(frame.simulated_at) || source?.payload.node_id !== sample.node_id || source.payload.temperature_c.value !== sample.temperature_c || source.payload.humidity_percent.value !== sample.humidity_percent || Date.parse(source.payload.temperature_c.observed_at ?? "") !== Date.parse(sample.observed_at) || Date.parse(source.payload.humidity_percent.observed_at ?? "") !== Date.parse(sample.observed_at)) fail();
   }
   return { run, zone: { ...zone, config: config as ZoneConfig }, frame, nodes, samples, decision, forecast, output, evidence,
-    activity: recent.map(row => ({ ...row, event: event(row.event, run.run_id, zone.zone_id, frame.simulated_at) })) };
+    activity: recent.map(row => ({ ...row, event: event(row.event, run.run_id, zone.zone_id, frame.simulated_at, run.model_version) })) };
 }

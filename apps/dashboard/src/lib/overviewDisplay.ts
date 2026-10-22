@@ -21,8 +21,8 @@ export function feedStatus(data: OverviewData | null, now: number): "CURRENT" | 
   return age > 90_000 ? "DELAYED" : "CURRENT";
 }
 export function nodeStatus(sample: SdpSample | undefined, data: OverviewData, now: number) {
-  if (!sample) return { label: "Missing", tone: "neutral" as Tone };
-  const age = now - Date.parse(sample.observed_at);
+  if (!sample || (Object.hasOwn(sample, "received_at") && sample.received_at === null)) return { label: "Missing", tone: "neutral" as Tone };
+  const age = now - Date.parse(sample.received_at ?? sample.observed_at);
   const config = data.zone.config.payload.freshness;
   if (age < -config.max_clock_skew_ms) return { label: "Clock mismatch", tone: "attention" as Tone };
   if (age >= config.disconnected_after_ms) return { label: "Disconnected", tone: "danger" as Tone };

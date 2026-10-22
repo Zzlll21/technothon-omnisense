@@ -15,7 +15,7 @@ if (!existsSync(configuration)) {
     configuration = resolve(dirname(common), "apps/dashboard/.env");
   } catch { /* The existing visible setup state handles unconfigured standalone copies. */ }
 }
-if (existsSync(configuration)) process.loadEnvFile(configuration);
+if (process.env.VITE_HYBRID_PRIVATE !== 'true' && existsSync(configuration)) process.loadEnvFile(configuration);
 process.chdir(app);
 const command = process.argv[2] ?? "dev";
 const portIndex = process.argv.indexOf("--port");

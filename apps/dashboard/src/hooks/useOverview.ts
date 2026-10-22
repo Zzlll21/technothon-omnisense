@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { fetchOverview } from "../api/overview";
-import { supabase, supabaseConfigError } from "../lib/supabase";
+import { supabase, supabaseConfigError, hybridAccess } from "../lib/supabase";
 import type { OverviewData } from "../types/overview";
 
 export function useOverview() {
@@ -19,6 +19,7 @@ export function useOverview() {
     setRefreshing(true);
     try {
       const result = await fetchOverview(supabase, AbortSignal.any([controller.signal, AbortSignal.timeout(20_000)]));
+      if (hybridAccess.privateHybrid && result && (result.run.run_id !== hybridAccess.expectedRunId || result.run.model_version !== 'sdp-hybrid-v1')) throw new Error('The active run does not match the approved hybrid test run.');
       if (controller.signal.aborted) return;
       setData(result); setError(null); setRefreshedAt(new Date().toISOString());
     } catch (caught) {

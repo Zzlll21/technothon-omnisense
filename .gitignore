@@ -29,3 +29,9 @@ Thumbs.db
 
 # Generated approved landing assets (source: docs/design/omnisense-landing)
 /apps/dashboard/public/landing/
+
+# Machine-local Hybrid runtime settings and reviewed target candidates
+/services/sdp-generator/hybrid-*.env
+/services/sdp-generator/hybrid-*.env.*
+!/services/sdp-generator/hybrid-mqtt.env.example
+/services/sdp-generator/deployment/hybrid-target.*.draft.json

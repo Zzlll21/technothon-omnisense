@@ -76,11 +76,13 @@ export function temperatureSegments(history: PredictiveHistory, anchor: string) 
   const segments: PredictiveHistory["samples"][] = [];
   let segment: PredictiveHistory["samples"] = [];
   history.samples.forEach((sample, i) => {
+    if (sample.stale || sample.temperature_c === null) { if (segment.length) segments.push(segment); segment = []; return; }
     const previous = history.samples[i - 1];
-    if (previous && (sample.sequence !== previous.sequence + 1 || Date.parse(sample.observed_at) - Date.parse(previous.observed_at) > sampleInterval(Date.parse(sample.observed_at), anchor) * 1.5)) {
+    if (previous && (sample.sequence !== previous.sequence + 1 || Date.parse(sample.observed_at) - Date.parse(previous.observed_at) > sampleInterval(Date.parse(sample.observed_at), anchor) * 1.5 ||
+      (previous.fresh_until && sample.received_at && Date.parse(sample.received_at) > Date.parse(previous.fresh_until)))) {
       if (segment.length) segments.push(segment); segment = [];
     }
-    segment.push(sample);
+    if (sample.received_at == null || !segment.some(s => s.evidence_event_id === sample.evidence_event_id)) segment.push(sample);
   });
   if (segment.length) segments.push(segment);
   return segments;

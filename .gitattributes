@@ -1,0 +1,4 @@
+# Preserve the exact reviewed bytes used by Hybrid migration SHA-256 safeguards.
+# In particular, do not normalize the approved SQL between Windows and other OSes.
+supabase/sdp/migrations/*.sql -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+supabase/sdp/verification/*.sql -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

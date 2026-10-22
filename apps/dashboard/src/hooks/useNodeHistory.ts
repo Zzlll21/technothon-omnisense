@@ -19,7 +19,7 @@ export function useNodeHistory(data: OverviewData, nodeId: string, hours: Histor
     async function load() {
       try {
         if (!supabase) throw new Error("Configure the SDP publishable key to read node history.");
-        const incoming = await fetchNodeHistory(supabase, { runId, zoneId, nodeId, sequence, start: new Date(start).toISOString(), end: new Date(end).toISOString(), afterSequence: previous?.sequence }, AbortSignal.any([controller.signal, AbortSignal.timeout(60_000)]));
+        const incoming = await fetchNodeHistory(supabase, { runId, zoneId, nodeId, sequence, modelVersion: data.run.model_version, staleAfterMs: data.zone.config.payload.freshness.stale_after_ms, start: new Date(start).toISOString(), end: new Date(end).toISOString(), afterSequence: previous?.sequence }, AbortSignal.any([controller.signal, AbortSignal.timeout(60_000)]));
         if (controller.signal.aborted) return;
         const points = [...retained, ...incoming];
         cache.current = { key, points, sequence };

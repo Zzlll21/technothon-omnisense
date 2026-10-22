@@ -1,9 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { validateSdpEvent } from "../../../../packages/sdp-contract/src";
+import { validateStoredSdpEvent, eventMatchesRun } from "../../../../packages/sdp-contract/src";
 import type { AppliedOutput, CoolingMode, SdpEvent, ZoneDecision, ZoneForecast } from "../../../../packages/sdp-contract/src";
 import type { SdpFrame, StoredEvent } from "../types/overview";
 
-export interface RecordSnapshot { runId: string; zoneId: string; zoneName: string; sequence: number; at: string }
+export interface RecordSnapshot { runId: string; zoneId: string; zoneName: string; sequence: number; at: string; modelVersion?: string }
 export type RecordCategory = "OPERATIONS" | "ALL" | SdpEvent["event_type"];
 export type SearchField = "all" | "text" | "event_id" | "correlation_id";
 export interface RecordFilters { start: string; end: string; category: RecordCategory; mode: CoolingMode | ""; search: string; searchField: SearchField }
@@ -30,12 +30,12 @@ function scoped(client: Client, snapshot: RecordSnapshot, columns = COLUMNS) {
 }
 function checked(rows: RecordRow[], snapshot: RecordSnapshot): RecordRow[] {
   for (const row of rows) {
-    const result = validateSdpEvent(row.event);
+    const result = validateStoredSdpEvent(row.event);
     if (!result.ok) invalid();
     const e = result.value;
     if (row.run_id !== snapshot.runId || row.zone_id !== snapshot.zoneId || !Number.isSafeInteger(row.sequence) || row.sequence < 0 || row.sequence > snapshot.sequence || !Number.isSafeInteger(row.ordinal) || row.ordinal < 0 ||
       row.event_id !== e.event_id || row.event_type !== e.event_type || e.session_id !== snapshot.runId || e.zone_id !== snapshot.zoneId ||
-      e.clock.time_base !== "REPLAY" || e.clock.replay_id !== snapshot.runId || e.data_sources.some(s => s !== "SIMULATED") ||
+      !eventMatchesRun(e, snapshot.runId, snapshot.modelVersion) ||
       Date.parse(row.occurred_at) !== Date.parse(e.occurred_at) || Date.parse(e.occurred_at) > Date.parse(snapshot.at)) invalid();
   }
   return rows;
@@ -110,7 +110,7 @@ async function correlateRecords(client: Client, snapshot: RecordSnapshot, rows: 
   return rows.map(row => {
     const e = row.event, warnings: string[] = [];
     const candidate = frames.find(f => f.sequence === row.sequence);
-    const frame = candidate && candidate.run_id === snapshot.runId && candidate.zone_id === snapshot.zoneId && Date.parse(candidate.simulated_at) === Date.parse(row.occurred_at) ? candidate : null;
+    const frame = candidate && candidate.run_id === snapshot.runId && candidate.zone_id === snapshot.zoneId && (snapshot.modelVersion === "sdp-hybrid-v1" ? Date.parse(candidate.simulated_at) >= Date.parse(row.occurred_at) : Date.parse(candidate.simulated_at) === Date.parse(row.occurred_at)) ? candidate : null;
     if (!frame) warnings.push("The event has no exact matching committed frame.");
     if (e.event_type === "ZONE_FORECAST" && e.payload.supersedes_event_id) {
       const previous = byId.get(e.payload.supersedes_event_id);

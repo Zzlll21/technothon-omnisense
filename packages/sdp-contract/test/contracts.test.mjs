@@ -1,12 +1,28 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { createSdpDataSource, isUtcTimestamp, parseSdpEvents, SCHEMA_VERSION, validateSdpEvent } from "../dist/index.js";
+import { createSdpDataSource, isUtcTimestamp, parseSdpEvents, SCHEMA_VERSION, validateSdpEvent, validateStoredSdpEvent, eventMatchesRun } from "../dist/index.js";
 
 const fixtures = JSON.parse(await readFile(new URL("../fixtures/scenarios.json", import.meta.url), "utf8"));
 const events = parseSdpEvents(fixtures.events);
 const eventById = new Map(events.map(event => [event.event_id, event]));
 const scenarioById = new Map(fixtures.scenarios.map(scenario => [scenario.id, scenario]));
+test('persisted hybrid version dispatch retains strict legacy shapes and measured inference semantics', () => {
+  const e = structuredClone(events.find(e=>e.event_type==='NODE_EVIDENCE'));
+  Object.assign(e,{schema_version:'sdp.v1-hybrid.1',clock:{time_base:'LIVE',replay_id:null},data_sources:['MEASURED']});
+  e.payload.model_version=null;e.payload.firmware_version=null;
+  const at=e.occurred_at;
+  e.payload.classification={value:{class_label:'OCCUPIED_1P',class_scores:null,headcount_category:'ONE'},source:'MEASURED',source_id:`${e.payload.node_id}/thermal`,observed_at:at,validity:'VALID'};
+  e.payload.temperature_c={value:25.4,source:'MEASURED',source_id:`${e.payload.node_id}/bme280`,observed_at:at,validity:'VALID'};
+  e.payload.humidity_percent={value:null,source:'UNAVAILABLE',source_id:null,observed_at:null,validity:'UNAVAILABLE'};
+  e.data_sources.push('UNAVAILABLE');
+  e.payload.hardware={received_at:at,time_basis:'GATEWAY_RECEIPT',device_observed_at:null,headcount:1,inference_method:'TINYML',system_active:true,pir_motion:true,bme_valid:true,headcount_source:'thermal_ai',thermal_ai_label:'OCCUPIED_1P',thermal_ai_confidence:.92};
+  assert.equal(validateStoredSdpEvent(e).ok,true);assert.equal(validateSdpEvent(e).ok,false);
+  assert.equal(eventMatchesRun(e,e.session_id,'sdp-hybrid-v1'),true);assert.equal(eventMatchesRun(e,e.session_id),false);
+  for(const mutate of [v=>v.payload.hardware.system_active=false,v=>v.payload.classification.value.headcount_category='ZERO',v=>v.payload.classification.value.class_scores={},v=>v.payload.hardware.headcount_source='thermal_blob_fallback',v=>v.payload.hardware.bme_valid=false,v=>v.payload.temperature_c.source_id='other/bme280']) {
+    const bad=structuredClone(e);mutate(bad);assert.equal(validateStoredSdpEvent(bad).ok,false);
+  }
+});
 function scenarioSource(id) {
   const scenario = scenarioById.get(id);
   assert.ok(scenario, id);
@@ -15,6 +31,16 @@ function scenarioSource(id) {
     source: createSdpDataSource(async () => scenario.event_ids.map(eventId => structuredClone(eventById.get(eventId))))
   };
 }
+test('hybrid decision validation rejects unconfirmed reduction and impossible duration categories',()=>{
+ const e=structuredClone(events.find(e=>e.event_type==='ZONE_DECISION'));
+ Object.assign(e,{schema_version:'sdp.v1-hybrid.1',clock:{time_base:'LIVE',replay_id:null}});
+ Object.assign(e.payload,{occupancy:'VACANT',requested_mode:'SHORT_VACANCY',requested_output:{fan:'LOW',setpoint_c:27},vacancy_confirmed_at:null,override_request_id:null});
+ assert.equal(validateStoredSdpEvent(e).ok,false);
+ e.payload.vacancy_confirmed_at=e.payload.evaluated_at;
+ assert.equal(validateStoredSdpEvent(e).ok,true);
+ e.payload.requested_mode='LONG_VACANCY';assert.equal(validateStoredSdpEvent(e).ok,false);
+ e.payload.requested_mode='OCCUPIED';assert.equal(validateStoredSdpEvent(e).ok,false);
+});
 async function snapshot(id) {
   const { source, query } = scenarioSource(id);
   return source.getZoneSnapshot(query);

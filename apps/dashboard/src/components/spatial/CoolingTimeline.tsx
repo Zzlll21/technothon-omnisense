@@ -41,7 +41,7 @@ export function CoolingTimeline({ history, nodes, labels, result, start, end, an
     const values = series.flat(2).map(p => p.temperature_c);
     return chartScale(values.length ? values : [20, 30]);
   }, [series]);
-  const y = (v: number) => 132 - (v - scale.min) / (scale.max - scale.min) * 80;
+  const y = (v: number | null) => v === null ? Number.NaN : 132 - (v - scale.min) / (scale.max - scale.min) * 80;
   // Keep thousands of temperature coordinates out of the hover render path.
   const temperaturePaths = useMemo(() => series.map(segments => segments.map(segment => ({
     single: segment.length === 1, x: x(Date.parse(segment[0].observed_at)), y: y(segment[0].temperature_c),

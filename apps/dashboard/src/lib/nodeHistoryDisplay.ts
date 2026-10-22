@@ -15,18 +15,22 @@ export function classification(evidence?: NodeEvidence) {
 }
 export function sampleInterval(at: number, anchor: string) { return at <= Date.parse(anchor) ? 300_000 : 30_000; }
 export function hasGap(a: NodeHistoryPoint, b: NodeHistoryPoint, anchor: string) {
-  return b.sequence !== a.sequence + 1 || Date.parse(b.observed_at) - Date.parse(a.observed_at) > sampleInterval(Date.parse(b.observed_at), anchor) * 1.5;
+  return b.sequence !== a.sequence + 1 || Date.parse(b.observed_at) - Date.parse(a.observed_at) > sampleInterval(Date.parse(b.observed_at), anchor) * 1.5 ||
+    !!(a.fresh_until && b.received_at && Date.parse(b.received_at) > Date.parse(a.fresh_until));
 }
 export function numericSegments(points: NodeHistoryPoint[], anchor: string, metric: "temperature_c" | "humidity_percent") {
   const segments: NodeHistoryPoint[][] = [];
   let segment: NodeHistoryPoint[] = [];
   for (let i = 0; i < points.length; i++) {
     const p = points[i];
-    if (p.evidence.payload[metric].validity !== "VALID" || (i > 0 && hasGap(points[i - 1], p, anchor))) {
+    if (p.stale || p.evidence.payload[metric].validity !== "VALID" || p[metric] === null || (i > 0 && hasGap(points[i - 1], p, anchor))) {
       if (segment.length) segments.push(segment);
       segment = [];
     }
-    if (p.evidence.payload[metric].validity === "VALID") segment.push(p);
+    if (!p.stale && p.evidence.payload[metric].validity === "VALID" && p[metric] !== null) {
+      // Snapshot projections of the same acquisition do not create new chart points.
+      if (p.received_at == null || !segment.some(q => q.evidence_event_id === p.evidence_event_id)) segment.push(p);
+    }
   }
   if (segment.length) segments.push(segment);
   return segments;
@@ -37,9 +41,10 @@ export function occupancySpans(points: NodeHistoryPoint[], anchor: string, end: 
   points.forEach((p, i) => {
     const start = Date.parse(p.observed_at);
     const next = points[i + 1];
-    const finish = Math.min(end, start + sampleInterval(start + 1, anchor), next ? Date.parse(next.observed_at) : Infinity);
+    const finish = Math.min(end, start + sampleInterval(start + 1, anchor), next ? Date.parse(next.observed_at) : Infinity,
+      !p.stale && p.fresh_until ? Date.parse(p.fresh_until) : Infinity);
     if (finish <= start) return;
-    const kind = classification(p.evidence);
+    const kind = p.stale ? null : classification(p.evidence);
     const previous = spans.at(-1);
     if (previous && previous.kind === kind && previous.end === start && !hasGap(points[i - 1], p, anchor)) previous.end = finish;
     else spans.push({ start, end: finish, kind });
@@ -52,9 +57,10 @@ export function nearestPoint(points: NodeHistoryPoint[], at: number) {
   while (lo < hi) { const mid = Math.floor((lo + hi) / 2); if (Date.parse(points[mid].observed_at) < at) lo = mid + 1; else hi = mid; }
   return lo > 0 && at - Date.parse(points[lo - 1].observed_at) <= Date.parse(points[lo].observed_at) - at ? lo - 1 : lo;
 }
-export function chartScale(values: number[]) {
+export function chartScale(values: (number | null)[]) {
   let low = Infinity, high = -Infinity;
-  for (const value of values) { low = Math.min(low, value); high = Math.max(high, value); }
+  for (const value of values) { if (value !== null && Number.isFinite(value)) { low = Math.min(low, value); high = Math.max(high, value); } }
+  if (!Number.isFinite(low)) { low = 20; high = 30; }
   const span = Math.max(high - low, 0.4);
   const raw = span / 3;
   const power = 10 ** Math.floor(Math.log10(raw));

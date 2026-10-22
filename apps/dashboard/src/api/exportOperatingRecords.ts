@@ -1,13 +1,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { fetchOperatingPage } from "./operatingRecords";
 import type { RecordFilters, RecordSnapshot } from "./operatingRecords";
-import { operatingCsvColumns, operatingCsvRow } from "../lib/operatingRecordsDisplay";
+import { operatingCsvHeader, operatingCsvRow } from "../lib/operatingRecordsDisplay";
 import { csvCell } from "../lib/sdpRecords";
 
 export const MAX_EXPORT_ROWS = 50_000;
 export const MAX_EXPORT_BYTES = 25 * 1024 * 1024;
 export async function buildOperatingCsv(client: Pick<SupabaseClient, "from">, snapshot: RecordSnapshot, filters: RecordFilters, signal: AbortSignal, onProgress: (done: number, total: number) => void): Promise<{ parts: string[]; count: number }> {
-  const parts = ["\uFEFF" + operatingCsvColumns.map(csvCell).join(",") + "\r\n"];
+  const parts = ["\uFEFF" + operatingCsvHeader(snapshot).map(csvCell).join(",") + "\r\n"];
   const encoder = new TextEncoder();
   let bytes = encoder.encode(parts[0]).byteLength, done = 0, total: number | null = null;
   for (let page = 1; ; page++) {

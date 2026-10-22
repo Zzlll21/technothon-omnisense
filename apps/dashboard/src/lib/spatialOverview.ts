@@ -20,7 +20,7 @@ export function spatialOverview(data: OverviewData, now: number) {
     const valid = temperature !== null && humidity !== null && classification?.validity === "VALID";
     return {
       id: configured.node_id, label: configured.label, x: configured.x, y: configured.y,
-      temperature, humidity, observedAt: sample?.observed_at ?? null,
+      temperature, humidity, observedAt: sample && Object.hasOwn(sample, "received_at") ? sample.received_at ?? null : sample?.observed_at ?? null,
       classification: classification?.validity === "VALID" ? classificationLabels[classification.value.class_label] : "Unavailable",
       classificationCode: classification?.validity === "VALID" ? classification.value.class_label : null,
       temperatureValidity: evidence?.payload.temperature_c.validity ?? "UNAVAILABLE",

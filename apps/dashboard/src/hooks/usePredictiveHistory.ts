@@ -19,7 +19,7 @@ export function usePredictiveHistory(data: OverviewData, hours: 24 | 168, refres
     async function load() {
       try {
         if (!supabase) throw new Error("Configure the SDP publishable key to read predictive history.");
-        const incoming = await fetchPredictiveHistory(supabase, { runId, zoneId, nodeId, sequence, start: new Date(start).toISOString(), end: new Date(end).toISOString(), afterSequence: previous?.sequence }, AbortSignal.any([controller.signal, AbortSignal.timeout(60_000)]));
+        const incoming = await fetchPredictiveHistory(supabase, { runId, zoneId, nodeId, sequence, modelVersion: data.run.model_version, staleAfterMs: data.zone.config.payload.freshness.stale_after_ms, start: new Date(start).toISOString(), end: new Date(end).toISOString(), afterSequence: previous?.sequence }, AbortSignal.any([controller.signal, AbortSignal.timeout(60_000)]));
         if (controller.signal.aborted) return;
         const result = mergeHistory(retained, incoming, start);
         cache.current = { key, data: result, sequence };

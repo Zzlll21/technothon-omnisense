@@ -24,7 +24,7 @@ export function OperatingRecordInspector({ target, onClose, onFull, onRelated }:
       {state.loading && <p role="status">Loading exact stored record…</p>}
       {state.context ? <OperatingRecordContent context={state.context} snapshot={target.snapshot} onRelated={onRelated} /> : <><h2 id="sr-detail-heading">{state.loading ? "Opening record" : "Record unavailable"}</h2>{!state.loading && !state.error && <p>This exact event is unavailable within the selected run, zone and committed snapshot. No nearby event has been substituted.</p>}<code className="sr-missing-id">{target.eventId}</code></>}
       <div className="sr-drawer-actions">{state.context && target.origin === "history" && <button className="sr-primary" onClick={() => onFull(state.context!)}>View in Operating Records ↗</button>}<button className="sr-secondary" onClick={onClose}>{target.origin === "history" ? "Return to historical inspection" : "Back to filtered records"}</button></div>
-      <p className="sr-provenance">Stored simulation records · no physical HVAC actuation. Snapshot {malaysiaTime(target.snapshot.at)} MYT · sequence ≤ {target.snapshot.sequence}.</p>
+      <p className="sr-provenance">{target.snapshot.modelVersion === "sdp-hybrid-v1" ? "Stored hardware evidence; forecasts and output simulated" : "Stored simulation records"} · no physical HVAC actuation. Snapshot {malaysiaTime(target.snapshot.at)} MYT · sequence ≤ {target.snapshot.sequence}.</p>
     </div>
   </dialog>;
 }

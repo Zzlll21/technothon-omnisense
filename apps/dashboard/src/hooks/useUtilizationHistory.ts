@@ -19,7 +19,7 @@ export function useUtilizationHistory(data: OverviewData, hours: 24 | 168, refre
     async function load() {
       try {
         if (!supabase) throw new Error("Configure the SDP publishable key to read utilization.");
-        const incoming = await fetchUtilizationHistory(supabase, { runId, zoneId, sequence, start: new Date(start).toISOString(), end: new Date(end).toISOString(), afterSequence: previous?.sequence }, AbortSignal.any([controller.signal, AbortSignal.timeout(60_000)]));
+        const incoming = await fetchUtilizationHistory(supabase, { runId, zoneId, sequence, modelVersion: data.run.model_version, start: new Date(start).toISOString(), end: new Date(end).toISOString(), afterSequence: previous?.sequence }, AbortSignal.any([controller.signal, AbortSignal.timeout(60_000)]));
         if (controller.signal.aborted) return;
         const result = mergeUtilizationHistory(retained, incoming, start);
         cache.current = { key, data: result, sequence };

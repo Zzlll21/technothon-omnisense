@@ -13,7 +13,10 @@ export interface SdpFrame {
 }
 export interface SdpSample {
   run_id: string; zone_id: string; sequence: number; node_id: string; observed_at: string;
-  inserted_at: string; temperature_c: number; humidity_percent: number; evidence_event_id: string;
+  inserted_at: string; temperature_c: number | null; humidity_percent: number | null; evidence_event_id: string | null;
+  /** In LIVE projections observed_at is the chart/sample cutoff; receipt remains independent. */
+  received_at?: string | null; sampled_at?: string | null; temperature_observed_at?: string | null; humidity_observed_at?: string | null;
+  stale?: boolean; fresh_until?: string;
 }
 export interface StoredEvent { event_id: string; sequence: number; ordinal: number; occurred_at: string; event: SdpEvent }
 export interface OverviewData {

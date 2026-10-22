@@ -1,5 +1,6 @@
-import { COOLING_MODES, DATA_SOURCES, DECISION_REASONS, NODE_CLASSES, NODE_STATES, OCCUPANCY_STATES, OVERRIDE_STATES, SCHEMA_VERSION } from "./types.js";
+import { COOLING_MODES, DATA_SOURCES, DECISION_REASONS, NODE_CLASSES, NODE_STATES, OCCUPANCY_STATES, OVERRIDE_STATES, SCHEMA_VERSION, HYBRID_SCHEMA_VERSION } from "./types.js";
 import type { SdpEvent } from "./types.js";
+import { COOLING_POLICY } from './policy.js';
 
 type Check = (value: unknown, path: string, errors: string[]) => void;
 const check = (predicate: (value: unknown) => boolean, description: string): Check =>
@@ -74,24 +75,76 @@ export function isUtcTimestamp(value: unknown): value is string {
 }
 
 export function validateSdpEvent(value: unknown): ValidationResult {
+  return validateVersion(value, false);
+}
+/** Persistence dispatch. Legacy validation deliberately does not accept hybrid events. */
+export function validateStoredSdpEvent(value: unknown): ValidationResult {
+  return validateVersion(value, isObject(value) && value.schema_version === HYBRID_SCHEMA_VERSION);
+}
+export function eventMatchesRun(event: SdpEvent, runId: string, modelVersion = "sdp-scripted-v1"): boolean {
+  return event.session_id === runId && (modelVersion === "sdp-hybrid-v1"
+    ? event.schema_version === HYBRID_SCHEMA_VERSION && event.clock.time_base === "LIVE" && event.clock.replay_id === null
+    : modelVersion === "sdp-scripted-v1" && event.schema_version === SCHEMA_VERSION && event.clock.time_base === "REPLAY" && event.clock.replay_id === runId && event.data_sources.every(s => s === "SIMULATED"));
+}
+/** Hybrid database projection -> chart axis, retaining receipt separately. No replacement measurements. */
+export function normalizeHybridSample<T extends { node_id: string; observed_at: string | null; sampled_at?: string | null; temperature_c: number | null; humidity_percent: number | null; evidence_event_id: string | null; temperature_observed_at?: string | null; humidity_observed_at?: string | null }>(raw: T, evidence: Extract<SdpEvent, {event_type: "NODE_EVIDENCE"}> | undefined, cutoff: string): T & { observed_at: string; received_at: string | null } {
+  const same = (a: string | null | undefined, b: string | null | undefined) => a == null || b == null ? a == null && b == null : Number.isFinite(Date.parse(a)) && Date.parse(a) === Date.parse(b);
+  if (!raw.sampled_at || !Number.isFinite(Date.parse(raw.sampled_at)) || Date.parse(raw.sampled_at) > Date.parse(cutoff)) throw new Error("Invalid hybrid sample cutoff");
+  if (!raw.evidence_event_id) {
+    if (evidence || raw.observed_at !== null || raw.temperature_c !== null || raw.humidity_percent !== null || raw.temperature_observed_at != null || raw.humidity_observed_at != null) throw new Error("Missing hardware sample must remain unavailable");
+  } else {
+    if (!evidence || evidence.event_id !== raw.evidence_event_id || evidence.payload.node_id !== raw.node_id || !evidence.payload.hardware || !same(evidence.payload.hardware.received_at, raw.observed_at) || Date.parse(raw.observed_at!) > Date.parse(raw.sampled_at) ||
+      evidence.payload.temperature_c.value !== raw.temperature_c || evidence.payload.humidity_percent.value !== raw.humidity_percent || !same(evidence.payload.temperature_c.observed_at, raw.temperature_observed_at) || !same(evidence.payload.humidity_percent.observed_at, raw.humidity_observed_at)) throw new Error("Hardware sample/evidence mismatch");
+  }
+  return { ...raw, observed_at: raw.sampled_at, received_at: raw.observed_at };
+}
+function validateVersion(value: unknown, hybrid: boolean): ValidationResult {
   const errors: string[] = [];
   object({
-    schema_version: oneOf([SCHEMA_VERSION]), event_type: oneOf(Object.keys(payloadChecks)), event_id: text, correlation_id: text,
+    schema_version: oneOf([hybrid ? HYBRID_SCHEMA_VERSION : SCHEMA_VERSION]), event_type: oneOf(Object.keys(payloadChecks)), event_id: text, correlation_id: text,
     session_id: text, room_id: text, zone_id: text, occurred_at: utc,
     clock: object({ time_base: oneOf(["LIVE", "REPLAY"]), replay_id: nullable(text) }),
     producer: object({ component: oneOf(["A_B", "B", "C", "D", "E"]), producer_id: text }),
     data_sources: list(oneOf(DATA_SOURCES), 1), payload: (v, p, e) => {
-      if (isObject(value) && typeof value.event_type === "string" && Object.hasOwn(payloadChecks, value.event_type)) payloadChecks[value.event_type as SdpEvent["event_type"]](v, p, e);
+      if (hybrid && isObject(value) && value.event_type === "NODE_EVIDENCE") {
+        object({ node_id: text, model_version: nullable(text), firmware_version: nullable(text),
+          classification: observation(object({ class_label: oneOf(NODE_CLASSES), class_scores: check(v => v === null, "null (firmware provides no distribution)"), headcount_category: oneOf(["ZERO", "ONE", "TWO", "THREE_PLUS", "UNCERTAIN"]) })),
+          temperature_c: observation(finite), humidity_percent: observation(percent),
+          hardware: object({ received_at: utc, time_basis: oneOf(["GATEWAY_RECEIPT"]), device_observed_at: check(v => v === null, "null"), headcount: check(v => Number.isInteger(v) && Number(v) >= 0 && Number(v) <= 3, "headcount 0..3"),
+            inference_method: oneOf(["TINYML", "THERMAL_BLOB_FALLBACK", "UNAVAILABLE"]), system_active: nullable(check(v => typeof v === "boolean", "boolean")), pir_motion: nullable(check(v => typeof v === "boolean", "boolean")), bme_valid: nullable(check(v => typeof v === "boolean", "boolean")),
+            headcount_source: nullable(text), thermal_ai_label: nullable(text), thermal_ai_confidence: nullable(unitInterval) }) })(v, p, e);
+      } else if (isObject(value) && typeof value.event_type === "string" && Object.hasOwn(payloadChecks, value.event_type)) payloadChecks[value.event_type as SdpEvent["event_type"]](v, p, e);
     }
   })(value, "event", errors);
   if (errors.length) return { ok: false, errors };
   const event = value as SdpEvent;
   const fail = (message: string) => errors.push(message);
   const after = (later: string, earlier: string) => Date.parse(later) > Date.parse(earlier);
+  if (hybrid && (event.clock.time_base !== "LIVE" || event.clock.replay_id !== null || ["OVERRIDE_REQUEST", "OVERRIDE_STATUS"].includes(event.event_type))) fail("hybrid requires LIVE and supported persistence event types");
+  if (hybrid && ["ZONE_FORECAST", "APPLIED_OUTPUT"].includes(event.event_type) && JSON.stringify(event.data_sources) !== '["SIMULATED"]') fail("hybrid forecasts and reports remain simulated");
   if ((event.clock.time_base === "LIVE") !== (event.clock.replay_id === null)) fail("clock: LIVE requires null replay_id; REPLAY requires an ID");
   const owners: Record<SdpEvent["event_type"], string[]> = { NODE_EVIDENCE: ["A_B", "B"], ZONE_CONFIG: ["C"], ZONE_DECISION: ["C"], ZONE_FORECAST: ["D"], APPLIED_OUTPUT: ["B"], OVERRIDE_REQUEST: ["E"], OVERRIDE_STATUS: ["C", "E"] };
   if (!owners[event.event_type].includes(event.producer.component)) fail("producer component does not own this event type");
   if (event.event_type === "NODE_EVIDENCE") {
+    if (hybrid) {
+      const h = event.payload.hardware!;
+      if (after(h.received_at, event.occurred_at)) fail("hardware receipt follows event publication");
+      for (const o of [event.payload.classification, event.payload.temperature_c, event.payload.humidity_percent]) {
+        if (o.observed_at !== null && o.observed_at !== h.received_at) fail("hardware observations retain original gateway receipt");
+      }
+      if (event.payload.temperature_c.value !== null && (event.payload.temperature_c.value < -40 || event.payload.temperature_c.value > 85)) fail("BME temperature out of range");
+      if (event.payload.classification.validity === "VALID" && (h.system_active !== true || h.inference_method === "UNAVAILABLE" || (h.inference_method === "THERMAL_BLOB_FALLBACK" && h.headcount === 0))) fail("inactive/unavailable/fallback-zero cannot confirm classification");
+      const label = ["EMPTY_CORE", "OCCUPIED_1P", "OCCUPIED_2P", "OCCUPIED_3P_PLUS"][h.headcount];
+      const c = event.payload.classification;
+      if (c.validity === "VALID" && (c.source !== "MEASURED" || c.value.class_label !== label || c.value.headcount_category !== ["ZERO", "ONE", "TWO", "THREE_PLUS"][h.headcount] ||
+        (h.inference_method === "TINYML" && (h.headcount_source !== "thermal_ai" || h.thermal_ai_label !== label || !(h.thermal_ai_confidence! > 0))) ||
+        (h.inference_method === "THERMAL_BLOB_FALLBACK" && h.headcount_source !== "thermal_blob_fallback"))) fail("hardware count/source/classification mismatch");
+      for (const [o, suffix] of [[c, "thermal"], [event.payload.temperature_c, "bme280"], [event.payload.humidity_percent, "bme280"]] as const) {
+        if (!["MEASURED", "UNAVAILABLE"].includes(o.source) || (o.source === "MEASURED" && o.source_id !== `${event.payload.node_id}/${suffix}`) ||
+          (o.source === "UNAVAILABLE" && (o.observed_at !== null || o.source_id !== null))) fail("hardware observation source mismatch");
+      }
+      if ([event.payload.temperature_c, event.payload.humidity_percent].some(o => o.validity === "VALID") && (h.system_active !== true || h.bme_valid !== true)) fail("inactive/unavailable BME cannot be valid");
+    }
     for (const observation of [event.payload.classification, event.payload.temperature_c, event.payload.humidity_percent]) {
       if (!event.data_sources.includes(observation.source)) fail("data_sources must include every observation source");
       if (observation.observed_at && after(observation.observed_at, event.occurred_at)) fail("observation cannot occur after event publication");
@@ -106,6 +159,15 @@ export function validateSdpEvent(value: unknown): ValidationResult {
   }
   if (event.event_type === "ZONE_DECISION") {
     const decision = event.payload;
+    if (hybrid) {
+      if (decision.requested_mode !== 'OCCUPIED' && (decision.occupancy !== 'VACANT' || decision.vacancy_confirmed_at === null)) fail('reduced hybrid cooling requires confirmed vacancy');
+      if (decision.requested_mode === 'OCCUPIED' && decision.vacancy_confirmed_at !== null) fail('confirmed hybrid vacancy requires a reduced or precool mode');
+      if (decision.vacancy_confirmed_at) {
+        const elapsed = Date.parse(decision.evaluated_at) - Date.parse(decision.vacancy_confirmed_at) + COOLING_POLICY.confirmation_ms;
+        if ((decision.requested_mode === 'SHORT_VACANCY' && elapsed >= COOLING_POLICY.long_vacancy_ms) ||
+          (decision.requested_mode === 'LONG_VACANCY' && elapsed < COOLING_POLICY.long_vacancy_ms)) fail('hybrid cooling duration disagrees with confirmation');
+      }
+    }
     if (after(decision.evaluated_at, event.occurred_at)) fail("decision evaluation cannot be in the future");
     if (decision.vacancy_confirmed_at && after(decision.vacancy_confirmed_at, decision.evaluated_at)) fail("vacancy confirmation cannot follow evaluation");
     if (new Set(decision.node_states.map(n => n.node_id)).size !== decision.node_states.length) fail("decision node states must be unique");

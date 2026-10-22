@@ -1,4 +1,4 @@
-import { SCHEMA_VERSION, NODE_CLASSES, validateSdpEvent, isUtcTimestamp } from "../../../packages/sdp-contract/dist/index.js";
+import { SCHEMA_VERSION, NODE_CLASSES, validateSdpEvent, isUtcTimestamp, coolingPolicy } from "../../../packages/sdp-contract/dist/index.js";
 import type { SdpEvent, ZoneConfig, ZoneDecision, ZoneForecast, AppliedOutput, NodeEvidence, CoolingMode, OutputSetting, Observation } from "../../../packages/sdp-contract/dist/index.js";
 
 export const MODEL_VERSION = "sdp-scripted-v1";
@@ -88,20 +88,12 @@ export function schedule(at: number) {
   return { people: current?.people ?? 0, next, vacant_since: current ? null : previous.end,
     planned_restart: next.start - (nextGap >= 30 * MINUTE ? 10 * MINUTE : 0) };
 }
+export { coolingPolicy };
 export function scriptedState(at: number) {
   const plan = schedule(at);
-  const elapsed = plan.vacant_since === null ? 0 : at - plan.vacant_since;
-  const gap = plan.vacant_since === null ? 0 : plan.next.start - plan.vacant_since;
-  let mode: CoolingMode = "OCCUPIED";
-  if (!plan.people && elapsed >= 5 * MINUTE) {
-    mode = gap >= 30 * MINUTE && at >= plan.next.start - 10 * MINUTE ? "PRECOOL"
-      : elapsed >= 20 * MINUTE ? "LONG_VACANCY" : "SHORT_VACANCY";
-  }
-  const output: OutputSetting = mode === "LONG_VACANCY" ? { fan: "OFF", setpoint_c: null }
-    : mode === "SHORT_VACANCY" ? { fan: "LOW", setpoint_c: 27 }
-      : { fan: mode === "PRECOOL" ? "HIGH" : "AUTO", setpoint_c: 24.5 };
-  return { ...plan, occupancy: plan.people ? "OCCUPIED" as const : "VACANT" as const, mode, output,
-    vacancy_confirmed_at: !plan.people && elapsed >= 5 * MINUTE ? iso(plan.vacant_since! + 5 * MINUTE) : null };
+  const occupancy = plan.people ? "OCCUPIED" as const : "VACANT" as const;
+  return { ...plan, occupancy, ...coolingPolicy(at, occupancy, plan.vacant_since,
+    { next_use_at: plan.next.start, planned_restart_at: plan.planned_restart }) };
 }
 
 export function nextTimestamp(run: Run, previous: Checkpoint | null): string {

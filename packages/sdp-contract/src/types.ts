@@ -1,5 +1,6 @@
 /** Review draft only. Wire-incompatible edits require a new schema version. */
 export const SCHEMA_VERSION = "sdp.v1-draft.1" as const;
+export const HYBRID_SCHEMA_VERSION = "sdp.v1-hybrid.1" as const;
 export const OCCUPANCY_STATES = ["OCCUPIED", "VACANT", "UNCERTAIN"] as const;
 export const COOLING_MODES = ["OCCUPIED", "SHORT_VACANCY", "LONG_VACANCY", "PRECOOL"] as const;
 export const DATA_SOURCES = ["MEASURED", "PROXY_TEST", "SIMULATED", "UNAVAILABLE"] as const;
@@ -25,7 +26,7 @@ export type Clock =
   | { time_base: "REPLAY"; replay_id: string };
 
 export interface EventEnvelope<K extends string, P> {
-  schema_version: typeof SCHEMA_VERSION;
+  schema_version: typeof SCHEMA_VERSION | typeof HYBRID_SCHEMA_VERSION;
   event_type: K;
   event_id: string;
   /** Shared trace ID; explicit references below identify the exact causal event. */
@@ -47,14 +48,29 @@ export type Observation<T> =
 
 export interface ClassifierEvidence {
   class_label: NodeClass;
-  class_scores: Record<NodeClass, number>;
+  class_scores: Record<NodeClass, number> | null;
   headcount_category: "ZERO" | "ONE" | "TWO" | "THREE_PLUS" | "UNCERTAIN";
 }
 
+export interface HardwareMetadata {
+  received_at: string;
+  time_basis: "GATEWAY_RECEIPT";
+  device_observed_at: null;
+  headcount: number;
+  inference_method: "TINYML" | "THERMAL_BLOB_FALLBACK" | "UNAVAILABLE";
+  system_active: boolean | null;
+  pir_motion: boolean | null;
+  bme_valid: boolean | null;
+  headcount_source: string | null;
+  thermal_ai_label: string | null;
+  thermal_ai_confidence: number | null;
+}
 export type NodeEvidence = EventEnvelope<"NODE_EVIDENCE", {
   node_id: string;
-  model_version: string;
-  firmware_version: string;
+  model_version: string | null;
+  firmware_version: string | null;
+  /** Required for hybrid events; forbidden by the original strict validator. */
+  hardware?: HardwareMetadata;
   classification: Observation<ClassifierEvidence>;
   temperature_c: Observation<number>;
   humidity_percent: Observation<number>;

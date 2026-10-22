@@ -1,0 +1,60 @@
+{
+  "schema_version": "omnisense.mqtt-replay.v1",
+  "provenance": "CONSTRUCTED_FROM_FIRMWARE_SOURCE_NOT_AN_ACTUAL_HARDWARE_CAPTURE",
+  "config": {
+    "required_node_ids": ["demo-1"],
+    "full_zone_coverage": false,
+    "stale_after_ms": 90000,
+    "disconnected_after_ms": 180000
+  },
+  "packets": {
+    "occupied": {
+      "node_id": "demo-1", "temperature": 25.4, "humidity": 62, "headcount": 1, "pmv": 0.2,
+      "ppd": 5.1, "comfortStatus": "comfortable", "comfortMode": "comfortable", "alertLevel": "comfortable", "crisis_mode": false,
+      "hvac_state": { "mode": "cool", "fan": "low", "fan_pwm": 90, "setpoint": 24 },
+      "raw_sensor_summary": { "pir_motion": true, "system_active": true, "bme_valid": true, "headcount_source": "thermal_ai", "thermal_ai_label": "OCCUPIED_1P", "thermal_ai_confidence": 0.92 }
+    },
+    "empty": {
+      "node_id": "demo-1", "temperature": 25.3, "humidity": 61.8, "headcount": 0, "pmv": 0.2,
+      "ppd": 5.1, "comfortStatus": "comfortable", "comfortMode": "comfortable", "alertLevel": "comfortable", "crisis_mode": false,
+      "hvac_state": { "mode": "cool", "fan": "off", "fan_pwm": 0, "setpoint": 24 },
+      "raw_sensor_summary": { "pir_motion": false, "system_active": true, "bme_valid": true, "headcount_source": "thermal_ai", "thermal_ai_label": "EMPTY_CORE", "thermal_ai_confidence": 0.9 }
+    },
+    "inactive": {
+      "node_id": "demo-1", "temperature": "N/A", "humidity": "N/A", "headcount": 0, "pmv": "N/A",
+      "ppd": "N/A", "comfortStatus": "N/A", "comfortMode": "N/A", "alertLevel": "N/A", "crisis_mode": false,
+      "hvac_state": { "mode": "off", "fan": "off", "fan_pwm": 0, "setpoint": 24 },
+      "raw_sensor_summary": { "pir_motion": false, "system_active": false, "bme_valid": false, "headcount_source": "none", "thermal_ai_label": "not_run", "thermal_ai_confidence": 0 }
+    },
+    "thermal_unavailable": {
+      "node_id": "demo-1", "temperature": 25.4, "humidity": 62, "headcount": 0, "pmv": 0.2, "crisis_mode": false,
+      "raw_sensor_summary": { "pir_motion": true, "system_active": true, "bme_valid": true, "headcount_source": "thermal_unavailable", "thermal_ai_label": "thermal_unavailable", "thermal_ai_confidence": 0 }
+    },
+    "bme_unavailable": {
+      "node_id": "demo-1", "temperature": "N/A", "humidity": "N/A", "headcount": 1, "pmv": "N/A", "crisis_mode": false,
+      "raw_sensor_summary": { "pir_motion": true, "system_active": true, "bme_valid": false, "headcount_source": "thermal_ai", "thermal_ai_label": "OCCUPIED_1P", "thermal_ai_confidence": 0.92 }
+    },
+    "fallback": {
+      "node_id": "demo-1", "temperature": 25.4, "humidity": 62, "headcount": 2, "pmv": 0.2, "crisis_mode": false,
+      "raw_sensor_summary": { "pir_motion": true, "system_active": true, "bme_valid": true, "headcount_source": "thermal_blob_fallback", "thermal_ai_label": "THERMAL_ANOMALIES", "thermal_ai_confidence": 0.31 }
+    },
+    "missing_metadata": { "node_id": "demo-1", "headcount": 0 }
+  },
+  "steps": [
+    { "at": "2026-10-20T04:00:00.000Z", "action": "connect" },
+    { "at": "2026-10-20T04:00:01.000Z", "action": "message", "packet": "occupied" },
+    { "at": "2026-10-20T04:00:02.000Z", "action": "message", "packet": "empty" },
+    { "at": "2026-10-20T04:00:03.000Z", "action": "message", "packet": "inactive" },
+    { "at": "2026-10-20T04:00:04.000Z", "action": "message", "packet": "thermal_unavailable" },
+    { "at": "2026-10-20T04:00:05.000Z", "action": "message", "packet": "bme_unavailable" },
+    { "at": "2026-10-20T04:00:06.000Z", "action": "message", "packet": "fallback" },
+    { "at": "2026-10-20T04:00:07.000Z", "action": "message", "packet": "missing_metadata" },
+    { "at": "2026-10-20T04:00:08.000Z", "action": "disconnect" },
+    { "at": "2026-10-20T04:00:09.000Z", "action": "connect" },
+    { "at": "2026-10-20T04:00:10.000Z", "action": "message", "packet": "occupied", "flags": { "retain": true } },
+    { "at": "2026-10-20T04:00:11.000Z", "action": "message", "packet": "occupied", "flags": { "dup": true } },
+    { "at": "2026-10-20T04:00:12.000Z", "action": "message", "packet": "occupied" },
+    { "at": "2026-10-20T04:01:42.000Z", "action": "tick" },
+    { "at": "2026-10-20T04:03:12.000Z", "action": "tick" }
+  ]
+}

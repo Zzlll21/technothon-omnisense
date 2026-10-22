@@ -32,7 +32,7 @@ function HistoryPlot({ points, start, end, anchor, metric, title, unit }: Props 
     if (categorical) return { left, right, x, scale: null, paths: [], spans: occupancySpans(points, anchor, end) };
     const segments = numericSegments(points, anchor, metric);
     const scale = chartScale(points.map(p => p[metric]));
-    const y = (v: number) => 162 - (v - scale.min) / (scale.max - scale.min) * 138;
+    const y = (v: number | null) => v === null ? Number.NaN : 162 - (v - scale.min) / (scale.max - scale.min) * 138;
     return { left, right, x, y, scale, spans: [], paths: segments.map(segment => ({ points: segment, d: segment.map((p, i) => `${i ? "L" : "M"}${x(Date.parse(p.observed_at)).toFixed(2)},${y(p[metric]).toFixed(2)}`).join(" ") })) };
   }, [points, start, end, anchor, metric, categorical, width]);
   const activeIndex = activeAt === null ? -1 : nearestPoint(points, activeAt);
@@ -40,7 +40,7 @@ function HistoryPlot({ points, start, end, anchor, metric, title, unit }: Props 
   const selectedClass = selected ? classification(selected.evidence) : null;
   const latest = points.at(-1);
   const classText = (point: NodeHistoryPoint) => { const kind = classification(point.evidence); return kind ? classLabels[kind] : "Unavailable"; };
-  const valueText = (point: NodeHistoryPoint) => categorical ? classText(point) : `${number(point[metric])}${unit === "%" ? "" : " "}${unit}`;
+  const valueText = (point: NodeHistoryPoint) => point.stale ? "Stale evidence" : categorical ? classText(point) : `${number(point[metric])}${unit === "%" ? "" : " "}${unit}`;
   function pointAt(event: PointerEvent<SVGSVGElement>) {
     const box = event.currentTarget.getBoundingClientRect();
     const x = (event.clientX - box.left) / box.width * width;
@@ -69,7 +69,7 @@ function HistoryPlot({ points, start, end, anchor, metric, title, unit }: Props 
         {geometry.paths.map((path, i) => path.points.length === 1 ? <circle key={i} cx={geometry.x(Date.parse(path.points[0].observed_at))} cy={geometry.y!(path.points[0][metric as "temperature_c" | "humidity_percent"])} r="3" className={`plot-dot plot-${metric}`} /> : <path key={i} d={path.d} className={`history-line plot-${metric}`} />)}
         {categorical && <rect x={geometry.left} width={geometry.right - geometry.left} y="20" height="46" fill="#f0f3f2" rx="3" />}
         {geometry.spans.map((span, i) => <rect key={i} x={geometry.x(span.start)} width={Math.max(0, geometry.x(span.end) - geometry.x(span.start))} y="20" height="46" fill={span.kind ? classColors[span.kind] : "#d6dcd9"} />)}
-        {selected && <g><line x1={geometry.x(Date.parse(selected.observed_at))} x2={geometry.x(Date.parse(selected.observed_at))} y1={categorical ? 12 : 16} y2={categorical ? 74 : 170} className="history-crosshair" />{!categorical && <circle cx={geometry.x(Date.parse(selected.observed_at))} cy={geometry.y!(selected[metric])} r="4" className={`plot-dot plot-${metric}`} />}</g>}
+        {selected && <g><line x1={geometry.x(Date.parse(selected.observed_at))} x2={geometry.x(Date.parse(selected.observed_at))} y1={categorical ? 12 : 16} y2={categorical ? 74 : 170} className="history-crosshair" />{!categorical && selected[metric] !== null && <circle cx={geometry.x(Date.parse(selected.observed_at))} cy={geometry.y!(selected[metric])} r="4" className={`plot-dot plot-${metric}`} />}</g>}
       </svg>
     </div>
     <div className="history-times"><time title={new Date(start).toISOString()}>{time(new Date(start).toISOString(), true)}</time><time title={new Date(end).toISOString()}>{time(new Date(end).toISOString(), true)}</time></div>

@@ -32,7 +32,7 @@ export function PredictiveTimeline({ history, start, end, anchor, target, select
     const x = (at: number) => left + (at - start) / (domainEnd - start) * (right - left);
     const values = history.samples.map(s => s.temperature_c);
     const scale = chartScale(values.length ? [...values, target] : [target]);
-    const y = (value: number) => 126 - (value - scale.min) / (scale.max - scale.min) * 80;
+    const y = (value: number | null) => value === null ? Number.NaN : 126 - (value - scale.min) / (scale.max - scale.min) * 80;
     const paths = temperatureSegments(history, anchor).map(segment => ({ segment, d: segment.map((s, i) => `${i ? "L" : "M"}${x(Date.parse(s.observed_at)).toFixed(2)},${y(s.temperature_c).toFixed(2)}`).join(" ") }));
     return { left, right, x, y, scale, paths, bands: timelineBands(history, anchor, end) };
   }, [history, anchor, start, end, domainEnd, width, target]);

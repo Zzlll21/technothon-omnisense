@@ -1,0 +1,1378 @@
+{
+  "project_ref": "onfzcxtejvxpcppcvkgk",
+  "protected_project_ref": "uaqblatyabykhghiqecp",
+  "manifest_sha256": "c3089fa380256437d7ef2049b5b60769d0b0234e4f069982505839b32fa24cb1",
+  "migration_hashes": {
+    "001_sdp_foundation.sql": "d850d4ccd9db9587af587f290e3ba35ce6d2fd2d38755244bdceb7fcb083ac2b",
+    "002_sdp_hybrid.sql": "c007fa7042dacad38d60420d7ec0e267e72902d52202aa1b559ab4a31d80a7f4",
+    "003_sdp_hybrid_isolated_lockdown.sql": "c10beafccfbb957f970b9b483fd5dae9741abeb586977ef6c08091e199eb62b1"
+  },
+  "pre_migration_checks": [
+    {
+      "check_name": "01.current_database",
+      "result": "postgres"
+    },
+    {
+      "check_name": "02.current_user",
+      "result": "postgres"
+    },
+    {
+      "check_name": "03.session_user",
+      "result": "postgres"
+    },
+    {
+      "check_name": "04.transaction_read_only",
+      "result": "on"
+    },
+    {
+      "check_name": "05.server_version",
+      "result": "17.11"
+    },
+    {
+      "check_name": "06.database_owner",
+      "result": "postgres"
+    },
+    {
+      "check_name": "07.member_of_database_owner",
+      "result": "true"
+    },
+    {
+      "check_name": "08.database_create",
+      "result": "true"
+    },
+    {
+      "check_name": "09.public_schema_owner",
+      "result": "pg_database_owner"
+    },
+    {
+      "check_name": "10.public_schema_create",
+      "result": "true"
+    },
+    {
+      "check_name": "11.public_schema_usage",
+      "result": "true"
+    },
+    {
+      "check_name": "12.plpgsql_usage",
+      "result": "true"
+    },
+    {
+      "check_name": "13.auth_uid_exists",
+      "result": "true"
+    },
+    {
+      "check_name": "14.auth_uid_execute",
+      "result": "true"
+    },
+    {
+      "check_name": "15.core_sha256_exists",
+      "result": "true"
+    },
+    {
+      "check_name": "16.required_role_count",
+      "result": "3"
+    },
+    {
+      "check_name": "17.role/anon",
+      "result": "{\"superuser\": false, \"bypass_rls\": false, \"create_role\": false, \"public_usage\": true}"
+    },
+    {
+      "check_name": "17.role/authenticated",
+      "result": "{\"superuser\": false, \"bypass_rls\": false, \"create_role\": false, \"public_usage\": true}"
+    },
+    {
+      "check_name": "17.role/postgres",
+      "result": "{\"superuser\": false, \"bypass_rls\": true, \"create_role\": true, \"public_usage\": true}"
+    },
+    {
+      "check_name": "17.role/service_role",
+      "result": "{\"superuser\": false, \"bypass_rls\": true, \"create_role\": false, \"public_usage\": true}"
+    },
+    {
+      "check_name": "18.public_relation_count",
+      "result": "0"
+    },
+    {
+      "check_name": "19.public_relations",
+      "result": "NONE"
+    },
+    {
+      "check_name": "20.public_function_count",
+      "result": "0"
+    },
+    {
+      "check_name": "21.public_functions",
+      "result": "NONE"
+    },
+    {
+      "check_name": "22.sdp_relation_count",
+      "result": "0"
+    },
+    {
+      "check_name": "23.legacy_sensor_readings_exists",
+      "result": "false"
+    },
+    {
+      "check_name": "24.migration_ledger_exists",
+      "result": "false"
+    },
+    {
+      "check_name": "25.migration_schema_relations",
+      "result": "NONE"
+    },
+    {
+      "check_name": "26.installed_extensions",
+      "result": "pg_stat_statements:1.11, pgcrypto:1.3, plpgsql:1.0, supabase_vault:0.3.1, uuid-ossp:1.1"
+    },
+    {
+      "check_name": "27.schemas",
+      "result": "auth, extensions, graphql, graphql_public, public, realtime, storage, vault"
+    },
+    {
+      "check_name": "28.sdp_function_count",
+      "result": "0"
+    },
+    {
+      "check_name": "29.auth_schema_usage",
+      "result": "true"
+    }
+  ],
+  "execution_ledger": [
+    {
+      "step": "001_sdp_foundation.sql",
+      "status": "SUCCESS_COMMITTED",
+      "observed_at": "2026-10-22T19:26:54.275Z",
+      "sha256": "d850d4ccd9db9587af587f290e3ba35ce6d2fd2d38755244bdceb7fcb083ac2b",
+      "ui_result": "Success. No rows returned"
+    },
+    {
+      "step": "002_sdp_hybrid.sql",
+      "status": "SUCCESS_COMMITTED",
+      "observed_at": "2026-10-22T19:27:38.891Z",
+      "sha256": "c007fa7042dacad38d60420d7ec0e267e72902d52202aa1b559ab4a31d80a7f4",
+      "session_acknowledgement": "ISOLATED_TEST",
+      "ui_result": "Success. No rows returned"
+    },
+    {
+      "step": "environment_marker",
+      "status": "SUCCESS_COMMITTED",
+      "observed_at": "2026-10-22T19:28:08.232Z",
+      "project_ref": "onfzcxtejvxpcppcvkgk",
+      "protected_project_ref": "uaqblatyabykhghiqecp",
+      "manifest_sha256": "c3089fa380256437d7ef2049b5b60769d0b0234e4f069982505839b32fa24cb1",
+      "ui_result": "Success. No rows returned"
+    },
+    {
+      "step": "003_sdp_hybrid_isolated_lockdown.sql",
+      "status": "SUCCESS_COMMITTED",
+      "observed_at": "2026-10-22T19:28:55.845Z",
+      "sha256": "c10beafccfbb957f970b9b483fd5dae9741abeb586977ef6c08091e199eb62b1",
+      "ui_result": "Success. No rows returned"
+    },
+    {
+      "step": "read_only_post_migration_verification",
+      "status": "PASS",
+      "observed_at": "2026-10-22T19:36:20.574Z",
+      "result_sets": 18,
+      "source": "supabase/sdp/verification/002_sdp_hybrid_read_only.sql",
+      "method": "Full script then unchanged SELECT statements individually for visible result inspection"
+    }
+  ],
+  "verification_results": {
+    "0": [
+      {
+        "database_name": "postgres",
+        "sql_role": "postgres",
+        "postgres_version": "17.11",
+        "verification_at": "2026-10-22 19:36:05.900598+00"
+      }
+    ],
+    "1": [
+      {
+        "check_name": "environment_marker",
+        "pass": true
+      }
+    ],
+    "2": [
+      {
+        "relname": "sdp_events",
+        "relrowsecurity": true,
+        "relforcerowsecurity": false,
+        "policy_count": 1,
+        "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=r/postgres}"
+      },
+      {
+        "relname": "sdp_hybrid_environment",
+        "relrowsecurity": true,
+        "relforcerowsecurity": false,
+        "policy_count": 0,
+        "relacl": "{postgres=arwdDxtm/postgres}"
+      },
+      {
+        "relname": "sdp_hybrid_leases",
+        "relrowsecurity": true,
+        "relforcerowsecurity": false,
+        "policy_count": 0,
+        "relacl": "{postgres=arwdDxtm/postgres}"
+      },
+      {
+        "relname": "sdp_hybrid_readers",
+        "relrowsecurity": true,
+        "relforcerowsecurity": false,
+        "policy_count": 0,
+        "relacl": "{postgres=arwdDxtm/postgres}"
+      },
+      {
+        "relname": "sdp_node_samples",
+        "relrowsecurity": true,
+        "relforcerowsecurity": false,
+        "policy_count": 1,
+        "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=r/postgres}"
+      },
+      {
+        "relname": "sdp_nodes",
+        "relrowsecurity": true,
+        "relforcerowsecurity": false,
+        "policy_count": 1,
+        "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=r/postgres}"
+      },
+      {
+        "relname": "sdp_runs",
+        "relrowsecurity": true,
+        "relforcerowsecurity": false,
+        "policy_count": 1,
+        "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=r/postgres}"
+      },
+      {
+        "relname": "sdp_zone_frames",
+        "relrowsecurity": true,
+        "relforcerowsecurity": false,
+        "policy_count": 1,
+        "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=r/postgres}"
+      },
+      {
+        "relname": "sdp_zones",
+        "relrowsecurity": true,
+        "relforcerowsecurity": false,
+        "policy_count": 1,
+        "relacl": "{postgres=arwdDxtm/postgres,anon=r/postgres,authenticated=r/postgres}"
+      }
+    ],
+    "3": [
+      {
+        "tablename": "sdp_events",
+        "policyname": "sdp_read_events",
+        "permissive": "PERMISSIVE",
+        "roles": "{anon,authenticated}",
+        "cmd": "SELECT",
+        "qual": "sdp_can_read_run(run_id)",
+        "with_check": null
+      },
+      {
+        "tablename": "sdp_node_samples",
+        "policyname": "sdp_read_samples",
+        "permissive": "PERMISSIVE",
+        "roles": "{anon,authenticated}",
+        "cmd": "SELECT",
+        "qual": "sdp_can_read_run(run_id)",
+        "with_check": null
+      },
+      {
+        "tablename": "sdp_nodes",
+        "policyname": "sdp_read_nodes",
+        "permissive": "PERMISSIVE",
+        "roles": "{anon,authenticated}",
+        "cmd": "SELECT",
+        "qual": "sdp_can_read_run(run_id)",
+        "with_check": null
+      },
+      {
+        "tablename": "sdp_runs",
+        "policyname": "sdp_read_runs",
+        "permissive": "PERMISSIVE",
+        "roles": "{anon,authenticated}",
+        "cmd": "SELECT",
+        "qual": "sdp_can_read_run(run_id)",
+        "with_check": null
+      },
+      {
+        "tablename": "sdp_zone_frames",
+        "policyname": "sdp_read_frames",
+        "permissive": "PERMISSIVE",
+        "roles": "{anon,authenticated}",
+        "cmd": "SELECT",
+        "qual": "sdp_can_read_run(run_id)",
+        "with_check": null
+      },
+      {
+        "tablename": "sdp_zones",
+        "policyname": "sdp_read_zones",
+        "permissive": "PERMISSIVE",
+        "roles": "{anon,authenticated}",
+        "cmd": "SELECT",
+        "qual": "sdp_can_read_run(run_id)",
+        "with_check": null
+      }
+    ],
+    "4": [
+      {
+        "relname": "sdp_events",
+        "role_name": "anon",
+        "can_select": true,
+        "can_insert": false,
+        "can_update": false,
+        "can_delete": false,
+        "can_truncate": false
+      },
+      {
+        "relname": "sdp_events",
+        "role_name": "authenticated",
+        "can_select": true,
+        "can_insert": false,
+        "can_update": false,
+        "can_delete": false,
+        "can_truncate": false
+      },
+      {
+        "relname": "sdp_events",
+        "role_name": "service_role",
+        "can_select": false,
+        "can_insert": false,
+        "can_update": false,
+        "can_delete": false,
+        "can_truncate": false
+      },
+      {
+        "relname": "sdp_hybrid_environment",
+        "role_name": "anon",
+        "can_select": false,
+        "can_insert": false,
+        "can_update": false,
+        "can_delete": false,
+        "can_truncate": false
+      },
+      {
+        "relname": "sdp_hybrid_environment",
+        "role_name": "authenticated",
+        "can_select": false,
+        "can_insert": false,
+        "can_update": false,
+        "can_delete": false,
+        "can_truncate": false
+      },
+      {
+        "relname": "sdp_hybrid_environment",
+        "role_name": "service_role",
+        "can_select": false,
+        "can_insert": false,
+        "can_update": false,
+        "can_delete": false,
+        "can_truncate": false
+      },
+      {
+        "relname": "sdp_hybrid_leases",
+        "role_name": "anon",
+        "can_select": false,
+        "can_insert": false,
+        "can_update": false,
+        "can_delete": false,
+        "can_truncate": false
+      },
+      {
+        "relname": "sdp_hybrid_leases",
+        "role_name": "authenticated",
+        "can_select": false,
+        "can_insert": false,
+        "can_update": false,
+        "can_delete": false,
+        "can_truncate": false
+      },
+      {
+        "relname": "sdp_hybrid_leases",
+        "role_name": "service_role",
+        "can_select": false,
+        "can_insert": false,
+        "can_update": false,
+        "can_delete": false,
+        "can_truncate": false
+      },
+      {
+        "relname": "sdp_hybrid_readers",
+        "role_name": "anon",
+        "can_select": false,
+        "can_insert": false,
+        "can_update": false,
+        "can_delete": false,
+        "can_truncate": false
+      },
+      {
+        "relname": "sdp_hybrid_readers",
+        "role_name": "authenticated",
+        "can_select": false,
+        "can_insert": false,
+        "can_update": false,
+        "can_delete": false,
+        "can_truncate": false
+      },
+      {
+        "relname": "sdp_hybrid_readers",
+        "role_name": "service_role",
+        "can_select": false,
+        "can_insert": false,
+        "can_update": false,
+        "can_delete": false,
+        "can_truncate": false
+      },
+      {
+        "relname": "sdp_node_samples",
+        "role_name": "anon",
+        "can_select": true,
+        "can_insert": false,
+        "can_update": false,
+        "can_delete": false,
+        "can_truncate": false
+      },
+      {
+        "relname": "sdp_node_samples",
+        "role_name": "authenticated",
+        "can_select": true,
+        "can_insert": false,
+        "can_update": false,
+        "can_delete": false,
+        "can_truncate": false
+      },
+      {
+        "relname": "sdp_node_samples",
+        "role_name": "service_role",
+        "can_select": false,
+        "can_insert": false,
+        "can_update": false,
+        "can_delete": false,
+        "can_truncate": false
+      },
+      {
+        "relname": "sdp_nodes",
+        "role_name": "anon",
+        "can_select": true,
+        "can_insert": false,
+        "can_update": false,
+        "can_delete": false,
+        "can_truncate": false
+      },
+      {
+        "relname": "sdp_nodes",
+        "role_name": "authenticated",
+        "can_select": true,
+        "can_insert": false,
+        "can_update": false,
+        "can_delete": false,
+        "can_truncate": false
+      },
+      {
+        "relname": "sdp_nodes",
+        "role_name": "service_role",
+        "can_select": false,
+        "can_insert": false,
+        "can_update": false,
+        "can_delete": false,
+        "can_truncate": false
+      },
+      {
+        "relname": "sdp_runs",
+        "role_name": "anon",
+        "can_select": true,
+        "can_insert": false,
+        "can_update": false,
+        "can_delete": false,
+        "can_truncate": false
+      },
+      {
+        "relname": "sdp_runs",
+        "role_name": "authenticated",
+        "can_select": true,
+        "can_insert": false,
+        "can_update": false,
+        "can_delete": false,
+        "can_truncate": false
+      },
+      {
+        "relname": "sdp_runs",
+        "role_name": "service_role",
+        "can_select": false,
+        "can_insert": false,
+        "can_update": false,
+        "can_delete": false,
+        "can_truncate": false
+      },
+      {
+        "relname": "sdp_zone_frames",
+        "role_name": "anon",
+        "can_select": true,
+        "can_insert": false,
+        "can_update": false,
+        "can_delete": false,
+        "can_truncate": false
+      },
+      {
+        "relname": "sdp_zone_frames",
+        "role_name": "authenticated",
+        "can_select": true,
+        "can_insert": false,
+        "can_update": false,
+        "can_delete": false,
+        "can_truncate": false
+      },
+      {
+        "relname": "sdp_zone_frames",
+        "role_name": "service_role",
+        "can_select": false,
+        "can_insert": false,
+        "can_update": false,
+        "can_delete": false,
+        "can_truncate": false
+      },
+      {
+        "relname": "sdp_zones",
+        "role_name": "anon",
+        "can_select": true,
+        "can_insert": false,
+        "can_update": false,
+        "can_delete": false,
+        "can_truncate": false
+      },
+      {
+        "relname": "sdp_zones",
+        "role_name": "authenticated",
+        "can_select": true,
+        "can_insert": false,
+        "can_update": false,
+        "can_delete": false,
+        "can_truncate": false
+      },
+      {
+        "relname": "sdp_zones",
+        "role_name": "service_role",
+        "can_select": false,
+        "can_insert": false,
+        "can_update": false,
+        "can_delete": false,
+        "can_truncate": false
+      }
+    ],
+    "5": [
+      {
+        "function_signature": "_sdp_commit_scripted_tick(jsonb)",
+        "role_name": "anon",
+        "can_execute": false,
+        "security_definer": true,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "_sdp_commit_scripted_tick(jsonb)",
+        "role_name": "authenticated",
+        "can_execute": false,
+        "security_definer": true,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "_sdp_commit_scripted_tick(jsonb)",
+        "role_name": "service_role",
+        "can_execute": false,
+        "security_definer": true,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "_sdp_cooling_policy(timestamp with time zone,text,timestamp with time zone,timestamp with time zone,timestamp with time zone)",
+        "role_name": "anon",
+        "can_execute": false,
+        "security_definer": false,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "_sdp_cooling_policy(timestamp with time zone,text,timestamp with time zone,timestamp with time zone,timestamp with time zone)",
+        "role_name": "authenticated",
+        "can_execute": false,
+        "security_definer": false,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "_sdp_cooling_policy(timestamp with time zone,text,timestamp with time zone,timestamp with time zone,timestamp with time zone)",
+        "role_name": "service_role",
+        "can_execute": false,
+        "security_definer": false,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "_sdp_exact_keys(jsonb,text[])",
+        "role_name": "anon",
+        "can_execute": false,
+        "security_definer": false,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "_sdp_exact_keys(jsonb,text[])",
+        "role_name": "authenticated",
+        "can_execute": false,
+        "security_definer": false,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "_sdp_exact_keys(jsonb,text[])",
+        "role_name": "service_role",
+        "can_execute": false,
+        "security_definer": false,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "_sdp_hybrid_observation(jsonb,text,timestamp with time zone)",
+        "role_name": "anon",
+        "can_execute": false,
+        "security_definer": false,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "_sdp_hybrid_observation(jsonb,text,timestamp with time zone)",
+        "role_name": "authenticated",
+        "can_execute": false,
+        "security_definer": false,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "_sdp_hybrid_observation(jsonb,text,timestamp with time zone)",
+        "role_name": "service_role",
+        "can_execute": false,
+        "security_definer": false,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "_sdp_mode_guard()",
+        "role_name": "anon",
+        "can_execute": false,
+        "security_definer": true,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "_sdp_mode_guard()",
+        "role_name": "authenticated",
+        "can_execute": false,
+        "security_definer": true,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "_sdp_mode_guard()",
+        "role_name": "service_role",
+        "can_execute": false,
+        "security_definer": true,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "_sdp_validate_hybrid_event(jsonb)",
+        "role_name": "anon",
+        "can_execute": false,
+        "security_definer": false,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "_sdp_validate_hybrid_event(jsonb)",
+        "role_name": "authenticated",
+        "can_execute": false,
+        "security_definer": false,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "_sdp_validate_hybrid_event(jsonb)",
+        "role_name": "service_role",
+        "can_execute": false,
+        "security_definer": false,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "sdp_can_read_run(uuid)",
+        "role_name": "anon",
+        "can_execute": true,
+        "security_definer": true,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "sdp_can_read_run(uuid)",
+        "role_name": "authenticated",
+        "can_execute": true,
+        "security_definer": true,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "sdp_can_read_run(uuid)",
+        "role_name": "service_role",
+        "can_execute": false,
+        "security_definer": true,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "sdp_commit_tick(jsonb)",
+        "role_name": "anon",
+        "can_execute": false,
+        "security_definer": true,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "sdp_commit_tick(jsonb)",
+        "role_name": "authenticated",
+        "can_execute": false,
+        "security_definer": true,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "sdp_commit_tick(jsonb)",
+        "role_name": "service_role",
+        "can_execute": false,
+        "security_definer": true,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "sdp_generator_info()",
+        "role_name": "anon",
+        "can_execute": false,
+        "security_definer": true,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "sdp_generator_info()",
+        "role_name": "authenticated",
+        "can_execute": false,
+        "security_definer": true,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "sdp_generator_info()",
+        "role_name": "service_role",
+        "can_execute": true,
+        "security_definer": true,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "sdp_get_run(uuid)",
+        "role_name": "anon",
+        "can_execute": false,
+        "security_definer": true,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "sdp_get_run(uuid)",
+        "role_name": "authenticated",
+        "can_execute": false,
+        "security_definer": true,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "sdp_get_run(uuid)",
+        "role_name": "service_role",
+        "can_execute": true,
+        "security_definer": true,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "sdp_hybrid_acquire_writer(uuid,uuid)",
+        "role_name": "anon",
+        "can_execute": false,
+        "security_definer": true,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "sdp_hybrid_acquire_writer(uuid,uuid)",
+        "role_name": "authenticated",
+        "can_execute": false,
+        "security_definer": true,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "sdp_hybrid_acquire_writer(uuid,uuid)",
+        "role_name": "service_role",
+        "can_execute": true,
+        "security_definer": true,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "sdp_hybrid_commit_tick(jsonb,uuid,bigint)",
+        "role_name": "anon",
+        "can_execute": false,
+        "security_definer": true,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "sdp_hybrid_commit_tick(jsonb,uuid,bigint)",
+        "role_name": "authenticated",
+        "can_execute": false,
+        "security_definer": true,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "sdp_hybrid_commit_tick(jsonb,uuid,bigint)",
+        "role_name": "service_role",
+        "can_execute": true,
+        "security_definer": true,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "sdp_hybrid_info()",
+        "role_name": "anon",
+        "can_execute": false,
+        "security_definer": true,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "sdp_hybrid_info()",
+        "role_name": "authenticated",
+        "can_execute": false,
+        "security_definer": true,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "sdp_hybrid_info()",
+        "role_name": "service_role",
+        "can_execute": true,
+        "security_definer": true,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "sdp_hybrid_initialize_run(jsonb)",
+        "role_name": "anon",
+        "can_execute": false,
+        "security_definer": true,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "sdp_hybrid_initialize_run(jsonb)",
+        "role_name": "authenticated",
+        "can_execute": false,
+        "security_definer": true,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "sdp_hybrid_initialize_run(jsonb)",
+        "role_name": "service_role",
+        "can_execute": true,
+        "security_definer": true,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "sdp_initialize_run(jsonb)",
+        "role_name": "anon",
+        "can_execute": false,
+        "security_definer": true,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "sdp_initialize_run(jsonb)",
+        "role_name": "authenticated",
+        "can_execute": false,
+        "security_definer": true,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      },
+      {
+        "function_signature": "sdp_initialize_run(jsonb)",
+        "role_name": "service_role",
+        "can_execute": false,
+        "security_definer": true,
+        "function_settings": [
+          "search_path=pg_catalog, pg_temp"
+        ]
+      }
+    ],
+    "6": [
+      {
+        "relname": "sdp_events",
+        "conname": "sdp_event_versioned_clock",
+        "definition": "CHECK ((((((event ->> 'schema_version'::text) = 'sdp.v1-draft.1'::text) AND (((event -> 'clock'::text) ->> 'time_base'::text) = 'REPLAY'::text) AND (((event -> 'clock'::text) ->> 'replay_id'::text) = (run_id)::text) AND ((event -> 'data_sources'::text) = '[\"SIMULATED\"]'::jsonb)) OR (((event ->> 'schema_version'::text) = 'sdp.v1-hybrid.1'::text) AND ((event -> 'clock'::text) = '{\"replay_id\": null, \"time_base\": \"LIVE\"}'::jsonb))) IS TRUE))"
+      },
+      {
+        "relname": "sdp_events",
+        "conname": "sdp_events_check",
+        "definition": "CHECK (((((event ->> 'event_id'::text) = event_id) AND ((event ->> 'event_type'::text) = event_type)) IS TRUE))"
+      },
+      {
+        "relname": "sdp_events",
+        "conname": "sdp_events_check1",
+        "definition": "CHECK (((((event ->> 'session_id'::text) = (run_id)::text) AND ((event ->> 'zone_id'::text) = zone_id)) IS TRUE))"
+      },
+      {
+        "relname": "sdp_events",
+        "conname": "sdp_events_event_check2",
+        "definition": "CHECK (((jsonb_typeof((event -> 'payload'::text)) = 'object'::text) IS TRUE))"
+      },
+      {
+        "relname": "sdp_events",
+        "conname": "sdp_events_event_type_check",
+        "definition": "CHECK ((event_type = ANY (ARRAY['ZONE_CONFIG'::text, 'NODE_EVIDENCE'::text, 'ZONE_DECISION'::text, 'ZONE_FORECAST'::text, 'APPLIED_OUTPUT'::text, 'OVERRIDE_REQUEST'::text, 'OVERRIDE_STATUS'::text])))"
+      },
+      {
+        "relname": "sdp_events",
+        "conname": "sdp_events_ordinal_check",
+        "definition": "CHECK ((ordinal >= 0))"
+      },
+      {
+        "relname": "sdp_events",
+        "conname": "sdp_events_pkey",
+        "definition": "PRIMARY KEY (run_id, event_id)"
+      },
+      {
+        "relname": "sdp_events",
+        "conname": "sdp_events_run_id_zone_id_event_id_key",
+        "definition": "UNIQUE (run_id, zone_id, event_id)"
+      },
+      {
+        "relname": "sdp_events",
+        "conname": "sdp_events_run_id_zone_id_sequence_fkey",
+        "definition": "FOREIGN KEY (run_id, zone_id, sequence) REFERENCES sdp_zone_frames(run_id, zone_id, sequence)"
+      },
+      {
+        "relname": "sdp_events",
+        "conname": "sdp_events_run_id_zone_id_sequence_ordinal_key",
+        "definition": "UNIQUE (run_id, zone_id, sequence, ordinal)"
+      },
+      {
+        "relname": "sdp_hybrid_environment",
+        "conname": "sdp_hybrid_environment_check",
+        "definition": "CHECK ((project_ref <> protected_project_ref))"
+      },
+      {
+        "relname": "sdp_hybrid_environment",
+        "conname": "sdp_hybrid_environment_kind_check",
+        "definition": "CHECK ((kind = 'ISOLATED_TEST'::text))"
+      },
+      {
+        "relname": "sdp_hybrid_environment",
+        "conname": "sdp_hybrid_environment_manifest_sha256_check",
+        "definition": "CHECK ((manifest_sha256 ~ '^[a-f0-9]{64}$'::text))"
+      },
+      {
+        "relname": "sdp_hybrid_environment",
+        "conname": "sdp_hybrid_environment_pkey",
+        "definition": "PRIMARY KEY (singleton)"
+      },
+      {
+        "relname": "sdp_hybrid_environment",
+        "conname": "sdp_hybrid_environment_project_ref_check",
+        "definition": "CHECK ((project_ref ~ '^[a-z0-9]{20}$'::text))"
+      },
+      {
+        "relname": "sdp_hybrid_environment",
+        "conname": "sdp_hybrid_environment_protected_project_ref_check",
+        "definition": "CHECK ((protected_project_ref ~ '^[a-z0-9]{20}$'::text))"
+      },
+      {
+        "relname": "sdp_hybrid_environment",
+        "conname": "sdp_hybrid_environment_singleton_check",
+        "definition": "CHECK (singleton)"
+      },
+      {
+        "relname": "sdp_hybrid_leases",
+        "conname": "sdp_hybrid_leases_epoch_check",
+        "definition": "CHECK ((epoch > 0))"
+      },
+      {
+        "relname": "sdp_hybrid_leases",
+        "conname": "sdp_hybrid_leases_pkey",
+        "definition": "PRIMARY KEY (run_id)"
+      },
+      {
+        "relname": "sdp_hybrid_leases",
+        "conname": "sdp_hybrid_leases_run_id_fkey",
+        "definition": "FOREIGN KEY (run_id) REFERENCES sdp_runs(run_id)"
+      },
+      {
+        "relname": "sdp_hybrid_readers",
+        "conname": "sdp_hybrid_readers_pkey",
+        "definition": "PRIMARY KEY (run_id, user_id)"
+      },
+      {
+        "relname": "sdp_hybrid_readers",
+        "conname": "sdp_hybrid_readers_run_id_fkey",
+        "definition": "FOREIGN KEY (run_id) REFERENCES sdp_runs(run_id)"
+      },
+      {
+        "relname": "sdp_node_samples",
+        "conname": "sdp_node_samples_humidity_percent_check",
+        "definition": "CHECK (((humidity_percent >= (0)::double precision) AND (humidity_percent <= (100)::double precision)))"
+      },
+      {
+        "relname": "sdp_node_samples",
+        "conname": "sdp_node_samples_pkey",
+        "definition": "PRIMARY KEY (run_id, zone_id, sequence, node_id)"
+      },
+      {
+        "relname": "sdp_node_samples",
+        "conname": "sdp_node_samples_run_id_zone_id_evidence_event_id_fkey",
+        "definition": "FOREIGN KEY (run_id, zone_id, evidence_event_id) REFERENCES sdp_events(run_id, zone_id, event_id)"
+      },
+      {
+        "relname": "sdp_node_samples",
+        "conname": "sdp_node_samples_run_id_zone_id_node_id_fkey",
+        "definition": "FOREIGN KEY (run_id, zone_id, node_id) REFERENCES sdp_nodes(run_id, zone_id, node_id)"
+      },
+      {
+        "relname": "sdp_node_samples",
+        "conname": "sdp_node_samples_run_id_zone_id_sequence_fkey",
+        "definition": "FOREIGN KEY (run_id, zone_id, sequence) REFERENCES sdp_zone_frames(run_id, zone_id, sequence)"
+      },
+      {
+        "relname": "sdp_node_samples",
+        "conname": "sdp_temperature_v2",
+        "definition": "CHECK (((temperature_c >= ('-40'::integer)::double precision) AND (temperature_c <= (85)::double precision)))"
+      },
+      {
+        "relname": "sdp_nodes",
+        "conname": "sdp_node_identity_v2",
+        "definition": "CHECK ((node_id ~ '^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$'::text))"
+      },
+      {
+        "relname": "sdp_nodes",
+        "conname": "sdp_nodes_pkey",
+        "definition": "PRIMARY KEY (run_id, node_id)"
+      },
+      {
+        "relname": "sdp_nodes",
+        "conname": "sdp_nodes_run_id_zone_id_fkey",
+        "definition": "FOREIGN KEY (run_id, zone_id) REFERENCES sdp_zones(run_id, zone_id)"
+      },
+      {
+        "relname": "sdp_nodes",
+        "conname": "sdp_nodes_run_id_zone_id_node_id_key",
+        "definition": "UNIQUE (run_id, zone_id, node_id)"
+      },
+      {
+        "relname": "sdp_nodes",
+        "conname": "sdp_nodes_x_check",
+        "definition": "CHECK (((x >= (0)::numeric) AND (x <= (1)::numeric)))"
+      },
+      {
+        "relname": "sdp_nodes",
+        "conname": "sdp_nodes_y_check",
+        "definition": "CHECK (((y >= (0)::numeric) AND (y <= (1)::numeric)))"
+      },
+      {
+        "relname": "sdp_runs",
+        "conname": "sdp_run_history_v2",
+        "definition": "CHECK ((((model_version = 'sdp-scripted-v1'::text) AND ((live_anchor - history_start) = '7 days'::interval)) OR ((model_version = 'sdp-hybrid-v1'::text) AND (live_anchor = history_start))))"
+      },
+      {
+        "relname": "sdp_runs",
+        "conname": "sdp_run_model_v2",
+        "definition": "CHECK ((model_version = ANY (ARRAY['sdp-scripted-v1'::text, 'sdp-hybrid-v1'::text])))"
+      },
+      {
+        "relname": "sdp_runs",
+        "conname": "sdp_runs_check1",
+        "definition": "CHECK ((((last_sequence = '-1'::integer) AND (checkpoint IS NULL) AND (last_simulated_at IS NULL)) OR ((last_sequence >= 0) AND (checkpoint IS NOT NULL) AND (last_simulated_at IS NOT NULL))))"
+      },
+      {
+        "relname": "sdp_runs",
+        "conname": "sdp_runs_definition_check",
+        "definition": "CHECK ((jsonb_typeof(definition) = 'object'::text))"
+      },
+      {
+        "relname": "sdp_runs",
+        "conname": "sdp_runs_last_sequence_check",
+        "definition": "CHECK ((last_sequence >= '-1'::integer))"
+      },
+      {
+        "relname": "sdp_runs",
+        "conname": "sdp_runs_pkey",
+        "definition": "PRIMARY KEY (run_id)"
+      },
+      {
+        "relname": "sdp_runs",
+        "conname": "sdp_runs_seed_check",
+        "definition": "CHECK ((seed >= 0))"
+      },
+      {
+        "relname": "sdp_runs",
+        "conname": "sdp_runs_status_check",
+        "definition": "CHECK ((status = ANY (ARRAY['SEEDING'::text, 'ACTIVE'::text, 'ARCHIVED'::text])))"
+      },
+      {
+        "relname": "sdp_zone_frames",
+        "conname": "sdp_zone_frames_coverage_check",
+        "definition": "CHECK ((coverage = ANY (ARRAY['COMPLETE'::text, 'DEGRADED'::text, 'UNKNOWN'::text])))"
+      },
+      {
+        "relname": "sdp_zone_frames",
+        "conname": "sdp_zone_frames_occupancy_check",
+        "definition": "CHECK ((occupancy = ANY (ARRAY['OCCUPIED'::text, 'VACANT'::text, 'UNCERTAIN'::text])))"
+      },
+      {
+        "relname": "sdp_zone_frames",
+        "conname": "sdp_zone_frames_phase_check",
+        "definition": "CHECK ((phase = ANY (ARRAY['HISTORY'::text, 'CONTINUOUS'::text])))"
+      },
+      {
+        "relname": "sdp_zone_frames",
+        "conname": "sdp_zone_frames_pkey",
+        "definition": "PRIMARY KEY (run_id, zone_id, sequence)"
+      },
+      {
+        "relname": "sdp_zone_frames",
+        "conname": "sdp_zone_frames_run_id_zone_id_decision_event_id_fkey",
+        "definition": "FOREIGN KEY (run_id, zone_id, decision_event_id) REFERENCES sdp_events(run_id, zone_id, event_id) DEFERRABLE INITIALLY DEFERRED"
+      },
+      {
+        "relname": "sdp_zone_frames",
+        "conname": "sdp_zone_frames_run_id_zone_id_fkey",
+        "definition": "FOREIGN KEY (run_id, zone_id) REFERENCES sdp_zones(run_id, zone_id)"
+      },
+      {
+        "relname": "sdp_zone_frames",
+        "conname": "sdp_zone_frames_run_id_zone_id_forecast_event_id_fkey",
+        "definition": "FOREIGN KEY (run_id, zone_id, forecast_event_id) REFERENCES sdp_events(run_id, zone_id, event_id) DEFERRABLE INITIALLY DEFERRED"
+      },
+      {
+        "relname": "sdp_zone_frames",
+        "conname": "sdp_zone_frames_run_id_zone_id_output_event_id_fkey",
+        "definition": "FOREIGN KEY (run_id, zone_id, output_event_id) REFERENCES sdp_events(run_id, zone_id, event_id) DEFERRABLE INITIALLY DEFERRED"
+      },
+      {
+        "relname": "sdp_zone_frames",
+        "conname": "sdp_zone_frames_run_id_zone_id_simulated_at_key",
+        "definition": "UNIQUE (run_id, zone_id, simulated_at)"
+      },
+      {
+        "relname": "sdp_zone_frames",
+        "conname": "sdp_zone_frames_sequence_check",
+        "definition": "CHECK ((sequence >= 0))"
+      },
+      {
+        "relname": "sdp_zones",
+        "conname": "sdp_zones_pkey",
+        "definition": "PRIMARY KEY (run_id, zone_id)"
+      },
+      {
+        "relname": "sdp_zones",
+        "conname": "sdp_zones_run_id_fkey",
+        "definition": "FOREIGN KEY (run_id) REFERENCES sdp_runs(run_id)"
+      },
+      {
+        "relname": "sdp_zones",
+        "conname": "sdp_zones_zone_id_check",
+        "definition": "CHECK ((zone_id = 'zone-1'::text))"
+      }
+    ],
+    "7": [
+      {
+        "tgname": "sdp_events_mode_guard",
+        "relname": "sdp_events",
+        "definition": "CREATE TRIGGER sdp_events_mode_guard BEFORE INSERT OR UPDATE ON public.sdp_events FOR EACH ROW EXECUTE FUNCTION _sdp_mode_guard()"
+      },
+      {
+        "tgname": "sdp_samples_mode_guard",
+        "relname": "sdp_node_samples",
+        "definition": "CREATE TRIGGER sdp_samples_mode_guard BEFORE INSERT OR UPDATE ON public.sdp_node_samples FOR EACH ROW EXECUTE FUNCTION _sdp_mode_guard()"
+      },
+      {
+        "tgname": "sdp_nodes_mode_guard",
+        "relname": "sdp_nodes",
+        "definition": "CREATE TRIGGER sdp_nodes_mode_guard BEFORE INSERT OR UPDATE ON public.sdp_nodes FOR EACH ROW EXECUTE FUNCTION _sdp_mode_guard()"
+      }
+    ],
+    "8": [
+      {
+        "indexname": "sdp_decision_commands",
+        "indexdef": "CREATE UNIQUE INDEX sdp_decision_commands ON public.sdp_events USING btree (run_id, (((event -> 'payload'::text) ->> 'command_id'::text))) WHERE (event_type = 'ZONE_DECISION'::text)"
+      },
+      {
+        "indexname": "sdp_events_by_type",
+        "indexdef": "CREATE INDEX sdp_events_by_type ON public.sdp_events USING btree (run_id, zone_id, event_type, occurred_at DESC)"
+      },
+      {
+        "indexname": "sdp_events_pkey",
+        "indexdef": "CREATE UNIQUE INDEX sdp_events_pkey ON public.sdp_events USING btree (run_id, event_id)"
+      },
+      {
+        "indexname": "sdp_events_run_id_zone_id_event_id_key",
+        "indexdef": "CREATE UNIQUE INDEX sdp_events_run_id_zone_id_event_id_key ON public.sdp_events USING btree (run_id, zone_id, event_id)"
+      },
+      {
+        "indexname": "sdp_events_run_id_zone_id_sequence_ordinal_key",
+        "indexdef": "CREATE UNIQUE INDEX sdp_events_run_id_zone_id_sequence_ordinal_key ON public.sdp_events USING btree (run_id, zone_id, sequence, ordinal)"
+      },
+      {
+        "indexname": "sdp_events_timeline",
+        "indexdef": "CREATE INDEX sdp_events_timeline ON public.sdp_events USING btree (run_id, zone_id, occurred_at, sequence, ordinal)"
+      },
+      {
+        "indexname": "sdp_hybrid_environment_pkey",
+        "indexdef": "CREATE UNIQUE INDEX sdp_hybrid_environment_pkey ON public.sdp_hybrid_environment USING btree (singleton)"
+      },
+      {
+        "indexname": "sdp_hybrid_leases_pkey",
+        "indexdef": "CREATE UNIQUE INDEX sdp_hybrid_leases_pkey ON public.sdp_hybrid_leases USING btree (run_id)"
+      },
+      {
+        "indexname": "sdp_hybrid_readers_pkey",
+        "indexdef": "CREATE UNIQUE INDEX sdp_hybrid_readers_pkey ON public.sdp_hybrid_readers USING btree (run_id, user_id)"
+      },
+      {
+        "indexname": "sdp_node_samples_pkey",
+        "indexdef": "CREATE UNIQUE INDEX sdp_node_samples_pkey ON public.sdp_node_samples USING btree (run_id, zone_id, sequence, node_id)"
+      },
+      {
+        "indexname": "sdp_samples_evaluation_history",
+        "indexdef": "CREATE INDEX sdp_samples_evaluation_history ON public.sdp_node_samples USING btree (run_id, node_id, sampled_at, sequence)"
+      },
+      {
+        "indexname": "sdp_samples_history",
+        "indexdef": "CREATE INDEX sdp_samples_history ON public.sdp_node_samples USING btree (run_id, node_id, observed_at DESC)"
+      },
+      {
+        "indexname": "sdp_nodes_pkey",
+        "indexdef": "CREATE UNIQUE INDEX sdp_nodes_pkey ON public.sdp_nodes USING btree (run_id, node_id)"
+      },
+      {
+        "indexname": "sdp_nodes_run_id_zone_id_node_id_key",
+        "indexdef": "CREATE UNIQUE INDEX sdp_nodes_run_id_zone_id_node_id_key ON public.sdp_nodes USING btree (run_id, zone_id, node_id)"
+      },
+      {
+        "indexname": "sdp_one_active_run",
+        "indexdef": "CREATE UNIQUE INDEX sdp_one_active_run ON public.sdp_runs USING btree (status) WHERE (status = 'ACTIVE'::text)"
+      },
+      {
+        "indexname": "sdp_runs_pkey",
+        "indexdef": "CREATE UNIQUE INDEX sdp_runs_pkey ON public.sdp_runs USING btree (run_id)"
+      },
+      {
+        "indexname": "sdp_frames_history",
+        "indexdef": "CREATE INDEX sdp_frames_history ON public.sdp_zone_frames USING btree (run_id, zone_id, simulated_at DESC)"
+      },
+      {
+        "indexname": "sdp_zone_frames_pkey",
+        "indexdef": "CREATE UNIQUE INDEX sdp_zone_frames_pkey ON public.sdp_zone_frames USING btree (run_id, zone_id, sequence)"
+      },
+      {
+        "indexname": "sdp_zone_frames_run_id_zone_id_simulated_at_key",
+        "indexdef": "CREATE UNIQUE INDEX sdp_zone_frames_run_id_zone_id_simulated_at_key ON public.sdp_zone_frames USING btree (run_id, zone_id, simulated_at)"
+      },
+      {
+        "indexname": "sdp_zones_pkey",
+        "indexdef": "CREATE UNIQUE INDEX sdp_zones_pkey ON public.sdp_zones USING btree (run_id, zone_id)"
+      }
+    ],
+    "9": [],
+    "10": [],
+    "11": [],
+    "12": [],
+    "13": [],
+    "14": [
+      {
+        "check_name": "hybrid_frame_inventory",
+        "violations": 0
+      }
+    ],
+    "15": [
+      {
+        "check_name": "hybrid_sample_evidence",
+        "violations": 0
+      }
+    ],
+    "16": [
+      {
+        "check_name": "hybrid_frame_correlation",
+        "violations": 0
+      }
+    ],
+    "17": [
+      {
+        "check_name": "hybrid_checkpoint_receipts",
+        "violations": 0
+      }
+    ]
+  },
+  "verification_source_sha256": "f136231ba6d34f456bf35f3607ffee68633b1f9038788992f786e636c18fd6f1",
+  "verification_filled_submission_sha256": "ab84bf8b21407d3178eaea03b737fdd57ea3febe5f7865ed87d4cfc1d9780a2d",
+  "scope": "Approved migrations and read-only verification only. No Auth provisioning, run initialization, MQTT, writer, Dashboard activation, credentials, protected-project operation, push or merge."
+}
