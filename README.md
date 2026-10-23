@@ -5,6 +5,39 @@ workspace. The competition implementation combines real sensor evidence with
 stored occupancy decisions, expected-use windows and **simulated cooling output**.
 It does not actuate physical HVAC or establish measured energy savings.
 
+## 🌐 Live Demo — OmniSense Spatial Dashboard
+
+Explore our deployed OmniSense intelligent building management dashboard.
+
+**Live Website:** [https://omnisense-hybrid-spatial.vercel.app](https://omnisense-hybrid-spatial.vercel.app)
+
+### 🔐 Demo Access for Judges
+
+To explore the Spatial Workspace, please use the following demonstration credentials:
+
+**Email:** `reader-a@omnisense.test`
+
+**Password:** `joshua0322`
+
+These credentials are intentionally public and are for dedicated, read-only competition demo access only.
+
+**How to Access:**
+
+1. Open the live website using the link above.
+2. Click **Enter Workspace** on the landing page.
+3. Sign in using the provided demo credentials.
+4. Explore the OmniSense Spatial Dashboard.
+
+### What You Can Explore
+
+- **Interactive 3D Workspace** — Explore the monitored room and sensor locations.
+- **AI-Powered Occupancy Monitoring** — View people-count detection from ESP32-based thermal sensors.
+- **Environmental Monitoring** — Examine temperature and humidity readings.
+- **Intelligent Cooling** — Explore occupancy-aware cooling decisions and target temperatures.
+- **Historical Analytics** — Review recorded sensor data, occupancy trends and operating records.
+
+**Note:** The workspace contains real sensor data collected from our ESP32 prototype. Live updates are available when the physical devices and Hybrid data-ingestion service are running. Otherwise, the dashboard displays the latest stored historical data. HVAC control outputs represent controller targets rather than verified physical air-conditioning operation.
+
 Website: [omnisense-hybrid-spatial.vercel.app](https://omnisense-hybrid-spatial.vercel.app).
 The landing page is public. Workspace data requires an approved private account
 and an exact-run Supabase reader grant. Repository access does not grant data access.
