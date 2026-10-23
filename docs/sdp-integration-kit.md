@@ -1,5 +1,11 @@
 # SDP Integration Kit for C and D
 
+> Historical integration reference: the examples and proposed interfaces below
+> belong to the original draft kit. For the implemented Hybrid pipeline and
+> remaining capabilities, read the [current submission scope](SDP-SUBMISSION.md)
+> and [version-aware contract status](sdp-contract-v1.md). Use Node.js 24 for the
+> existing validation utilities. These examples do not authorize live operation.
+
 **Version: `sdp.v1-draft.1` - draft for team review.**
 
 - [Component C guide](sdp-component-c-guide.md): controller inputs, decisions,

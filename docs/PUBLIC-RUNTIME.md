@@ -1,5 +1,7 @@
 # Safe runtime setup
 
+Use **Node.js 24**. See the [repository README](../README.md) for installation and current scope.
+
 These instructions describe existing functionality. They do not authorize cloud
 changes. A fresh clone can run all offline checks without a real manifest or keys.
 

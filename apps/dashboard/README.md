@@ -1,5 +1,7 @@
 # OmniSense Dashboard
 
+Use **Node.js 24**. See the [repository README](../../README.md) for installation and current scope.
+
 The current product is the public landing page and authenticated Hybrid Spatial
 Workspace. Start with the repository [README](../../README.md) and
 [safe runtime setup](../../docs/PUBLIC-RUNTIME.md).
