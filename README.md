@@ -1,9 +1,14 @@
-# OmniSense — Spatial Cooling Intelligence
+# OMNISense Edge — SDP Competition Submission
 
-OmniSense connects ceiling-mounted ESP32 sensing nodes to a spatial monitoring
-workspace. The competition implementation combines real sensor evidence with
-stored occupancy decisions, expected-use windows and **simulated cooling output**.
-It does not actuate physical HVAC or establish measured energy savings.
+**OMNISense Edge is our Sime Darby Property (SDP) competition submission:** an
+occupancy-aware building monitoring prototype with an interactive Spatial Dashboard.
+
+Ceiling-mounted ESP32 nodes supply thermal headcount categories, temperature and
+humidity. Hybrid Mode B combines that hardware evidence with stored decisions,
+illustrative expected-use windows and simulated cooling responses. Real ESP32 →
+MQTT → Supabase → Dashboard operation has been exercised in supervised tests.
+The current Hybrid path does not actuate building HVAC or establish measured
+energy savings.
 
 ## 🌐 Live Demo — OmniSense Spatial Dashboard
 
@@ -44,13 +49,19 @@ and an exact-run Supabase reader grant. Repository access does not grant data ac
 
 ## Architecture
 
-```text
-Two ESP32 ceiling nodes (demo-1 / demo-2)
-  → HiveMQ MQTT over TLS
-  → one local Hybrid Supervisor / Writer
-  → isolated Supabase: evidence, atomic frames, decisions and events
-  → authenticated React + Vite Spatial Dashboard (static hosting on Vercel)
+```mermaid
+flowchart LR
+  ESP["ESP32 nodes: demo-1 and demo-2"] -->|MQTT over TLS| MQ["HiveMQ"]
+  MQ --> HS["Hybrid Supervisor / Writer"]
+  HS -->|Validated evidence and atomic snapshots| DB["Supabase"]
+  DB -->|Authenticated reads under RLS| UI["Spatial Dashboard on Vercel"]
 ```
+
+The Supervisor normalizes telemetry, checks freshness and fuses occupancy before
+committing snapshots. The Dashboard reads the committed run boundary; it does not
+subscribe to MQTT or compute replacement cooling policy. Forecasts and reported
+cooling outputs retain their synthetic provenance. See the
+[current architecture and capability boundaries](docs/SDP-SUBMISSION.md).
 
 The Writer is a separate long-running service, not browser code or a Vercel
 Function. Its host must remain running for live updates. After it stops, the
@@ -81,17 +92,52 @@ Forecasts in this demonstration use synthetic schedules, not a trained predictio
 service or live booking integration. Cooling acknowledgements are simulated
 records, not proof that equipment operated.
 
-## Future / excluded from this stable release
+## Implementation status and planned capabilities
 
-Firmware PMV support and migration 004 remain separate unfinished development work.
-Other future work includes physical BMS/HVAC actuation, validated full-room coverage,
-trained forecasts, booking integration, measured energy evaluation and continuous
-cloud hosting of the Writer. Retained legacy modules and design prototypes are
-historical reference, not additional active services.
+| Capability | Current status |
+| --- | --- |
+| ESP32 telemetry ingestion, authenticated spatial monitoring, history and CSV | Implemented; supervised hardware path and offline regression tests exercised |
+| Thermal people count | Firmware-reported categories (0, 1, 2, 3+); model accuracy is not independently established here |
+| Occupancy-aware cooling requests | Implemented policy demonstration; Hybrid output acknowledgements are simulated |
+| Forecast display and pre-cooling timeline | Implemented using illustrative stored schedules; trained prediction and live booking integration are future work |
+| Physical BMS / building AC control | Future integration; no verified building HVAC actuation |
+| Energy savings and full-room sensing coverage | Require field validation; no measured savings claim; `full_zone_coverage=false` |
+| Firmware PMV | Present in the supplied firmware snapshot; persistence, migration 004 and dashboard display remain unfinished work outside this stable release |
+| Continuous cloud Writer hosting | Future deployment work; the demonstration Writer currently runs separately from Vercel |
+
+### Hardware reproduction limits
+
+ESP32 firmware and TinyML model source are **not included in this public tree yet**.
+The newly supplied firmware ZIP has been audited separately; a sanitized candidate
+awaits review before inclusion. It lacks the referenced inference-library export,
+model weights and pinned board/library settings. Its configured identity is
+`demo-2`; source-to-flashed-binary equivalence for both physical nodes is not
+established. See the [firmware audit](docs/FIRMWARE-AUDIT.md). The web/backend
+offline checks remain reproducible without that hardware toolchain.
+
+## Repository guide
+
+| Path | Role in the current submission |
+| --- | --- |
+| `apps/dashboard/` | Public landing, authentication, 2D floor, 3D workspace, Usage & Cooling, Operating Records and CSV |
+| `services/sdp-generator/` | Current Hybrid Supervisor/Writer, telemetry normalization, policy and separate synthetic generator |
+| `packages/sdp-contract/` | Shared typed SDP envelopes, validation and contract fixtures |
+| `supabase/` | SDP schema sources alongside retained prototype database material |
+| `supabase/sdp/migrations/` | Current SDP foundation and Hybrid migration sources; never apply automatically |
+| `scripts/` | Offline release/security checks plus retained development utilities |
+| `docs/` | Current submission/runbooks and clearly indexed historical material |
+| `services/mqtt-subscriber/`, `services/control-api/` | Earlier Technothon services; not required by the current Hybrid Spatial path |
+| `docs/design/` | Design prototypes and landing source assets; not independent live services |
+
+The project evolved from an earlier Technothon prototype. The SDP submission adds
+the Spatial Dashboard and isolated Hybrid pipeline described above, while retaining
+earlier modules and history for traceability. Old demo scripts and service guides
+are not the current startup path. No legacy code is being archived in this update.
+Use the [documentation index](docs/README.md) to choose current instructions.
 
 ## Installation
 
-Use Node.js 22.12+ (validated with Node 24) and Python 3 for the release audit.
+Use **Node.js 24** and Python 3 for the release audit.
 Run from the repository root. On Windows use `npm.cmd` if PowerShell blocks
 `npm.ps1`; use `npm` on other systems.
 

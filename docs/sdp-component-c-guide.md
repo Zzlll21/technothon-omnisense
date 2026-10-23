@@ -1,5 +1,11 @@
 # Component C - Cooling Controller Integration
 
+> Historical integration reference: the examples and proposed interfaces below
+> belong to the original draft kit. For the implemented Hybrid pipeline and
+> remaining capabilities, read the [current submission scope](SDP-SUBMISSION.md)
+> and [version-aware contract status](sdp-contract-v1.md). Use Node.js 24 for the
+> existing validation utilities. These examples do not authorize live operation.
+
 **Review draft: `sdp.v1-draft.1`.** This guide uses the existing
 [contract](sdp-contract-v1.md), [types](../packages/sdp-contract/src/types.ts) and
 [validator](../packages/sdp-contract/src/validate.ts). Every example is simulated

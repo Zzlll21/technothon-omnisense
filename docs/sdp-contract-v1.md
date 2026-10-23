@@ -1,14 +1,38 @@
-# SDP Integration Contract v1 Draft
+# SDP Integration Contracts — current status and draft reference
 
-**Status: DRAFT FOR A/B/C/D/E REVIEW. Not finalized or deployed.**
+This document retains the original `sdp.v1-draft.1` field reference and team
+review material. Its draft package version is not the current deployment status.
+The current Spatial Dashboard reads persisted SDP snapshots and events; it is
+not limited to the earlier mock tab.
 
-- Wire identifier: `sdp.v1-draft.1`.
-- Package version: `1.0.0-draft.1` in `packages/sdp-contract`.
-- Basis: SDP work brief pages 6-11, especially Part E on pages 9-11.
-- Scope: seven message types, simulated examples, validation and a read-only dashboard data boundary.
-- Existing Technothon MQTT topics, subscriber, Control API, firmware and Supabase tables remain unchanged. The dashboard adds an isolated, read-only SDP mock tab; existing Technothon views retain their behavior.
+| Contract | Implemented use |
+| --- | --- |
+| `sdp.v1-draft.1` | Retained synthetic generator, fixtures and original seven-event envelope |
+| `sdp.v1-hybrid.1` | LIVE Hybrid evidence extension; see `HardwareMetadata` and the version-aware validator |
 
-This draft lets teammates develop against the same shapes. It does not establish that firmware acknowledgements, zone control, prediction or a new backend ingestion path already exist. Contract tests check messages and fixture consistency, not algorithm correctness or physical AC performance.
+The machine-readable authority is
+[types.ts](../packages/sdp-contract/src/types.ts) and
+[validate.ts](../packages/sdp-contract/src/validate.ts). The npm package remains
+`1.0.0-draft.1` for compatibility; this documentation update changes no wire format.
+Hardware evidence is normalized by
+[hardwareTelemetry.ts](../services/sdp-generator/src/hardwareTelemetry.ts).
+Current atomic persistence and private-reader rules are implemented in the
+[SDP migration sources](../supabase/sdp/migrations/) and backend tests.
+
+Hybrid Mode B records real hardware observations with receipt-time provenance
+when the firmware supplies no device timestamp. Missing/PIR-inactive/fallback
+evidence does not establish confirmed vacancy. Keep `full_zone_coverage=false`.
+The stable normalizer does not retain firmware PMV, PPD or local fan state.
+Forecast schedules and applied-output acknowledgements remain synthetic; the
+current Hybrid path does not operate building AC or implement a manual-control
+gateway. See [current submission scope](SDP-SUBMISSION.md).
+
+## Original draft scope
+
+The remaining sections describe the original draft message semantics, fixtures
+and proposed C/D interfaces. Proposed actuator/override/prediction behavior must
+not be read as a list of deployed functions. Simulated examples are validation
+fixtures, not hardware captures or evidence of algorithm accuracy.
 
 ## Start Here
 
@@ -19,7 +43,7 @@ This draft lets teammates develop against the same shapes. It does not establish
 5. B reports AppliedOutput against C's `command_id` and decision event ID. E displays the distinction between requested, accepted and applied.
 6. Agree the pending decisions below before connecting any proposed transport to hardware.
 
-## Architecture and Ownership
+## Original target architecture and ownership
 
 ```mermaid
 flowchart LR
@@ -42,7 +66,9 @@ flowchart LR
   READ --> E
 ```
 
-The diagram is a target integration proposal. The event store/gateway extensions are not implemented here. The browser does not connect to MQTT. Credentials stay in backend configuration. Prediction and controller execution must continue independently of the dashboard.
+The diagram is the original target proposal, not the current deployed topology.
+The Hybrid event store now exists; its proposed physical actuator, learned predictor
+and override gateway are not implemented by the current Hybrid path. The browser does not connect to MQTT. Credentials stay in backend configuration. Prediction and controller execution must continue independently of the dashboard.
 
 | Message | Producer / owner | Consumers | Responsibility |
 | --- | --- | --- | --- |

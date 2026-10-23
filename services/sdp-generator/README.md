@@ -1,11 +1,42 @@
-# SDP generator foundation
+# OmniSense SDP Backend — Hybrid Mode B and synthetic evaluation
 
-Branch: `sdp-dashboard-rebuild`. Phase 1 adds no frontend changes and never uses
-the Technothon subscriber, MQTT, Control API or their environment files.
+This service contains the current **Hybrid Supervisor / Writer**, hardware MQTT
+normalization, occupancy fusion, snapshot persistence and a separate synthetic
+generator. Use **Node.js 24**. Start with the
+[submission architecture](../../docs/SDP-SUBMISSION.md) and
+[safe runtime setup](../../docs/PUBLIC-RUNTIME.md).
 
-This is **Simulated Test Data**, not TinyML, learned forecasts, occupancy fusion,
-physical feedback, measured energy consumption or a production cooling controller.
-The existing `sdp.v1-draft.1` envelopes and validator are reused without changes.
+Hybrid Mode B receives independently identified ESP32 telemetry through HiveMQ,
+retains evidence validity/freshness and commits to an approved isolated Supabase
+target. It does not use the legacy Technothon subscriber or Control API.
+Keep one authorized Writer, the target manifest and `full_zone_coverage=false`.
+The backend credentials and MQTT connection never belong in browser code.
+
+The shared validator supports `sdp.v1-draft.1` synthetic records and the
+`sdp.v1-hybrid.1` LIVE extension. Hardware observations are not simulated input;
+forecast schedules and applied-output acknowledgements in this demonstration
+remain synthetic. No physical BMS/AC integration or trained forecast service is
+claimed. Stable PMV persistence/display is not implemented.
+
+## Offline evaluation
+
+After installing the locked dependencies listed in the root README:
+
+```powershell
+node scripts/validate-release.mjs
+node services/sdp-generator/hybrid-mqtt.mjs --replay services/sdp-generator/test/fixtures/firmware-replay.json
+```
+
+These commands do not start MQTT or contact Supabase. The replay fixture is
+constructed test data, not a recorded hardware packet capture. For separately
+authorized live operation, follow the runtime runbook's target, lease, manifest
+and shutdown checks; do not start a Writer simply to evaluate the repository.
+
+## Synthetic foundation reference
+
+The following sections describe the retained synthetic generator and its timing,
+not the full Hybrid hardware pipeline. Synthetic `sim-1`/`sim-2` records must
+not be confused with physical `demo-1`/`demo-2` evidence.
 
 ## Offline quick start (Windows PowerShell)
 
@@ -13,9 +44,8 @@ Prerequisites: Node.js 24+, Git, and the existing dashboard development tools.
 From the repository root:
 
 ```powershell
-git branch --show-current # Must say sdp-dashboard-rebuild
-npm.cmd --prefix apps/dashboard ci
-npm.cmd --prefix services/sdp-generator ci
+npm.cmd --prefix apps/dashboard ci --no-audit --no-fund
+npm.cmd --prefix services/sdp-generator ci --no-audit --no-fund
 npm.cmd --prefix services/sdp-generator run build
 Set-Location services/sdp-generator
 npm.cmd start
@@ -90,8 +120,9 @@ catches up at 30-second logical intervals before returning to wall-paced waits.
 Run only one writer process per run. Conflicting writers cannot corrupt the
 checkpoint, but an obsolete process should be stopped instead of repeatedly retried.
 
-There is no automatic deletion, reset, retention job, dashboard adapter or real
-control endpoint in this phase. The server-only writer uses the official
+The synthetic generator has no automatic deletion, reset, retention job or real
+control endpoint. The current Dashboard reads stored data through its own adapters.
+The server-only writer uses the official
 `@supabase/supabase-js` client with session persistence, token refresh and URL
 session detection disabled. It uses only the four SDP RPCs; SQL retains the
 transaction/checkpoint authority. Secret API Keys use `apikey`, not a JWT Bearer
