@@ -6,7 +6,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
+    "dev:hybrid": "node --env-file=.env.hybrid.local node_modules/vite/bin/vite.js --host 127.0.0.1 --port 5178 --strictPort --configLoader runner",
     "build": "tsc --noEmit && vite build",
+    "build:hybrid": "tsc --noEmit && node --env-file=.env.hybrid.local node_modules/vite/bin/vite.js build --configLoader runner",
+    "package:hybrid": "node --env-file=.env.hybrid.local scripts/prepare-vercel.mjs",
     "preview": "vite preview --host 127.0.0.1",
     "typecheck": "tsc --noEmit",
     "test:console": "node --test test/decision-console.test.mjs test/landing-moments.test.mjs",
