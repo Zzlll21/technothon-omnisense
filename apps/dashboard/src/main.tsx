@@ -1,7 +1,6 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
-import { PrivateHybridAccess } from './components/PrivateHybridAccess';
 import "./styles.css";
 import "./decision-console.css";
 import "./stage-cockpit.css";
@@ -14,7 +13,7 @@ if (!root) {
 
 createRoot(root).render(
   <React.StrictMode>
-    <PrivateHybridAccess><App /></PrivateHybridAccess>
+    <App />
   </React.StrictMode>
 );
 

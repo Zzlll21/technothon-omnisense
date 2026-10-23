@@ -1,0 +1,82 @@
+/* Login only. Imported eagerly by the auth gate, before the lazy workspace. */
+/* The legacy body minimum must not force horizontal scroll beside a login scrollbar. */
+body:has(> #root > .hybrid-login) { min-width: 0; }
+.hybrid-login {
+  --login-ink: #183e35;
+  --login-muted: #5c6d5b;
+  --login-line: #d3dccb;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  max-width: none;
+  min-height: 100svh;
+  margin: 0;
+  padding: 40px 24px;
+  background: #f3f5ef;
+  color: var(--login-ink);
+  font: 16px/1.55 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+}
+.hybrid-login .hybrid-login-card {
+  width: min(100%, 424px);
+  padding: 38px 36px 28px;
+  border: 1px solid var(--login-line);
+  border-radius: 10px;
+  background: #fafbf6;
+  box-shadow: 0 12px 40px rgb(24 62 53 / 4%);
+}
+.hybrid-login .hybrid-login-brand { display: flex; align-items: center; gap: 10px; font-size: 27px; font-weight: 650; letter-spacing: -.8px; line-height: 1.2; }
+.hybrid-login .hybrid-login-brand svg { width: 32px; height: 32px; fill: none; stroke: currentColor; stroke-width: 1.5; }
+.hybrid-login .hybrid-login-subtitle { margin: 8px 0 0 42px; color: var(--login-muted); font-size: 12px; }
+.hybrid-login .hybrid-login-heading { margin: 36px 0 26px; }
+.hybrid-login h1 { margin: 0; color: var(--login-ink); font-size: 28px; font-weight: 600; line-height: 1.25; letter-spacing: -.6px; }
+.hybrid-login .hybrid-login-heading p, .hybrid-login .hybrid-login-description { margin: 10px 0 0; color: var(--login-muted); font-size: 14px; }
+.hybrid-login .hybrid-login-description { margin-top: 14px; }
+.hybrid-login .hybrid-login-subtitle + h1 { margin-top: 36px; }
+.hybrid-login .hybrid-login-form { display: grid; gap: 20px; }
+.hybrid-login .hybrid-login-form label { display: grid; gap: 8px; font-size: 13px; font-weight: 600; }
+.hybrid-login .hybrid-login-form input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  padding: 11px 13px;
+  border: 1px solid #bfcbb9;
+  border-radius: 5px;
+  background: #fff;
+  color: var(--login-ink);
+  font: 400 16px/1.5 'Segoe UI', system-ui, sans-serif;
+  box-shadow: none;
+}
+.hybrid-login .hybrid-login-form input::placeholder { color: #788373; opacity: 1; font-size: 14px; }
+.hybrid-login .hybrid-login-form input:hover { border-color: #91a68a; }
+.hybrid-login .hybrid-login-form input:focus-visible { outline: 2px solid #426e59; outline-offset: 2px; border-color: #426e59; }
+.hybrid-login .hybrid-login-form input:-webkit-autofill { -webkit-text-fill-color: var(--login-ink); box-shadow: 0 0 0 40px #fff inset; }
+.hybrid-login .hybrid-login-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 48px;
+  margin-top: 4px;
+  padding: 12px 18px;
+  border: 1px solid var(--login-ink);
+  border-radius: 5px;
+  background: var(--login-ink);
+  color: #fafbf6;
+  font: 600 14px/1.5 'Segoe UI', system-ui, sans-serif;
+  touch-action: manipulation;
+}
+.hybrid-login .hybrid-login-submit svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+@media (hover: hover) { .hybrid-login .hybrid-login-submit:hover:not(:disabled) { background: #285348; border-color: #285348; } }
+.hybrid-login .hybrid-login-submit:active:not(:disabled) { background: #102f28; }
+.hybrid-login .hybrid-login-submit:focus-visible { outline: 3px solid #426e59; outline-offset: 4px; }
+.hybrid-login .hybrid-login-submit:disabled { cursor: wait; opacity: .65; }
+.hybrid-login .hybrid-login-error { margin: 0; padding: 11px 13px; border: 1px solid #e0c7bc; border-radius: 5px; background: #fbf0eb; color: #8a3c28; font-size: 13px; line-height: 1.5; }
+.hybrid-login .hybrid-login-note { display: flex; align-items: center; justify-content: center; gap: 7px; margin: 24px 0 0; padding-top: 20px; border-top: 1px solid var(--login-line); color: var(--login-muted); font-size: 11px; text-align: center; }
+.hybrid-login .hybrid-login-note svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.3; }
+@media (max-width: 480px) {
+  .hybrid-login { padding: 24px 16px; }
+  .hybrid-login .hybrid-login-card { padding: 30px 24px 24px; }
+  .hybrid-login .hybrid-login-heading { margin-top: 30px; }
+}

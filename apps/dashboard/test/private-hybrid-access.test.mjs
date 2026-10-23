@@ -41,6 +41,23 @@ test('late login responses and token events cannot restore readers after logout;
  const bad=c.login.signIn('tester@example.invalid','FAKE');c.finish({data:{session:null},error:{message:'sensitive arbitrary upstream error'}});await bad;
  assert.doesNotMatch(c.state().error,/sensitive|upstream/);assert.equal(c.state().user,null);c.login.dispose();
 });
+
+test('same-document session stays valid, logout revokes it, and a refreshed document requires explicit login again',async()=>{
+ const current=setup(),s=session();
+ const first=current.login.signIn('reader-a@example.invalid','TEST_ONLY');
+ current.finish({data:{session:s},error:null});await first;
+ current.login.tick();assert.equal(current.guard.valid(),true);assert.equal(current.state().user,'test-user');
+ // Ordinary route renders do not create a new login controller; no second signIn is needed.
+ assert.equal(current.guard.permits({Authorization:`Bearer ${s.access_token}`}),true);
+ const refreshed=setup();refreshed.event('INITIAL_SESSION',s);
+ assert.equal(refreshed.guard.valid(),false);assert.equal(refreshed.state().user,null);
+ await current.login.signOut();assert.equal(current.guard.valid(),false);assert.equal(current.state().user,null);
+ current.event('TOKEN_REFRESHED',s);assert.equal(current.guard.valid(),false);
+ const config=await readFile(new URL('../src/lib/supabase.ts',import.meta.url),'utf8');
+ assert.match(config,/persistSession: false/);assert.match(config,/detectSessionInUrl: false/);
+ assert.doesNotMatch(config,/localStorage|sessionStorage|document\.cookie/);
+ current.login.dispose();refreshed.login.dispose();
+});
 test('private frontend target requires independent approval while original synthetic configuration stays unchanged',()=>{
  const env={VITE_SUPABASE_URL:'https://abcdefghijklmnopqrst.supabase.co',VITE_SUPABASE_PUBLISHABLE_KEY:'sb_publishable_FAKE'};
  assert.deepEqual(resolvePublicConfig(env),{url:env.VITE_SUPABASE_URL,key:env.VITE_SUPABASE_PUBLISHABLE_KEY,error:null});
@@ -54,6 +71,7 @@ test('private auth gate renders no dashboard children or tokens before login, sy
  for(const privateHybrid of [true,false]){
   const mock=`data:text/javascript;base64,${Buffer.from(`export const supabase={};export const hybridAccess={privateHybrid:${privateHybrid},previewOrigin:'http://127.0.0.1:5178'};export const privateSession={};`).toString('base64')}`;
   let source=ts.transpileModule(await readFile(path,'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,jsx:ts.JsxEmit.ReactJSX}}).outputText;
+  source=source.replace("import '../private-hybrid-access.css';",'').replace('import "../private-hybrid-access.css";','');
   for(const name of ['react/jsx-runtime','react'])for(const quote of ['"',"'"])source=source.replaceAll(quote+name+quote,JSON.stringify(name==='react'?react:import.meta.resolve(name)));
   source=source.replaceAll('../lib/supabase',mock).replaceAll('../lib/privateAuth',auth);
   const {PrivateHybridAccess}=await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
@@ -61,5 +79,53 @@ test('private auth gate renders no dashboard children or tokens before login, sy
   if(privateHybrid){assert.doesNotMatch(html,/PRIVATE_DATA_SENTINEL|access_token|sb_secret/);assert.match(html,/type="password"/);}
   else assert.match(html,/PRIVATE_DATA_SENTINEL/);
  }
- const main=await readFile(new URL('../src/main.tsx',import.meta.url),'utf8');assert.match(main,/<PrivateHybridAccess><App \/><\/PrivateHybridAccess>/);
+ const main=await readFile(new URL('../src/main.tsx',import.meta.url),'utf8');assert.doesNotMatch(main,/PrivateHybridAccess/);assert.match(main,/<App \/>/);
+ const app=await readFile(new URL('../src/App.tsx',import.meta.url),'utf8');assert.match(app,/<PrivateHybridAccess><Suspense/);
+});
+
+async function renderLoginState(state, origin='https://omnisense-hybrid-spatial.vercel.app') {
+ const path=new URL('../src/components/PrivateHybridAccess.tsx',import.meta.url),react=import.meta.resolve('react');
+ const reactMock=`data:text/javascript;base64,${Buffer.from(`import * as real from ${JSON.stringify(react)};export const useRef=real.useRef,useEffect=real.useEffect;export const useState=initial=>initial&&typeof initial==='object'&&'busy' in initial?[${JSON.stringify(state)},()=>{}]:real.useState(initial);`).toString('base64')}`;
+ const mock=`data:text/javascript;base64,${Buffer.from(`export const supabase={};export const hybridAccess={privateHybrid:true,previewOrigin:${JSON.stringify(origin)}};export const privateSession={};`).toString('base64')}`;
+ let source=ts.transpileModule(await readFile(path,'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,jsx:ts.JsxEmit.ReactJSX}}).outputText;
+ source=source.replace(/import ['"]\.\.\/private-hybrid-access\.css['"];?/,'');
+ for(const quote of ['"',"'"])source=source.replaceAll(quote+'react/jsx-runtime'+quote,JSON.stringify(import.meta.resolve('react/jsx-runtime'))).replaceAll(quote+'react'+quote,JSON.stringify(reactMock));
+ source=source.replaceAll('../lib/supabase',mock).replaceAll('../lib/privateAuth',sourceUrl(new URL('../src/lib/privateAuth.ts',import.meta.url)));
+ const {PrivateHybridAccess}=await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
+ return renderToStaticMarkup(React.createElement(PrivateHybridAccess,null,React.createElement('p',null,'PRIVATE_DATA_SENTINEL')));
+}
+
+test('login has branded, accessible stacked fields and its own eagerly imported, scoped stylesheet',async()=>{
+ const html=await renderLoginState({user:null,busy:false,error:null});
+ assert.match(html,/Welcome back/);assert.match(html,/Smart cooling management/);assert.match(html,/class="hybrid-login-card"/);
+ assert.match(html,/for="login-email"/);assert.match(html,/type="email"[^>]*autoComplete="username"/);
+ assert.match(html,/for="login-password"/);assert.match(html,/type="password"[^>]*autoComplete="current-password"/);
+ assert.match(html,/type="submit"[^>]*>Sign In/);assert.match(html,/aria-labelledby="login-heading"/);
+ assert.doesNotMatch(html,/PRIVATE_DATA_SENTINEL|approved isolated|Private Hybrid Dashboard|style=/);
+ const component=await readFile(new URL('../src/components/PrivateHybridAccess.tsx',import.meta.url),'utf8');
+ assert.match(component,/import '\.\.\/private-hybrid-access\.css'/);
+ const css=await readFile(new URL('../src/private-hybrid-access.css',import.meta.url),'utf8');
+ assert.match(css,/\.hybrid-login \.hybrid-login-form \{ display: grid/);
+ assert.match(css,/100svh/);assert.match(css,/max-width: 480px/);assert.match(css,/:focus-visible/);
+ assert.doesNotMatch(css,/\.spatial-app|\.sa-|@import|url\(/);
+});
+
+test('login loading, failure and expiry states remain private and expose no upstream error contents',async()=>{
+ const busy=await renderLoginState({user:null,busy:true,error:null});
+ assert.match(busy,/aria-busy="true"/);assert.match(busy,/disabled=""/);assert.match(busy,/Signing in…/);assert.doesNotMatch(busy,/PRIVATE_DATA_SENTINEL/);
+ const failure=await renderLoginState({user:null,busy:false,error:'sensitive upstream auth detail'});
+ assert.match(failure,/role="alert"/);assert.match(failure,/Check your email and password/);assert.doesNotMatch(failure,/sensitive upstream|PRIVATE_DATA_SENTINEL/);
+ const expired=await renderLoginState({user:null,busy:false,error:'Your test session expired. Sign in again.'});
+ assert.match(expired,/Your session has expired/);
+});
+
+test('signed-in workspace markup is unchanged and a different production origin still fails closed',async()=>{
+ const authenticated=await renderLoginState({user:'reader-a',busy:false,error:null});
+ assert.equal(authenticated,'<div class="sa-notice"><span>Private hybrid test session</span> <button>Sign out</button></div><div><p>PRIVATE_DATA_SENTINEL</p></div>');
+ const previous=globalThis.window;
+ try{
+  globalThis.window={location:{origin:'https://unapproved.example.com'}};
+  const denied=await renderLoginState({user:null,busy:false,error:null});
+  assert.match(denied,/Sign in unavailable/);assert.doesNotMatch(denied,/PRIVATE_DATA_SENTINEL|<form/);
+ }finally{if(previous===undefined)delete globalThis.window;else globalThis.window=previous;}
 });

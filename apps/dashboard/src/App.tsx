@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect } from "react";
+import { PrivateHybridAccess } from "./components/PrivateHybridAccess";
 
 const SpatialDashboard = lazy(() => import("./pages/SpatialDashboard").then(module => ({ default: module.SpatialDashboard })));
 
@@ -9,7 +10,8 @@ function LandingEntry() {
 
 export function App() {
   const query = new URLSearchParams(window.location.search);
-  // Existing bookmarked spatial URLs continue to work; new visitors enter through the landing page.
+  // Public landing navigation must complete before a memory-only workspace session begins.
+  // Existing spatial bookmarks remain protected; login mounts the workspace directly without a redirect.
   if (["/", "/index.html"].includes(window.location.pathname) && query.get("experience") !== "spatial" && !query.has("view")) return <LandingEntry />;
-  return <Suspense fallback={<p role="status">Opening floor overview…</p>}><SpatialDashboard /></Suspense>;
+  return <PrivateHybridAccess><Suspense fallback={<p role="status">Opening floor overview…</p>}><SpatialDashboard /></Suspense></PrivateHybridAccess>;
 }
