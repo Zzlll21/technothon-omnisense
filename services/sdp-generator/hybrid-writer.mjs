@@ -3,7 +3,24 @@ import { validateStoredSdpEvent, eventMatchesRun } from '../../packages/sdp-cont
 import { assertHybridTarget } from './hybrid-target.mjs';
 
 export class HybridWriteError extends Error {
-  constructor(kind) { super(`Hybrid write ${kind}; no raw upstream response logged`); this.kind = kind; }
+  constructor(kind, diagnostic = {}) { super(`Hybrid write ${kind}; no raw upstream response logged`); this.kind = kind; this.diagnostic = diagnostic; }
+}
+
+// Fixed labels only. Never forward upstream messages, details, hints or response bodies.
+function rejectionReason(error) {
+  const known = new Map([
+    ['Writer lease/fence invalid','LEASE_FENCE'], ['Writer already leased','LEASE_HELD'],
+    ['Checkpoint conflict','CHECKPOINT_CONFLICT'], ['Conflicting retry','RETRY_CONFLICT'],
+    ['Invalid hybrid cutoff/checkpoint','CUTOFF_CHECKPOINT'], ['Invalid hardware metadata','HARDWARE_METADATA'],
+    ['Invalid hybrid envelope','EVENT_ENVELOPE'], ['Hardware source identity mismatch','HARDWARE_SOURCE'],
+    ['Invalid accepted hardware classification','HARDWARE_CLASSIFICATION'], ['Missing observation provenance','PROVENANCE'],
+    ['Checkpoint evidence mismatch','CHECKPOINT_EVIDENCE'], ['Hardware freshness mismatch','HARDWARE_FRESHNESS'],
+    ['Sample does not match original hardware evidence','SAMPLE_EVIDENCE'], ['Hybrid fusion mismatch','FUSION'],
+    ['Hybrid causal/checkpoint correlation invalid','CORRELATION'], ['Cooling policy invariant violation','POLICY'],
+    ['Invalid checkpoint receipt','RECEIPT'], ['Invalid vacancy continuity','VACANCY_CONTINUITY'],
+    ['Active run replacement requires exact explicit acknowledgement','ACTIVE_RUN_PROTECTED']
+  ]);
+  return known.get(error?.message) ?? ({'23514':'CHECK_CONSTRAINT','23505':'UNIQUE_CONSTRAINT','23503':'FOREIGN_KEY','42501':'PERMISSION_DENIED','PGRST202':'RPC_SCHEMA_CACHE'}[error?.code]) ?? 'UPSTREAM_REJECTED';
 }
 
 /** Separate opt-in configuration; never reads or falls back to the synthetic .env. */
@@ -40,13 +57,14 @@ export function createHybridWriter(config, transport = fetch) {
     if (!verified && name !== 'sdp_hybrid_info') throw new Error('Verify isolated environment before hybrid operations');
     let result;
     try { result = await client.rpc(name, args).retry(false).abortSignal(AbortSignal.timeout(30_000)); }
-    catch { throw new HybridWriteError('RETRY'); }
+    catch { throw new HybridWriteError('RETRY', {operation:name,reason:'TRANSPORT'}); }
     if (result.error || result.status === 0) {
       const message = result.error?.message ?? '';
       const kind = result.status === 0 || result.status >= 500 || ['40001','40P01','57014'].includes(result.error?.code) ? 'RETRY'
         : /Writer lease\/fence|already leased/.test(message) ? 'LEASE'
         : /Checkpoint conflict|Conflicting retry/.test(message) ? 'CONFLICT' : 'INVALID';
-      throw new HybridWriteError(kind);
+      const code = /^(?:[0-9A-Z]{5}|PGRST\d{3})$/.test(result.error?.code ?? '') ? result.error.code : null;
+      throw new HybridWriteError(kind, {operation:name,code,reason:rejectionReason(result.error)});
     }
     return result.data;
   }
@@ -67,7 +85,7 @@ export function createHybridWriter(config, transport = fetch) {
     async commit(tick, lease) {
       for (const event of tick.events) {
         const checked = validateStoredSdpEvent(event);
-        if (!checked.ok || !eventMatchesRun(checked.value, tick.run_id, 'sdp-hybrid-v1')) throw new Error('Invalid hybrid transaction envelope');
+        if (!checked.ok || !eventMatchesRun(checked.value, tick.run_id, 'sdp-hybrid-v1')) throw new HybridWriteError('INVALID', {operation:'LOCAL_EVENT_VALIDATION',reason:'EVENT_CONTRACT'});
       }
       const result = await rpc('sdp_hybrid_commit_tick', { p_tick: tick, p_owner_id: lease.owner_id, p_epoch: lease.epoch });
       if (result?.ok !== true || result.sequence !== tick.frame.sequence) throw new HybridWriteError('RETRY');

@@ -11,6 +11,14 @@ export function createHybridSession(run, writer, lease, { checkpoint = null, que
   const latest = new Map();
   let connected = false, fusion = null, lastEvaluation = -Infinity, lastQueued = -Infinity, previousKey;
   let committed = checkpoint, pending = null, queue = [], flight = null, gap = false;
+  let failureStage = null, attemptedSequence = null;
+  const packets = {received:0,accepted:0,rejected:0,by_node:Object.fromEntries(ids.map(id=>[id,{accepted:0,rejected:0}])),reasons:{}};
+  function count(node, accepted, reason) {
+    const key=accepted?'accepted':'rejected';packets[key]++;
+    if(packets.by_node[node])packets.by_node[node][key]++;
+    if(reason)packets.reasons[reason]=(packets.reasons[reason]??0)+1;
+    return accepted;
+  }
   function evaluate(at) {
     if (at < Date.parse(run.live_anchor) || (committed && at <= Date.parse(committed.simulated_at))) return null;
     if (at < lastEvaluation) { latest.clear(); fusion = null; gap = true; return null; }
@@ -35,33 +43,40 @@ export function createHybridSession(run, writer, lease, { checkpoint = null, que
   return {
     setConnected(value) { connected = value === true; fusion = null; previousKey = null; if (connected) latest.clear(); },
     ingest(topic, message, packet = {}, at) {
+      packets.received++;
       const node = /^omnisense\/node\/([^/]+)\/telemetry$/.exec(topic)?.[1];
-      if (!ids.includes(node)) return false;
-      if (typeof message !== 'string') { latest.delete(node); fusion = null; previousKey = null; evaluate(at); return false; }
-      if (!connected || packet.retain || packet.dup) { latest.delete(node); fusion = null; previousKey = null; evaluate(at); return false; }
+      if (!ids.includes(node)) return count(null,false,'UNMAPPED_TOPIC');
+      if (typeof message !== 'string') { count(node,false,'PAYLOAD_SIZE');latest.delete(node); fusion = null; previousKey = null; evaluate(at); return false; }
+      if (!connected || packet.retain || packet.dup) { count(node,false,!connected?'NOT_SUBSCRIBED':packet.retain?'RETAINED':'DUPLICATE');latest.delete(node); fusion = null; previousKey = null; evaluate(at); return false; }
       const result = normalizeHardwareTelemetry(topic, message, { received_at: new Date(at).toISOString(), allowed_node_ids: ids, retained: false });
-      if (!result.ok) { latest.delete(node); fusion = null; previousKey = null; evaluate(at); return false; }
-      if (at < lastEvaluation) { latest.clear(); fusion = null; gap = true; return false; }
+      if (!result.ok) { count(node,false,'NORMALIZATION');latest.delete(node); fusion = null; previousKey = null; evaluate(at); return false; }
+      if (at < lastEvaluation) { latest.clear(); fusion = null; gap = true; return count(node,false,'CLOCK_REGRESSION'); }
       latest.set(node, { evidence_id: `${run.run_id}:ingress:${randomUUID()}`, reading: result.value });
+      count(node,true);
       if (result.value.occupancy.value !== 'VACANT') fusion = null;
-      evaluate(at);
+      try { evaluate(at); } catch(error) { failureStage='EVALUATE';throw error; }
       return true;
     },
     evaluate,
     flush(at) {
       // Queue input independently from the immutable transaction currently in flight.
-      evaluate(at);
+      try { evaluate(at); } catch(error) { failureStage='EVALUATE';throw error; }
       if (flight) return flight; // Coalesce callers; never append an unbounded Promise chain.
       const work = async () => {
-        if (!pending) {
-          const candidate = queue.shift();
-          if (!candidate) return committed;
-          pending = prepareHybridTick(run, committed, candidate.at, candidate.entries, candidate.assessment);
-        }
-        const accepted = await writer.commit(pending, lease);
-        committed = accepted;
-        pending = null;
-        return committed;
+        let stage='PREPARE';
+        try {
+          attemptedSequence=(committed?.sequence??-1)+1;failureStage=null;
+          if (!pending) {
+            const candidate = queue.shift();
+            if (!candidate) return committed;
+            pending = prepareHybridTick(run, committed, candidate.at, candidate.entries, candidate.assessment);
+          }
+          stage='COMMIT';
+          const accepted = await writer.commit(pending, lease);
+          committed = accepted;
+          pending = null;
+          return committed;
+        } catch(error) { failureStage=stage;throw error; }
       };
       flight = work().finally(() => { flight = null; });
       return flight;
@@ -73,6 +88,7 @@ export function createHybridSession(run, writer, lease, { checkpoint = null, que
       lastEvaluation = checkpoint ? Date.parse(checkpoint.simulated_at) : -Infinity;
       lastQueued = -Infinity; previousKey = null; gap = true;
     },
-    inspect() { return structuredClone({ committed, pending, queued: queue.length, connected, gap }); }
+    inspect() { return structuredClone({ committed, pending, queued: queue.length, connected, gap,
+      diagnostics:{failure_stage:failureStage,attempted_sequence:attemptedSequence,packets} }); }
   };
 }

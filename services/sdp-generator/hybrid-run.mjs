@@ -27,7 +27,7 @@ export async function main(argv=process.argv.slice(2),env=process.env) {
   const abort=new AbortController();
   const supervisor=createHybridSupervisor({target,writer:createHybridWriter(config),
     connectMqtt:()=>mqtt.connect(mqttConfig.url,{...mqttConfig.mqttOptions,clientId:`omnisense-hybrid-writer-${randomUUID()}`}),
-    report:code=>console.log(JSON.stringify({component:'HYBRID_WRITER',status:code}))});
+    report:(code,diagnostic)=>console.log(JSON.stringify({component:'HYBRID_WRITER',status:code,...(diagnostic?{diagnostic}:{})}))});
   const finish=()=>{abort.abort();void supervisor.stop().catch(()=>{});};
   process.once('SIGINT',finish);process.once('SIGTERM',finish);
   try{
