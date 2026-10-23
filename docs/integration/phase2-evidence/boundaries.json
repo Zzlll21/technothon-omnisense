@@ -1,0 +1,9 @@
+{
+  "branch": "codex/omnisense-spatial-integration",
+  "phase1_baseline": "1ec3f95",
+  "protected_source": "unchanged",
+  "original_branch_index_status_reviewed_files_and_credentials": "unchanged",
+  "sensitive_text_scan": "no findings",
+  "vendor_bytes": "match approved prototype",
+  "database_writes": 0
+}

@@ -1,0 +1,31 @@
+[
+  {
+    "file": "page-1440x900.png",
+    "state": null,
+    "size": "1440x900",
+    "zoom": 1,
+    "animationWaitMs": 0,
+    "issues": [],
+    "lint": [
+      {
+        "rule": "longMeasure",
+        "label": "正文行太长",
+        "count": 3,
+        "examples": [
+          "p.su-statistics-note「Simulated requested oper」（每行约 108 个字符）",
+          "p「ACTIVE run fa15f01f-03ed」（每行约 129 个字符）",
+          "p「Forecasts as issued can 」（每行约 129 个字符）"
+        ]
+      }
+    ]
+  },
+  {
+    "file": "page-390x844.png",
+    "state": null,
+    "size": "390x844",
+    "zoom": 1,
+    "animationWaitMs": 0,
+    "issues": [],
+    "lint": []
+  }
+]

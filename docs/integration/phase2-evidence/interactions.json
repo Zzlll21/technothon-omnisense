@@ -1,0 +1,30 @@
+{
+  "browser": "In-app Chromium, final source on port 8130",
+  "startupAfterFirstFrameFix": "Three fresh desktop starts and phone startup visually verified with visible office geometry; ready state follows the first rendered projection",
+  "automaticRefresh": {
+    "beforeSnapshot": "2026-10-22T08:47:00+00:00",
+    "afterSnapshot": "2026-10-22T08:48:00+00:00",
+    "snapshotAdvanced": true,
+    "cameraAndSelectionPreserved": true,
+    "beforeAndAfterMarkers": [
+      {"id": "sim-1", "selected": false, "transform": "translate3d(286.508px, 45.5236px, 0px)"},
+      {"id": "sim-2", "selected": true, "transform": "translate3d(397.619px, 65.9941px, 0px)"}
+    ]
+  },
+  "manualRefreshPreservedCamera": true,
+  "heldRotationAndZoom": "650 ms rotation hold and 450 ms zoom hold changed pose; release stopped movement",
+  "wheelZoomChangedPose": true,
+  "keyboardRotationChangedPose": true,
+  "keyboardHomeRestoredDefaultPose": true,
+  "mouseOrbitAndWorldAlignment": "Visually inspected after orbit; markers followed ceiling devices and coverage planes rotated with the room",
+  "floorRoundTripPreservedPoseAndSelection": true,
+  "browserBackToFloor": true,
+  "browserForwardPreservedPoseAndSelection": true,
+  "illustrativeConferenceRoom": "No operational data; no inherited readings",
+  "direct3DDeviceHitTest": "Picking the sim-1 device in the rotated canvas opened Left sensor inspector",
+  "nodeSwitch": "Inspector switched between sim-1 / Left sensor / OCCUPIED_3P_PLUS and sim-2 / Right sensor / OCCUPIED_2P",
+  "historyUi": ["24 hours: 2880 samples and three charts", "7 days: 6111 samples and three charts", "1 hour: 119 samples and three charts in a later rolling window"],
+  "chartKeyboard": "End selected a stored sample; Escape cleared it without closing the inspector",
+  "focusRestoration": "Closing inspector restored focus to its invoking marker",
+  "mobile": "390x844/coarse-pointer browser emulation; native scrolling and explicit 44px camera controls. No physical-device test."
+}

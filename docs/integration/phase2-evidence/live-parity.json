@@ -1,0 +1,78 @@
+{
+  "checkedAt": "2026-10-22T08:34:26.390Z",
+  "runId": "fa15f01f-03ed-4a25-ab7d-575e56682222",
+  "zoneId": "zone-1",
+  "sequence": 6542,
+  "at": "2026-10-22T08:34:00+00:00",
+  "snapshotSha256": "058b38c730028aa5b2cce91b0d4c4f0d653153128bde463292187692e0375a0f",
+  "sameSnapshotOldAndNewRender": "passed",
+  "representative": "sim-1",
+  "nodes": [
+    {
+      "id": "sim-1",
+      "label": "Left sensor",
+      "temperature": 24.589,
+      "humidity": 60.447,
+      "observedAt": "2026-10-22T08:34:00+00:00",
+      "classification": "OCCUPIED_3P_PLUS",
+      "evidenceId": "fa15f01f-03ed-4a25-ab7d-575e56682222:6542:sim-1"
+    },
+    {
+      "id": "sim-2",
+      "label": "Right sensor",
+      "temperature": 24.889,
+      "humidity": 61.047,
+      "observedAt": "2026-10-22T08:34:00+00:00",
+      "classification": "OCCUPIED_2P",
+      "evidenceId": "fa15f01f-03ed-4a25-ab7d-575e56682222:6542:sim-2"
+    }
+  ],
+  "decisionId": "fa15f01f-03ed-4a25-ab7d-575e56682222:6384:decision",
+  "commandId": "fa15f01f-03ed-4a25-ab7d-575e56682222:6384:command",
+  "outputId": "fa15f01f-03ed-4a25-ab7d-575e56682222:6384:output",
+  "histories": [
+    {
+      "nodeId": "sim-1",
+      "hours": 1,
+      "count": 121,
+      "firstSequence": 6422,
+      "lastSequence": 6542
+    },
+    {
+      "nodeId": "sim-1",
+      "hours": 24,
+      "count": 2881,
+      "firstSequence": 3662,
+      "lastSequence": 6542
+    },
+    {
+      "nodeId": "sim-1",
+      "hours": 168,
+      "count": 6090,
+      "firstSequence": 453,
+      "lastSequence": 6542
+    },
+    {
+      "nodeId": "sim-2",
+      "hours": 1,
+      "count": 121,
+      "firstSequence": 6422,
+      "lastSequence": 6542
+    },
+    {
+      "nodeId": "sim-2",
+      "hours": 24,
+      "count": 2881,
+      "firstSequence": 3662,
+      "lastSequence": 6542
+    },
+    {
+      "nodeId": "sim-2",
+      "hours": 168,
+      "count": 6090,
+      "firstSequence": 453,
+      "lastSequence": 6542
+    }
+  ],
+  "writes": 0
+}

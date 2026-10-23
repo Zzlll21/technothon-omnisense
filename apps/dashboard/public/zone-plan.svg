@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="300" viewBox="0 0 700 300" fill="none">
+  <defs><pattern id="grid" width="22" height="22" patternUnits="userSpaceOnUse"><path d="M22 0H0V22" stroke="#e5ece5" stroke-width=".5"/></pattern></defs>
+  <rect width="700" height="300" fill="#f4f7f4"/>
+  <rect width="700" height="300" fill="url(#grid)"/>
+  <rect x="106" y="64" width="487" height="178" fill="#f8faf7"/>
+  <path d="M106 64H593V242H418M365 242H106V64" stroke="#b6c8b9" stroke-width="3"/>
+  <path d="M145 64H257M290 64H406M439 64H550" stroke="#89b6a0" stroke-width="5"/>
+  <path d="M365 242V195Q403 195 418 242" stroke="#c1cfc2" stroke-width="1.4"/>
+  <path d="M326 100H375V205H326Z" fill="#edf3ec" stroke="#dbe5d9"/>
+  <rect x="152" y="101" width="110" height="33" rx="3" fill="#edf2eb" stroke="#d6e1d4"/>
+  <rect x="152" y="179" width="110" height="33" rx="3" fill="#edf2eb" stroke="#d6e1d4"/>
+  <rect x="433" y="101" width="110" height="33" rx="3" fill="#edf2eb" stroke="#d6e1d4"/>
+  <rect x="433" y="179" width="110" height="33" rx="3" fill="#edf2eb" stroke="#d6e1d4"/>
+  <path d="M175 94V85H200V94M218 94V85H243V94M175 219V228H200V219M218 219V228H243V219M453 94V85H478V94M496 94V85H521V94M453 219V228H478V219M496 219V228H521V219" stroke="#cfdbcc" stroke-width="2"/>
+  <rect x="327" y="38" width="48" height="11" rx="2" fill="#dae8dd"/>
+  <path d="M335 43H366" stroke="#9fbba8"/>
+</svg>

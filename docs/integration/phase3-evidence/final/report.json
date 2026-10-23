@@ -1,0 +1,42 @@
+[
+  {
+    "file": "page-latest-1440x900.png",
+    "state": null,
+    "size": "1440x900",
+    "zoom": 1,
+    "group": "latest",
+    "animationWaitMs": 0,
+    "issues": [],
+    "lint": []
+  },
+  {
+    "file": "page-precool-1440x900.png",
+    "state": null,
+    "size": "1440x900",
+    "zoom": 1,
+    "group": "precool",
+    "animationWaitMs": 0,
+    "issues": [],
+    "lint": []
+  },
+  {
+    "file": "page-latest-390x844.png",
+    "state": null,
+    "size": "390x844",
+    "zoom": 1,
+    "group": "latest",
+    "animationWaitMs": 0,
+    "issues": [],
+    "lint": []
+  },
+  {
+    "file": "page-precool-390x844.png",
+    "state": null,
+    "size": "390x844",
+    "zoom": 1,
+    "group": "precool",
+    "animationWaitMs": 0,
+    "issues": [],
+    "lint": []
+  }
+]

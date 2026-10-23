@@ -1,0 +1,111 @@
+{
+  "checkedAt": "2026-10-22T11:47:05.850Z",
+  "snapshot": {
+    "runId": "fa15f01f-03ed-4a25-ab7d-575e56682222",
+    "zoneId": "zone-1",
+    "zoneName": "SDP Demo Cooling Zone",
+    "sequence": 6927,
+    "at": "2026-10-22T11:46:30+00:00"
+  },
+  "comparisons": [
+    {
+      "filters": {
+        "start": "2026-10-21T11:46:30.001Z",
+        "end": "2026-10-22T11:46:30.001Z",
+        "category": "ALL",
+        "mode": "",
+        "search": "",
+        "searchField": "all"
+      },
+      "count": 5796,
+      "firstPage": 25,
+      "paginationParity": "passed",
+      "representativeExactCorrelations": "passed"
+    },
+    {
+      "filters": {
+        "start": "2026-10-15T11:46:30.001Z",
+        "end": "2026-10-22T11:46:30.001Z",
+        "category": "ZONE_DECISION",
+        "mode": "PRECOOL",
+        "search": "FORECAST_RESTART",
+        "searchField": "all"
+      },
+      "count": 14,
+      "firstPage": 14,
+      "paginationParity": "passed",
+      "representativeExactCorrelations": "passed"
+    },
+    {
+      "filters": {
+        "start": "2026-10-21T11:46:30.001Z",
+        "end": "2026-10-22T11:46:30.001Z",
+        "category": "APPLIED_OUTPUT",
+        "mode": "",
+        "search": "",
+        "searchField": "all"
+      },
+      "count": 16,
+      "firstPage": 16,
+      "paginationParity": "passed",
+      "representativeExactCorrelations": "passed"
+    },
+    {
+      "filters": {
+        "start": "2026-10-21T11:46:30.001Z",
+        "end": "2026-10-22T11:46:30.001Z",
+        "category": "ALL",
+        "mode": "",
+        "search": "sim-1",
+        "searchField": "all"
+      },
+      "count": 2896,
+      "firstPage": 25,
+      "paginationParity": "passed",
+      "representativeExactCorrelations": "passed"
+    },
+    {
+      "filters": {
+        "start": "2026-10-21T11:46:30.001Z",
+        "end": "2026-10-22T11:46:30.001Z",
+        "category": "ALL",
+        "mode": "",
+        "search": "NO_MATCH_PHASE4_%_",
+        "searchField": "all"
+      },
+      "count": 0,
+      "firstPage": 0,
+      "paginationParity": "passed",
+      "representativeExactCorrelations": "passed"
+    }
+  ],
+  "csv": {
+    "rows": 2896,
+    "pages": 6,
+    "sha256": "8ee55cb1a7d1e431a9f0d6cec174dde5b6d3299559af6c6d09ff3baea144979f",
+    "byteForBytePhase3ExporterParity": true,
+    "cancelledAfterFirstPage": true,
+    "exporterSourceUnchanged": true
+  },
+  "writes": 0,
+  "browserDownload": {
+    "snapshot": {
+      "runId": "fa15f01f-03ed-4a25-ab7d-575e56682222",
+      "zoneId": "zone-1",
+      "zoneName": "SDP Demo Cooling Zone",
+      "sequence": 6923,
+      "at": "2026-10-22T11:44:30.000Z"
+    },
+    "filters": {
+      "start": "2026-10-21T11:44:52.167Z",
+      "end": "2026-10-22T11:44:52.167Z",
+      "category": "ALL",
+      "mode": "",
+      "search": "sim-1",
+      "searchField": "all"
+    },
+    "rows": 2896,
+    "sha256": "a019b1c88e28eda3dca8ee6bd69eb54638c41bd7a29fe451851dc9c354dd8e79",
+    "byteForBytePhase3ExporterParity": true
+  }
+}

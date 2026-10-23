@@ -1,0 +1,126 @@
+{
+  "checkedAt": "2026-10-22T12:01:00Z",
+  "source": "Actual ACTIVE SDP reads; fault cases use local response omission/failure and freshness-clock controls only. No database mutations.",
+  "preview": "http://127.0.0.1:8130/?experience=spatial&view=records",
+  "checks": [
+    {
+      "name": "24h chronology",
+      "result": "passed",
+      "observedAllRecords": 5796,
+      "scope": "Pinned actual snapshot; MYT displayed; newest first"
+    },
+    {
+      "name": "7d decisions and pagination",
+      "result": "passed",
+      "observedMatches": 112,
+      "pageSize": 25,
+      "page2": "26–50 / 112; no duplicate identities; result heading focused"
+    },
+    {
+      "name": "7d decisions + PRECOOL + FORECAST_RESTART",
+      "result": "passed",
+      "observedMatches": 14,
+      "inspector": "Raw reason, exact forecast, command and simulated output verified"
+    },
+    {
+      "name": "Technical event category + identifier search",
+      "result": "passed",
+      "category": "NODE_EVIDENCE",
+      "searchField": "event_id",
+      "search": "sim-1",
+      "observedMatches": 2879,
+      "inspector": "sim-1; VALID evidence; 28.2°C; 62.4% RH at sequence 6949"
+    },
+    {
+      "name": "Custom Malaysia-local dates",
+      "result": "passed",
+      "valid": "21–22 October inclusive; actual 32 decisions",
+      "invalid": "Over-seven-day range rejected without replacing applied query"
+    },
+    {
+      "name": "Exact historical cross-navigation",
+      "result": "passed",
+      "pinnedAt": "2026-10-21T11:56:00.000Z",
+      "openedEvent": "fa15f01f-03ed-4a25-ab7d-575e56682222:3754:decision",
+      "occurredAt": "2026-10-21T09:20:00.000Z",
+      "fullWorkspaceMatches": 1,
+      "return": "Same pinned timestamp, including across ordinary refresh and unrelated navigation"
+    },
+    {
+      "name": "Direct timeline marker",
+      "result": "passed",
+      "pin": "2026-10-22T09:20:00.000Z",
+      "identity": "Exact Standby decision; Escape restores focus to SVG decision marker"
+    },
+    {
+      "name": "Keyboard / contextual inspector",
+      "result": "passed",
+      "details": "Native modal, initial close focus, Escape dismissal and original ledger-row / SVG-marker focus restoration"
+    },
+    {
+      "name": "Empty search",
+      "result": "passed",
+      "details": "Server-returned zero; no matching records state"
+    },
+    {
+      "name": "Cached failed-read",
+      "result": "passed",
+      "details": "25 same-query cached rows retained; cache notice; export disabled"
+    },
+    {
+      "name": "New-query failed-read",
+      "result": "passed",
+      "details": "No unrelated cached rows; Record count unavailable; search retained; retry recovers actual zero"
+    },
+    {
+      "name": "No ACTIVE run",
+      "result": "passed",
+      "details": "No active dataset; no fabricated chronology or export; restore reads and Refresh recovers"
+    },
+    {
+      "name": "Stale feed",
+      "result": "passed",
+      "details": "Local freshness clock +10 min displays Data delayed and recorded snapshot; timestamps and values unchanged"
+    },
+    {
+      "name": "Missing frame / exact supporting forecast",
+      "result": "passed",
+      "details": "Local omission shows existing missing-link warnings; no invented occupancy/forecast; real correlated output retained"
+    },
+    {
+      "name": "Unavailable exact event",
+      "result": "passed",
+      "details": "Local exact-query omission displays Record unavailable; exact ID retained; no nearby replacement"
+    },
+    {
+      "name": "Browser CSV download",
+      "result": "passed",
+      "rows": 2896,
+      "details": "Actual downloaded file matches Phase 3 exporter byte for byte at its own pinned run/zone/sequence/time/filter boundaries; see live-parity.json"
+    },
+    {
+      "name": "Browser CSV cancellation and failed export",
+      "result": "passed",
+      "details": "Cancelled after start; separate failed read reports failure; no partial download and existing Downloads file metadata unchanged"
+    },
+    {
+      "name": "Floor / 3D regression",
+      "result": "passed",
+      "details": "Illustrative Conference Room remains disconnected; supported zone enters 3D; rotation/zoom keyboard controls work; Node 02 inspector loads 2,880 actual 24h samples; selected node and projected marker transforms identical after records round trip"
+    },
+    {
+      "name": "Desktop / phone visual checks",
+      "result": "passed",
+      "sizes": [
+        "1440x900",
+        "390x844"
+      ],
+      "details": "Ledger and modal screenshots reviewed; no horizontal overflow, broken images or console errors; 13px provenance; category eyebrow intentionally close to associated title"
+    }
+  ],
+  "limitations": [
+    "Phone-width browser testing is not a physical-device touch or screen-reader certification.",
+    "Rare production failures and missing links were tested through local read-response controls, not database mutation.",
+    "Dense timeline markers retain the existing compressed presentation; keyboard timestamp inspection and contextual record buttons remain available."
+  ]
+}

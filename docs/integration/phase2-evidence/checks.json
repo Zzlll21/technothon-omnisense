@@ -1,0 +1,13 @@
+{
+  "typecheck": "passed as part of npm run build",
+  "productionBuild": "passed",
+  "regressionCommand": "node --test test/*.test.mjs",
+  "regressionTests": 102,
+  "regressionPassed": 102,
+  "regressionFailed": 0,
+  "spatialTests": 12,
+  "buildAdvisory": "Lazily loaded officeRenderer chunk is 514.40 kB minified / 129.96 kB gzip; above Vite's default 500 kB advisory threshold",
+  "noNewPackageOrLockfileDependencies": true,
+  "phase3Started": false,
+  "pushOrMerge": false
+}

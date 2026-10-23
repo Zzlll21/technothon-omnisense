@@ -1,0 +1,23 @@
+{
+  "schema_version": "omnisense.hybrid-target.v1",
+  "environment_kind": "ISOLATED_TEST",
+  "project_ref": "<APPROVED_TEST_REFERENCE>",
+  "protected_project_ref": "<PROTECTED_DEMO_REFERENCE>",
+  "protected_project_refs": ["<PROTECTED_DEMO_REFERENCE>", "<OTHER_PROTECTED_REFERENCE>"],
+  "url": "https://<APPROVED_TEST_REFERENCE>.supabase.co",
+  "run_id": "<NEW_APPROVED_UUID>",
+  "live_anchor": "<APPROVED_UTC_ACTIVATION>",
+  "nodes": [
+    {"node_id":"demo-1","label":"Physical Node 1","x":0.3,"y":0.5},
+    {"node_id":"demo-2","label":"Physical Node 2","x":0.7,"y":0.5}
+  ],
+  "representative_node_id": "demo-1",
+  "full_zone_coverage": false,
+  "replaces_active_run_id": null,
+  "preview_origin": "http://127.0.0.1:5178",
+  "migrations": {
+    "001_sdp_foundation.sql":"<REVIEWED_SHA256>",
+    "002_sdp_hybrid.sql":"<REVIEWED_SHA256>",
+    "003_sdp_hybrid_isolated_lockdown.sql":"<REVIEWED_SHA256>"
+  }
+}

@@ -1,95 +1,28 @@
-# Dashboard App
+# OmniSense Dashboard
 
-React dashboard workspace for reading OmniSense telemetry from Supabase.
+The current product is the public landing page and authenticated Hybrid Spatial
+Workspace. Start with the repository [README](../../README.md) and
+[safe runtime setup](../../docs/PUBLIC-RUNTIME.md).
 
-The dashboard shows latest readings, a simple room heatmap, recent historical trends, and crisis mode controls.
+- `npm run dev`: local read-only/synthetic configuration via `.env`.
+- `npm run dev:hybrid`: explicit private configuration via `.env.hybrid.local`;
+  loopback port 5178 and the approved manifest origin must agree.
+- `npm run build`: TypeScript and normal static Vite build.
+- `npm run build:hybrid`: private static build; locally approved config required.
+- `npm run package:hybrid -- ABSOLUTE_FRESH_STAGE`: audit and package an existing
+  private build; requires `HYBRID_SITE_ORIGIN` and never deploys.
 
-## Environment
+`/` is public; `/workspace` and `?experience=spatial` are protected in private
+Hybrid mode. Sessions exist only in memory; browser reload needs sign-in.
+Workspace navigation within an active session does not request credentials twice.
+The browser uses only a publishable key and user authentication. RLS controls
+exact-run access; Reader B stays denied without an explicit owner grant.
 
-Use frontend-safe Supabase credentials only:
+The `dev:site`/`build:site` helpers retain legacy synthetic worktree environment
+fallback behavior. Use `dev:hybrid`/`build:hybrid` for private operation.
+Never place MQTT or backend keys in any frontend environment or Vite define.
 
-```text
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
-VITE_API_BASE_URL=http://localhost:3001
-```
-
-If your Supabase project provides a publishable key instead of an anon key, use:
-
-```text
-VITE_SUPABASE_PUBLISHABLE_KEY=your-supabase-publishable-key
-```
-
-Never put `SUPABASE_SERVICE_ROLE_KEY` or an `sb_secret` key in dashboard files.
-
-Create the dashboard env file inside `apps/dashboard`:
-
-```powershell
-Copy-Item .env.example .env
-```
-
-After editing `.env`, restart `npm run dev` or `npm run preview`. Vite only reads env files when the server starts.
-
-## Data Helpers
-
-- `src/lib/supabase.ts` creates the browser Supabase client from `VITE_` env vars.
-- `src/api/readings.ts` exports:
-  - `fetchLatestReadingsByNode()` for the newest reading per node.
-  - `fetchRecentHistoryForNode(nodeId, options)` for recent rows for one node.
-  - `createReadingsLoadingState()` for a simple loading state before async calls finish.
-- `src/api/crisis.ts` exports `sendCrisisCommand()` for calling the backend control API with `VITE_API_BASE_URL`.
-
-The Crisis Mode section calls the backend control API. The dashboard must never contain MQTT credentials.
-
-`fetchRecentHistoryForNode()` fetches the newest rows first, then returns ascending order by default for chart-friendly history.
-The history section uses a lightweight inline SVG chart to plot temperature, humidity, PMV, headcount, and optional air quality for the selected node.
-
-Both helpers return a simple state object:
-
-```ts
-{
-  status: "success" | "error",
-  data: [],
-  error: string | null,
-  isEmpty: boolean
-}
-```
-
-## Local Setup
-
-```powershell
-npm install
-Copy-Item .env.example .env
-npm run dev
-```
-
-For a production-style preview:
-
-```powershell
-npm run build
-npm run preview
-```
-
-For a quick static check:
-
-```powershell
-npm run typecheck
-```
-
-Open the local Vite URL printed by `npm run dev` or `npm run preview`.
-
-## Supabase RLS
-
-If reads fail with a row-level security error, add a SELECT policy for the frontend anon or publishable role instead of using the service role key in the browser.
-
-Example demo-only policy:
-
-```sql
-create policy "Allow public read access for demo"
-on public.sensor_readings
-for select
-to anon
-using (true);
-```
-
-Use a stricter policy before production.
+The stable release includes temperature, humidity and occupancy histories, four
+cooling modes, elapsed-time analytics, contextual records and safe CSV export.
+PMV implementation/migration 004 is not included. Geometry and surrounding rooms
+are illustrative; cooling reports are simulated, not equipment feedback.

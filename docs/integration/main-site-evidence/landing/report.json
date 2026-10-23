@@ -1,0 +1,40 @@
+[
+  {
+    "file": "page.png",
+    "state": null,
+    "size": "1440x900",
+    "zoom": 1,
+    "animationWaitMs": 0,
+    "issues": [],
+    "lint": [
+      {
+        "rule": "eyebrow",
+        "label": "标题上方的眉标",
+        "count": 7,
+        "examples": [
+          "p.eyebrow.hero-enter「SMART BUILDING COOLING, 」",
+          "p.mini-label「CURRENT COOLING REQUEST」",
+          "p.eyebrow「FROM SIGNAL TO UNDERSTAN」"
+        ]
+      },
+      {
+        "rule": "numbered",
+        "label": "标题上方的编号标签",
+        "count": 1,
+        "examples": [
+          "div.chapter-number「01 / SENSE」"
+        ]
+      },
+      {
+        "rule": "contrastLow",
+        "label": "文字对比度不达标（正文低于 4.5:1，大字低于 3:1）",
+        "count": 9,
+        "examples": [
+          "span「ONE ZONE · TWO SENSORS」（4.04:1）",
+          "strong「Vacant now.」（4.04:1）",
+          "p.sensor-caption「Node 01 · Vacant · fresh」（4.04:1）"
+        ]
+      }
+    ]
+  }
+]

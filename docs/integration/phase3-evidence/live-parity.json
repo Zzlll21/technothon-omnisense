@@ -1,0 +1,125 @@
+{
+  "checkedAt": "2026-10-22T10:58:18.161Z",
+  "runId": "fa15f01f-03ed-4a25-ab7d-575e56682222",
+  "zoneId": "zone-1",
+  "committedSequence": 6830,
+  "snapshotAt": "2026-10-22T10:58:00+00:00",
+  "representativeNode": "sim-1",
+  "ranges": [
+    {
+      "hours": 24,
+      "start": "2026-10-21T10:58:00.000Z",
+      "end": "2026-10-22T10:58:00+00:00",
+      "frames": 2881,
+      "nodeRecords": [
+        {
+          "id": "sim-1",
+          "count": 2881,
+          "firstSequence": 3950,
+          "lastSequence": 6830
+        },
+        {
+          "id": "sim-2",
+          "count": 2881,
+          "firstSequence": 3950,
+          "lastSequence": 6830
+        }
+      ],
+      "modesMs": {
+        "OCCUPIED": 28200000,
+        "SHORT_VACANCY": 3000000,
+        "LONG_VACANCY": 54000000,
+        "PRECOOL": 1200000
+      },
+      "reducedAndStandbyMs": 57000000,
+      "normalVacantMs": 1200000,
+      "knownMs": 86400000,
+      "unknownMs": 0,
+      "coverage": "100.0%",
+      "overlapMs": {
+        "OCCUPIED": {
+          "OCCUPIED": 27000000,
+          "SHORT_VACANCY": 0,
+          "LONG_VACANCY": 0,
+          "PRECOOL": 0
+        },
+        "VACANT": {
+          "OCCUPIED": 1200000,
+          "SHORT_VACANCY": 3000000,
+          "LONG_VACANCY": 54000000,
+          "PRECOOL": 1200000
+        },
+        "UNCERTAIN": {
+          "OCCUPIED": 0,
+          "SHORT_VACANCY": 0,
+          "LONG_VACANCY": 0,
+          "PRECOOL": 0
+        }
+      },
+      "inspectionsChecked": 117,
+      "timelineDurationParity": "passed",
+      "legacyInspectorParity": "passed",
+      "bothNodeEvidenceParity": "passed",
+      "futureForecastExclusion": "passed",
+      "statisticsRenderParity": "passed"
+    },
+    {
+      "hours": 168,
+      "start": "2026-10-15T10:58:00.000Z",
+      "end": "2026-10-22T10:58:00+00:00",
+      "frames": 6349,
+      "nodeRecords": [
+        {
+          "id": "sim-1",
+          "count": 6349,
+          "firstSequence": 482,
+          "lastSequence": 6830
+        },
+        {
+          "id": "sim-2",
+          "count": 6349,
+          "firstSequence": 482,
+          "lastSequence": 6830
+        }
+      ],
+      "modesMs": {
+        "OCCUPIED": 197400000,
+        "SHORT_VACANCY": 21000000,
+        "LONG_VACANCY": 378000000,
+        "PRECOOL": 8400000
+      },
+      "reducedAndStandbyMs": 399000000,
+      "normalVacantMs": 8400000,
+      "knownMs": 604800000,
+      "unknownMs": 0,
+      "coverage": "100.0%",
+      "overlapMs": {
+        "OCCUPIED": {
+          "OCCUPIED": 189000000,
+          "SHORT_VACANCY": 0,
+          "LONG_VACANCY": 0,
+          "PRECOOL": 0
+        },
+        "VACANT": {
+          "OCCUPIED": 8400000,
+          "SHORT_VACANCY": 21000000,
+          "LONG_VACANCY": 378000000,
+          "PRECOOL": 8400000
+        },
+        "UNCERTAIN": {
+          "OCCUPIED": 0,
+          "SHORT_VACANCY": 0,
+          "LONG_VACANCY": 0,
+          "PRECOOL": 0
+        }
+      },
+      "inspectionsChecked": 270,
+      "timelineDurationParity": "passed",
+      "legacyInspectorParity": "passed",
+      "bothNodeEvidenceParity": "passed",
+      "futureForecastExclusion": "passed",
+      "statisticsRenderParity": "passed"
+    }
+  ],
+  "writes": 0
+}

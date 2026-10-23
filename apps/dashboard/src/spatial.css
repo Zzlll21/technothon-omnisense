@@ -1,0 +1,98 @@
+/* Scoped port of the approved floor design. No global resets or dashboard overrides. */
+.spatial-app{--sa-ink:#183e35;--sa-muted:#5c6d5b;--sa-line:#d3dccb;min-height:100svh;background:#f3f5ef;color:var(--sa-ink);font:14px/1.55 'Segoe UI',sans-serif}
+.spatial-app :where(button,a,summary){touch-action:manipulation}
+.spatial-app :where(h1,h2,h3,p){margin:0;color:inherit}
+.spatial-app :where(button){border:0;background:none;color:inherit;border-radius:0;font:inherit;cursor:pointer}
+.spatial-app :where(a){color:inherit;text-decoration:none}
+.spatial-app :where(button,a,summary,[tabindex]):focus-visible{outline:3px solid #426e59;outline-offset:4px}
+.spatial-app button:disabled{cursor:wait;opacity:.6}
+.spatial-app .sa-skip{position:fixed;top:8px;left:16px;transform:translateY(-150%);z-index:10;padding:12px;background:#fff}
+.spatial-app .sa-skip:focus{transform:none}
+.spatial-app .sa-header{display:flex;align-items:center;gap:24px;min-height:84px;border-bottom:1px solid var(--sa-line);padding:16px 42px;background:#fafbf6}
+.spatial-app .sa-brand{display:flex;align-items:center;gap:11px;font-size:24px;font-weight:650;letter-spacing:-.7px}
+.spatial-app .sa-brand svg{width:32px;height:32px;fill:none;stroke:currentColor;stroke-width:1.5}
+.spatial-app .sa-context{font-size:13px;font-weight:600}
+.spatial-app .sa-header-end{display:flex;gap:24px;align-items:center;margin-left:auto;color:var(--sa-muted);font-size:12px}
+.spatial-app .sa-feed{border-left:1px solid var(--sa-line);padding-left:20px}
+.spatial-app .sa-nav{display:flex;align-items:center;gap:30px;padding:0 42px;border-bottom:1px solid var(--sa-line);min-height:57px;font-size:13px}
+.spatial-app .sa-nav a{display:flex;align-items:center;gap:8px;min-height:57px;border-bottom:2px solid transparent}
+.spatial-app .sa-nav a[aria-current]{border-color:var(--sa-ink);font-weight:600}
+.spatial-app .sa-nav>span{margin-left:auto;color:var(--sa-muted);font-size:12px}
+.spatial-app main{max-width:1600px;padding:30px 42px 22px;margin:auto;min-width:0;outline:none}
+.spatial-app .sa-heading{display:flex;justify-content:space-between;gap:30px;align-items:center;margin:0 0 20px}
+.spatial-app h1{font:500 34px/1.2 Bahnschrift,'Segoe UI',sans-serif;letter-spacing:-.7px}
+.spatial-app .sa-heading p{max-width:65ch;color:var(--sa-muted);margin-top:9px;font-size:14px}
+.spatial-app .sa-refresh{display:flex;align-items:center;gap:14px;color:var(--sa-muted);font-size:12px;white-space:nowrap}
+.spatial-app .sa-refresh button{display:flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--sa-line);border-radius:4px;padding:10px;min-height:42px;background:#fafbf6;min-width:93px}
+.spatial-app .sa-refresh button:hover{background:#e7eddf}
+.spatial-app .sa-notice{border-left:3px solid #976c21;padding:12px 16px;background:#f4edda;margin-bottom:20px;color:#654c22;font-size:13px}
+.spatial-app .sa-key{display:flex;gap:24px;color:var(--sa-muted);font-size:12px;margin-bottom:24px}
+.spatial-app .sa-key span{display:flex;gap:7px;align-items:center}
+.spatial-app .sa-key i{width:13px;height:13px;border:1px solid #6d8b58;background:#dce9d1}
+.spatial-app .sa-key i.sa-key-empty{border-color:#a4b09a;background:#edf0e8}
+.spatial-app .sa-layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:36px;align-items:start}
+.spatial-app .sa-drawing{border-top:1px solid var(--sa-line);padding-top:16px;min-width:0}
+.spatial-app .sa-drawing-title{display:flex;justify-content:space-between;gap:15px;font-size:13px;padding-bottom:3px}
+.spatial-app .sa-drawing-title span{color:var(--sa-muted)}
+.spatial-app .sa-plan-scroll{overflow-x:auto;overscroll-behavior-x:contain}
+.spatial-app .sa-plan-hint{display:none;font-size:13px;color:var(--sa-muted);margin-top:8px}
+.spatial-app .sa-plan{display:block;width:100%;min-width:640px;height:auto;max-height:545px}
+.spatial-app .sa-space{cursor:pointer;outline:none}
+.spatial-app .sa-room-fill{fill:#edf0e8;stroke:#d3dccc;stroke-width:1;transition:fill 180ms,stroke 180ms}
+.spatial-app .sa-supported .sa-room-fill{fill:#e3edda}
+.spatial-app .sa-space:hover .sa-room-fill{fill:#e1e8d9}
+.spatial-app .sa-space[aria-pressed=true] .sa-room-fill{fill:#dce9d1;stroke:#5e8050;stroke-width:2}
+.spatial-app .sa-space:focus-visible .sa-room-fill{stroke:#183e35;stroke-width:4}
+.spatial-app .sa-room-name{fill:#183e35;font-size:18px;font-weight:600}
+.spatial-app .sa-room-meta{fill:#53664f;font-size:13px}
+.spatial-app .sa-plan-context{pointer-events:none}
+.spatial-app .sa-furniture{fill:#e7e5d8;stroke:#a1ad96;stroke-width:1.2}
+.spatial-app .sa-plant{fill:#d2dfc7;stroke:#91a47f;stroke-width:1}
+.spatial-app .sa-walls{fill:none;stroke:#596d53;stroke-width:7;stroke-linejoin:miter}
+.spatial-app .sa-doors{fill:none;stroke:#9ba894;stroke-width:1}
+.spatial-app .sa-windows{fill:none;stroke:#8baca7;stroke-width:4}
+.spatial-app .sa-sensing{fill:none;stroke:#8ba579;stroke-dasharray:4 4}
+.spatial-app .sa-node{fill:#f8fcf3;stroke:#5c7c4f}
+.spatial-app .sa-node-label{fill:#496c40;font-size:11px;font-weight:600}
+.spatial-app .sa-corridor{fill:#667660;font-size:13px;letter-spacing:2px}
+.spatial-app .sa-north{font-size:12px;fill:#63735c}
+.spatial-app .sa-space-index{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));border-block:1px solid var(--sa-line);margin-top:8px;gap:10px}
+.spatial-app .sa-space-index button{padding:15px 9px 16px;text-align:left;border-bottom:2px solid transparent;min-width:0;font-size:13px;min-height:70px}
+.spatial-app .sa-space-index button[aria-pressed=true]{border-bottom-color:var(--sa-ink)}
+.spatial-app .sa-space-index button:hover{background:#e8ede2}
+.spatial-app .sa-space-index small{display:block;color:var(--sa-muted);font-size:12px;margin-top:4px}
+.spatial-app .sa-inspector{border-top:1px solid var(--sa-line);padding-top:22px;scroll-margin-top:18px;min-width:0}
+.spatial-app .sa-kicker{font-size:12px;color:#47633c}
+.spatial-app .sa-inspector h2{font:500 28px/1.15 Bahnschrift,'Segoe UI',sans-serif;letter-spacing:-.5px;margin:10px 0 16px}
+.spatial-app .sa-zone-description{font-size:13px;line-height:1.7;color:var(--sa-muted);margin-bottom:20px;overflow-wrap:anywhere}
+.spatial-app .sa-zone-description strong{font-weight:500;color:var(--sa-ink)}
+.spatial-app .sa-zone-state{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12px;color:var(--sa-muted)}
+.spatial-app .sa-zone-state strong{font-weight:600;color:var(--sa-ink);font-size:14px}
+.spatial-app .sa-environment{display:flex;gap:23px;align-items:baseline;margin:16px 0 8px}
+.spatial-app .sa-environment strong{font:500 35px/1 Bahnschrift,'Segoe UI',sans-serif;letter-spacing:-.7px;font-variant-numeric:tabular-nums}
+.spatial-app .sa-environment small{font:14px 'Segoe UI',sans-serif;margin-left:3px}
+.spatial-app .sa-reading-basis{font-size:12px;color:var(--sa-muted);margin-bottom:17px}
+.spatial-app .sa-facts{margin:0;padding:12px 0;border-block:1px solid var(--sa-line)}
+.spatial-app .sa-facts>div{display:flex;justify-content:space-between;gap:14px;font-size:13px;padding:6px 0}
+.spatial-app .sa-facts dt{color:var(--sa-muted);flex-shrink:0}
+.spatial-app .sa-facts dd{margin:0;font-weight:500;text-align:right;font-variant-numeric:tabular-nums}
+.spatial-app .sa-forecast-note{font-size:13px;line-height:1.65;color:var(--sa-muted);margin:12px 0 16px}
+.spatial-app .sa-evidence,.spatial-app .sa-provenance{font-size:12px;border-bottom:1px solid var(--sa-line);padding-bottom:12px}
+.spatial-app summary{cursor:pointer;min-height:32px;padding:5px 0}
+.spatial-app .sa-evidence-content section{padding:10px 0;border-top:1px solid var(--sa-line);color:var(--sa-muted)}
+.spatial-app .sa-evidence h3{font-size:13px;font-weight:600;color:var(--sa-ink);margin-bottom:5px}
+.spatial-app .sa-evidence small{font-size:12px}
+.spatial-app .sa-primary{display:flex;justify-content:space-between;gap:12px;align-items:center;width:100%;padding:13px 15px;min-height:46px;border-radius:4px;background:var(--sa-ink);color:#fff;margin:20px 0 14px;font-size:13px}
+.spatial-app .sa-primary:hover{background:#2d6452}
+.spatial-app .sa-data-note{font-size:13px;line-height:1.65;color:var(--sa-muted)}
+.spatial-app .sa-provenance{margin-top:12px}
+.spatial-app .sa-provenance dl{margin:0}.spatial-app .sa-provenance dd{margin:0;overflow-wrap:anywhere;font:11px/1.6 Consolas,monospace;color:var(--sa-muted)}
+.spatial-app .sa-provenance dl>div{padding:6px 0}
+.spatial-app .sa-unconnected h3{font-size:18px;font-weight:500;margin:14px 0 10px}
+.spatial-app .sa-unconnected p{font-size:14px;line-height:1.7;color:var(--sa-muted)}
+.spatial-app .sa-boundary{font-size:13px;color:var(--sa-muted);margin:18px 0 26px;max-width:85ch}
+.spatial-app .sa-footer{display:flex;justify-content:space-between;gap:26px;border-top:1px solid var(--sa-line);padding-top:16px;font-size:13px;color:var(--sa-muted)}
+@media(max-width:1150px) and (min-width:801px){.spatial-app .sa-layout{grid-template-columns:minmax(0,1fr) 270px;gap:25px}.spatial-app .sa-space-index{grid-template-columns:repeat(3,minmax(0,1fr))}.spatial-app .sa-header-end>span:first-child{display:none}.spatial-app .sa-heading{align-items:start}}
+@media(max-width:800px){.spatial-app .sa-header{padding:16px 18px;gap:16px;min-height:70px}.spatial-app .sa-brand{font-size:21px}.spatial-app .sa-brand svg{width:27px;height:27px}.spatial-app .sa-context,.spatial-app .sa-header-end>span:first-child{display:none}.spatial-app .sa-header-end{font-size:11px}.spatial-app .sa-feed{padding-left:12px}.spatial-app .sa-nav{padding:0 18px;gap:24px;font-size:12px}.spatial-app .sa-nav>span{display:none}.spatial-app main{padding:24px 18px 20px}.spatial-app .sa-heading{display:block}.spatial-app h1{font-size:28px}.spatial-app .sa-heading p{max-width:48ch}.spatial-app .sa-refresh{justify-content:space-between;margin-top:18px}.spatial-app .sa-layout{grid-template-columns:1fr;gap:22px}.spatial-app .sa-key{gap:18px}.spatial-app .sa-plan{min-width:720px}.spatial-app .sa-space-index{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 10px;margin-top:20px}.spatial-app .sa-space-index button{min-height:68px;padding:12px 6px}.spatial-app .sa-inspector h2{font-size:25px}.spatial-app .sa-inspector{padding-top:17px}.spatial-app .sa-footer{display:block}.spatial-app .sa-footer span{display:block;margin-top:10px}.spatial-app .sa-boundary{line-height:1.65}}
+@media(prefers-reduced-motion:reduce){.spatial-app .sa-room-fill{transition:none}}
+@media(max-width:800px){.spatial-app .sa-plan-hint{display:block}}
