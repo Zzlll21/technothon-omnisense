@@ -1,178 +1,129 @@
-# OmniSense Smart HVAC Prototype
+# OmniSense — Spatial Cooling Intelligence
 
-Hackathon prototype pipeline:
+OmniSense connects ceiling-mounted ESP32 sensing nodes to a spatial monitoring
+workspace. The competition implementation combines real sensor evidence with
+stored occupancy decisions, expected-use windows and **simulated cooling output**.
+It does not actuate physical HVAC or establish measured energy savings.
 
-```text
-fake ESP32 publisher -> HiveMQ Cloud MQTT -> mqtt-subscriber -> Supabase -> React dashboard
-                                                   dashboard -> control-api -> HiveMQ MQTT command
-```
+Website: [omnisense-hybrid-spatial.vercel.app](https://omnisense-hybrid-spatial.vercel.app).
+The landing page is public. Workspace data requires an approved private account
+and an exact-run Supabase reader grant. Repository access does not grant data access.
 
-The local demo uses cloud MQTT and Supabase, with four local processes:
-
-- `services/mqtt-subscriber`: receives telemetry and inserts valid rows into Supabase.
-- `services/control-api`: accepts dashboard crisis-mode requests and publishes MQTT commands.
-- `scripts/fake-esp32-publisher`: simulates ESP32 telemetry for `demo-1`.
-- `apps/dashboard`: shows overview cards, historical charts, room comfort map, and crisis controls.
-
-## Prerequisites
-
-- Git
-- Node.js 20+ with npm
-- HiveMQ Cloud broker
-- Supabase project
-- MQTTX for MQTT testing
-
-On Windows PowerShell, use `npm.cmd` if `npm.ps1` is blocked.
-
-## Project Structure
+## Architecture
 
 ```text
-apps/dashboard/                 React dashboard
-services/mqtt-subscriber/       MQTT telemetry -> Supabase backend
-services/control-api/           Dashboard control API -> MQTT command backend
-scripts/fake-esp32-publisher/   Fake ESP32 telemetry publisher
-supabase/schema.sql             Manual Supabase schema setup
-docs/local-demo.md              Full demo-day runbook
-docs/demo-checklist.md          Rehearsal and presentation checklist
-docs/mqtt-contract.md           MQTT topic and JSON payload contract
+Two ESP32 ceiling nodes (demo-1 / demo-2)
+  → HiveMQ MQTT over TLS
+  → one local Hybrid Supervisor / Writer
+  → isolated Supabase: evidence, atomic frames, decisions and events
+  → authenticated React + Vite Spatial Dashboard (static hosting on Vercel)
 ```
 
-## SDP Integration Draft
+The Writer is a separate long-running service, not browser code or a Vercel
+Function. Its host must remain running for live updates. After it stops, the
+website can display stored records with freshness and unavailable-data handling.
+The Spatial Workspace does not use the retained legacy Control API.
 
-The proposed SDP interfaces, simulated scenarios and opt-in dashboard data adapter are documented in [SDP Integration Contract v1 Draft](docs/sdp-contract-v1.md). Shared types and validation live in `packages/sdp-contract`. This is a review draft; it does not change the working Technothon pipeline or finalize new MQTT topics.
+## Implemented scope
 
-## Fresh Clone Setup
+- Public landing → sign-in → protected workspace, memory-only session, logout
+  and exact allowed-origin checks. Browser refresh requires sign-in again.
+- Interactive 2D Floor Overview and rotatable/zoomable 3D office, node selection,
+  per-node occupancy/headcount category, temperature, humidity and history.
+- Usage & Cooling: shared elapsed-time axis, zoom/pan, pinned historical inspector,
+  forecast-as-of interpretation, four cooling modes and timestamp-based utilization.
+- Operating Records: server-side search/filtering, pagination, exact correlated
+  details, full filtered CSV export, cancellation and spreadsheet formula protection.
+- Hybrid normalization/fusion, receipt freshness, conservative missing-data states,
+  atomic checkpoints, exclusive fenced Writer lease and sanitized diagnostics.
+- Separate synthetic model and offline replay/regression tests.
 
-Install dependencies in each runnable workspace:
+The configured representative node supplies zone environmental readings; the UI
+does not silently average nodes. One shared cooling zone is supported. Surrounding
+floorplan rooms and approximate sensing footprints are illustrative. Counts such
+as `3+` are categories, not an exact census. `full_zone_coverage=false` means two
+empty node readings do not establish confirmed whole-zone vacancy.
+
+Forecasts in this demonstration use synthetic schedules, not a trained prediction
+service or live booking integration. Cooling acknowledgements are simulated
+records, not proof that equipment operated.
+
+## Future / excluded from this stable release
+
+Firmware PMV support and migration 004 remain separate unfinished development work.
+Other future work includes physical BMS/HVAC actuation, validated full-room coverage,
+trained forecasts, booking integration, measured energy evaluation and continuous
+cloud hosting of the Writer. Retained legacy modules and design prototypes are
+historical reference, not additional active services.
+
+## Installation
+
+Use Node.js 22.12+ (validated with Node 24) and Python 3 for the release audit.
+Run from the repository root. On Windows use `npm.cmd` if PowerShell blocks
+`npm.ps1`; use `npm` on other systems.
 
 ```powershell
-cd services\mqtt-subscriber
-npm install
-
-cd ..\control-api
-npm install
-
-cd ..\..\scripts\fake-esp32-publisher
-npm install
-
-cd ..\..\apps\dashboard
-npm install
+npm.cmd --prefix apps/dashboard ci --no-audit --no-fund
+npm.cmd --prefix services/sdp-generator ci --no-audit --no-fund
+npm.cmd --prefix packages/sdp-contract run build
+npm.cmd --prefix services/sdp-generator run build
 ```
 
-From the repo root, copy env templates:
+Each runnable package has its own lockfile; there is no root npm workspace install.
+Installation downloads dependencies. Validation below never installs or upgrades
+packages and blocks external Node HTTP/MQTT connections.
+
+## Safe offline evaluation — no accounts or cloud access
 
 ```powershell
-Copy-Item services\mqtt-subscriber\.env.example services\mqtt-subscriber\.env
-Copy-Item services\control-api\.env.example services\control-api\.env
-Copy-Item scripts\fake-esp32-publisher\.env.example scripts\fake-esp32-publisher\.env
-Copy-Item apps\dashboard\.env.example apps\dashboard\.env
+node scripts/validate-release.mjs
+python scripts/audit-public-release.py
 ```
 
-Never commit `.env` files. They are ignored by git.
-
-## Environment Files
-
-Backend-only files:
-
-- `services/mqtt-subscriber/.env`
-- `services/control-api/.env`
-- `scripts/fake-esp32-publisher/.env`
-
-These may contain MQTT credentials. `services/mqtt-subscriber/.env` also contains `SUPABASE_SERVICE_ROLE_KEY`. These values must not be placed in dashboard files.
-
-Frontend-safe file:
-
-- `apps/dashboard/.env`
-
-Only use `VITE_` variables here:
-
-```text
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
-VITE_API_BASE_URL=http://localhost:3001
-```
-
-## Supabase Setup
-
-1. Open Supabase SQL Editor.
-2. Run `supabase/schema.sql`.
-3. Enable row-level security on `public.sensor_readings`.
-4. Add a demo read policy for the dashboard:
-
-```sql
-create policy "Allow public read access for demo"
-on public.sensor_readings
-for select
-to anon
-using (true);
-```
-
-Use the Supabase service role or secret key only in `services/mqtt-subscriber/.env`.
-
-## HiveMQ Setup
-
-Use HiveMQ Cloud over TLS:
-
-```text
-Host: your-hivemq-cloud-host
-Port: 8883
-SSL/TLS: ON
-```
-
-Create MQTT Access Credentials in HiveMQ Cloud. Use those MQTT credentials in the fake publisher, subscriber, control API, and ESP32 firmware. Firmware should never use Supabase keys.
-
-## Demo Startup Order
-
-Terminal 1:
+Validation runs contracts, generator/database tests against disposable in-process
+PGlite, dashboard tests, TypeScript and the production frontend build. It executes
+no hosted SQL. With no configuration, the website shows its public landing and an
+honest unavailable/setup state rather than fabricated operational readings:
 
 ```powershell
-cd services\mqtt-subscriber
-npm start
+npm.cmd --prefix apps/dashboard run dev
 ```
 
-Terminal 2:
+Use the printed URL; `/workspace` opens the workspace route. To replay telemetry
+or generate a bounded offline synthetic sample without connecting to MQTT/Supabase:
 
 ```powershell
-cd services\control-api
-npm start
+node services/sdp-generator/hybrid-mqtt.mjs --replay services/sdp-generator/test/fixtures/firmware-replay.json
+node services/sdp-generator/index.mjs --frames 3
 ```
 
-Terminal 3:
+These CLI commands do not load private environment files implicitly.
 
-```powershell
-cd scripts\fake-esp32-publisher
-npm start
-```
+## Configured Dashboard and Backend
 
-Terminal 4:
+See [safe runtime setup](docs/PUBLIC-RUNTIME.md) for environment-variable templates,
+target registration and operator-only startup. Templates contain no credentials:
 
-```powershell
-cd apps\dashboard
-npm run dev
-```
+| Purpose | Template | Private local destination |
+| --- | --- | --- |
+| Synthetic read-only Dashboard | `apps/dashboard/.env.example` | `apps/dashboard/.env` |
+| Private Hybrid Dashboard | `apps/dashboard/.env.hybrid.example` | `apps/dashboard/.env.hybrid.local` |
+| Hybrid Supervisor | `services/sdp-generator/hybrid-runtime.env.example` | `services/sdp-generator/hybrid-runtime.local.env` |
 
-Open the Vite URL printed by the dashboard.
+Do not point the Hybrid Writer at the synthetic project. Do not repeat existing
+migrations, replace an ACTIVE run, grant readers or start another writer during
+evaluation. Real operation needs explicit owner authorization and approved private
+configuration; public source alone intentionally cannot enable live writes.
 
-## Demo Verification
+## Deployment and review
 
-- Supabase `sensor_readings` receives rows.
-- Dashboard overview shows `demo-1`.
-- Historical charts update after a few minutes of fake telemetry.
-- Room Comfort Map shows `demo-1` in the Center zone.
-- MQTTX subscribed to `omnisense/node/demo-1/command` receives crisis commands.
-- Dashboard Enable/Disable Crisis Mode buttons publish `SET_CRISIS_MODE` through `services/control-api`.
+[Vercel frontend instructions](docs/integration/VERCEL-HYBRID-FRONTEND.md) describe
+audited static prebuilt packaging with one exact production origin. The existing
+Vercel deployment is independent of this GitHub release. Keep automatic GitHub
+deployment disconnected unless separately approved.
 
-## Troubleshooting
-
-- Dashboard has no readings: check Supabase RLS SELECT policy.
-- Dashboard white page or config error: create `apps/dashboard/.env`, fill `VITE_` values, and restart `npm run dev`.
-- MQTT connects to `mqtt://localhost:1883`: save the correct `.env` file and restart the process. Node only reads `--env-file=.env` at startup.
-- PowerShell blocks `npm.ps1`: use `npm.cmd` or adjust PowerShell execution policy.
-- MQTTX sees no crisis command: start `services/control-api`, confirm MQTT credentials, and subscribe to `omnisense/node/demo-1/command`.
-- Never commit `.env` files or paste real passwords/service keys into docs.
-
-See [docs/local-demo.md](docs/local-demo.md) for the longer runbook and [docs/demo-checklist.md](docs/demo-checklist.md) for rehearsal.
-
-## Not Production-Ready
-
-This is a hackathon demo. It does not include production auth, API rate limiting, durable command queues, device identity management, deployment automation, or production-grade RLS policies.
+See [release boundaries](docs/PUBLIC-RELEASE.md) and [security policy](SECURITY.md).
+Older integration reports describe dated test stages and contain non-secret
+project/run/test-user identifiers; they are not current setup instructions.
+Do not publish private environments, manifests, populated approval registries,
+Vercel metadata or new raw runtime evidence.

@@ -35,3 +35,22 @@ Thumbs.db
 /services/sdp-generator/hybrid-*.env.*
 !/services/sdp-generator/hybrid-mqtt.env.example
 /services/sdp-generator/deployment/hybrid-target.*.draft.json
+
+# Public submission: local tooling, deployments and private runtime evidence
+.vercel/
+.codex/
+.agents/
+*.pem
+*.key
+*.p12
+*.pfx
+*runtime.local*.json
+*session.local*.json
+/private/
+/runtime-evidence/
+/deployment-staging/
+/services/sdp-generator/deployment/hybrid-target.*.json
+!/services/sdp-generator/deployment/hybrid-target.example.json
+# Templates contain names/placeholders only; real environments remain ignored.
+!**/.env.*.example
+!/services/sdp-generator/hybrid-runtime.env.example
