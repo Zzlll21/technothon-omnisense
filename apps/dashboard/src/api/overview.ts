@@ -19,19 +19,25 @@ function event(value: unknown, runId: string, zoneId: string, cutoff: string, mo
   if (!checked.ok || !eventMatchesRun(checked.value, runId, modelVersion) || checked.value.zone_id !== zoneId || Date.parse(checked.value.occurred_at) > Date.parse(cutoff)) fail();
   return checked.value;
 }
-export async function fetchOverview(client: Pick<SupabaseClient, "from">, signal: AbortSignal): Promise<OverviewData | null> {
+export async function fetchOverview(client: Pick<SupabaseClient, "from">, signal: AbortSignal, expectedRunId?: string): Promise<OverviewData | null> {
   // A publication switch may hide a run midway through the reads; retry once.
   for (let attempt = 0; attempt < 2; attempt++) {
-    try { return await fetchSnapshot(client, signal); }
+    try { return await fetchSnapshot(client, signal, expectedRunId); }
     catch (error) { if (!(error instanceof SnapshotChanged) || attempt) throw error; }
   }
   return null;
 }
-async function fetchSnapshot(client: Pick<SupabaseClient, "from">, signal: AbortSignal): Promise<OverviewData | null> {
-  const runs = await read<SdpRun>(client.from("sdp_runs").select(RUN).eq("status", "ACTIVE").order("created_at", { ascending: false }).limit(2).abortSignal(signal));
+async function fetchSnapshot(client: Pick<SupabaseClient, "from">, signal: AbortSignal, expectedRunId?: string): Promise<OverviewData | null> {
+  let runQuery = client.from("sdp_runs").select(RUN).eq("status", "ACTIVE");
+  if (expectedRunId !== undefined) {
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(expectedRunId)) throw new Error("The approved Hybrid run is not configured.");
+    runQuery = runQuery.eq("run_id", expectedRunId).eq("model_version", "sdp-hybrid-v1");
+  }
+  const runs = await read<SdpRun>(runQuery.order("created_at", { ascending: false }).limit(2).abortSignal(signal));
   if (!runs.length) return null;
   if (runs.length !== 1) fail();
   const run = runs[0];
+  if (expectedRunId !== undefined && (run.run_id !== expectedRunId || run.model_version !== "sdp-hybrid-v1")) throw new Error("The active run does not match the approved Hybrid run.");
   if (!Number.isSafeInteger(run.last_sequence) || run.last_sequence < 0 || !Number.isFinite(Date.parse(run.last_simulated_at))) fail();
   const zones = await read<SdpZone>(client.from("sdp_zones").select("run_id,zone_id,room_id,name,config").eq("run_id", run.run_id).order("zone_id").limit(2).abortSignal(signal));
   if (!zones.length) throw new SnapshotChanged("The active dataset changed. Refresh to load the latest run.");

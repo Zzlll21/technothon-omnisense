@@ -39,6 +39,30 @@ function fixture(count=5){
 }
 const signal=()=>new AbortController().signal;
 function scope(t){const r=t.sdp_runs[0];return {runId:r.run_id,zoneId:'zone-1',nodeId:'demo-1',sequence:r.last_sequence,modelVersion:r.model_version,start:anchor,end:r.last_simulated_at};}
+
+test('private overview pins the approved Hybrid run before reading any dependent table',async()=>{
+ const hybrid=fixture(1),id=hybrid.sdp_runs[0].run_id,synthetic=overviewFixture();
+ const mixed=Object.fromEntries(Object.keys(hybrid).map(table=>[table,[...hybrid[table],...synthetic[table]]]));
+ const client=fakeClient(mixed),data=await overview.fetchOverview(client,signal(),id);
+ assert.equal(data.run.run_id,id);assert.equal(data.run.model_version,'sdp-hybrid-v1');
+ assert.ok(client.queries.every(q=>q.filters.some(([op,key,value])=>op==='eq'&&key==='run_id'&&value===id)));
+ assert.ok(client.queries[0].filters.some(([op,key,value])=>op==='eq'&&key==='model_version'&&value==='sdp-hybrid-v1'));
+ const unrelated=fakeClient(synthetic);assert.equal(await overview.fetchOverview(unrelated,signal(),id),null);
+ assert.equal(unrelated.queries.length,1,'do not read samples from an unrelated active run');
+ const inaccessible=fakeClient({});assert.equal(await overview.fetchOverview(inaccessible,signal(),id),null);
+ assert.equal(inaccessible.queries.length,1);
+ const dishonest=fakeClient(hybrid,q=>q.table==='sdp_runs'?{data:synthetic.sdp_runs,error:null}:undefined);
+ await assert.rejects(overview.fetchOverview(dishonest,signal(),id),/approved Hybrid run/);assert.equal(dishonest.queries.length,1);
+ await assert.rejects(overview.fetchOverview(fakeClient(hybrid),signal(),''),/not configured/);
+});
+
+test('thermal fallback may establish occupied evidence but is not displayed as a valid Thermal AI headcount',async()=>{
+ const tables=fixture(1),event=tables.sdp_events.find(r=>r.event_type==='NODE_EVIDENCE').event;
+ Object.assign(event.payload.hardware,{inference_method:'THERMAL_BLOB_FALLBACK',headcount_source:'thermal_blob_fallback',thermal_ai_label:'THERMAL_ANOMALIES'});
+ const view=spatialOverview(await overview.fetchOverview(fakeClient(tables),signal()),ms);
+ assert.equal(view.nodes[0].occupancy,'Occupied');assert.equal(view.nodes[0].headcount,null);assert.equal(view.nodes[1].headcount,1);
+});
+
 test('hybrid overview preserves independent validity, original receipts, freshness and simulated output',async()=>{
  const t=fixture(),data=await overview.fetchOverview(fakeClient(structuredClone(t)),signal());
  assert.equal(data.run.model_version,'sdp-hybrid-v1');assert.equal(data.samples[0].received_at,anchor);
@@ -46,6 +70,7 @@ test('hybrid overview preserves independent validity, original receipts, freshne
  assert.equal(data.evidence.length,2);assert.equal(data.output.payload.feedback_basis,'SIMULATED');
  const view=spatialOverview(data,ms+120_000);assert.ok(view.nodes.every(n=>n.freshness==='Stale'));
  assert.equal(view.representative.temperature,25.4);assert.equal(view.nodes[1].temperature,null);
+ assert.ok(view.nodes.every(n=>n.headcount===1&&n.occupancy==='Occupied'),'hardware counts remain available independently of missing temperature');
 });
 test('all persisted readers accept LIVE only with a pinned hybrid model and retain historical correlations',async()=>{
  const t=fixture(),s=scope(t);

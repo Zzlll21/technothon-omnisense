@@ -6,6 +6,7 @@ const classificationLabels: Record<NodeClass, string> = {
   EMPTY_CORE: "Vacant", THERMAL_ANOMALIES: "Uncertain",
   OCCUPIED_1P: "Occupied · 1 person", OCCUPIED_2P: "Occupied · 2 people", OCCUPIED_3P_PLUS: "Occupied · 3+ people"
 };
+const categoryCounts = { ZERO: 0, ONE: 1, TWO: 2, THREE_PLUS: 3, UNCERTAIN: null } as const;
 
 /** Presentation only. No query, fusion, interpolation or forecast calculation. */
 export function spatialOverview(data: OverviewData, now: number) {
@@ -23,6 +24,12 @@ export function spatialOverview(data: OverviewData, now: number) {
       temperature, humidity, observedAt: sample && Object.hasOwn(sample, "received_at") ? sample.received_at ?? null : sample?.observed_at ?? null,
       classification: classification?.validity === "VALID" ? classificationLabels[classification.value.class_label] : "Unavailable",
       classificationCode: classification?.validity === "VALID" ? classification.value.class_label : null,
+      occupancy: classification?.validity !== "VALID" ? "Unavailable" : classification.value.class_label === "EMPTY_CORE" ? "Vacant" : classification.value.class_label === "THERMAL_ANOMALIES" ? "Uncertain" : "Occupied",
+      // Hybrid retains the firmware count; scripted records retain only its category.
+      // An inactive/invalid classification must not turn a raw zero into verified vacancy.
+      headcount: classification?.validity !== "VALID" ? null : data.run.model_version === "sdp-hybrid-v1"
+        ? evidence?.payload.hardware?.inference_method === "TINYML" ? evidence.payload.hardware.headcount : null
+        : categoryCounts[classification.value.headcount_category],
       temperatureValidity: evidence?.payload.temperature_c.validity ?? "UNAVAILABLE",
       humidityValidity: evidence?.payload.humidity_percent.validity ?? "UNAVAILABLE",
       classificationValidity: classification?.validity ?? "UNAVAILABLE",

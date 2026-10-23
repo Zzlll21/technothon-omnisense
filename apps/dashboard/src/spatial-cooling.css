@@ -33,6 +33,17 @@
 .spatial-app .su-node-legend span{display:flex;gap:7px;align-items:center}
 .spatial-app .su-node-legend i{width:16px;height:2px;display:inline-block}
 .spatial-app .su-chart-help>span{display:none;margin-top:4px}
+.spatial-app .su-timeline-guide{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:12px 20px;list-style:none;padding:0;margin:14px 0 0;font-size:13px;line-height:1.6;color:var(--sa-muted)}
+.spatial-app .su-timeline-guide li{display:grid;grid-template-columns:20px minmax(0,1fr);gap:9px;align-items:start}
+.spatial-app .su-timeline-guide strong{font-weight:600;color:var(--sa-ink)}
+.spatial-app .su-timeline-guide i{display:block;width:20px;height:12px;margin-top:4px}
+.spatial-app .su-guide-solid{background:#315f50}
+.spatial-app .su-guide-dashed{border:1px dashed #b79b5e;background:#f0eadb}
+.spatial-app .su-timeline-guide .su-guide-restart{height:16px;margin-top:2px;background:linear-gradient(90deg,transparent 9px,#a78232 9px 11px,transparent 11px)}
+.spatial-app .su-guide-unknown{border:1px solid #ced6c7;background:repeating-linear-gradient(135deg,transparent 0 3px,#ced6c7 3px 4px)}
+.spatial-app .su-compact-swipe{display:none}
+@media(max-width:1050px){.spatial-app .su-compact-swipe{display:block}}
+
 .spatial-app .su-inspection-toolbar{display:flex;justify-content:space-between;align-items:center;gap:20px;padding-top:24px;margin-bottom:18px}
 .spatial-app .su-inspection-toolbar>div{display:grid;gap:5px}
 .spatial-app .su-inspection-toolbar strong{font:500 23px Bahnschrift,'Segoe UI',sans-serif;font-variant-numeric:tabular-nums}
@@ -40,7 +51,7 @@
 .spatial-app .su-latest:hover:not(:disabled),.spatial-app .su-time-form button:hover:not(:disabled){background:#e3eadc}
 .spatial-app .su-latest:disabled{cursor:default;opacity:.45}
 .spatial-app .su-selection-note,.spatial-app .su-empty{padding:14px 0;color:#806126;font-size:13px}
-.spatial-app .su-inspection{display:grid;grid-template-columns:1fr 1.12fr 1fr;gap:0;border-top:1px solid var(--sa-line);padding-top:19px}
+.spatial-app .su-inspection{min-width:0}
 .spatial-app .su-inspection>section{padding:0 25px;min-width:0}
 .spatial-app .su-inspection>section:first-child{padding-left:0}
 .spatial-app .su-inspection>section:nth-child(3){border-left:1px solid var(--sa-line);padding-right:0}
@@ -101,3 +112,110 @@
 @media(max-width:1050px){.spatial-app .sa-nav{gap:20px;flex-wrap:wrap}.spatial-app .sa-nav>span{display:none}.spatial-app .su-inspection>section{padding-inline:18px}.spatial-app .su-chart-help>span{display:block}.spatial-app .su-node-legend{display:flex}.spatial-app .su-duration-row{gap:20px}.spatial-app .su-duration-row strong{font-size:30px}}
 @media(max-width:700px){.spatial-app .sa-nav{gap:0 20px;padding-block:0}.spatial-app .sa-nav>a{min-height:48px}.spatial-app .su-workspace{margin-top:12px}.spatial-app .su-heading{align-items:flex-start;flex-direction:column;gap:20px}.spatial-app .su-heading h1{font-size:34px}.spatial-app .su-heading p{max-width:34ch}.spatial-app .su-range{align-self:flex-start}.spatial-app .su-horizon-heading{align-items:flex-start;flex-direction:column;gap:0}.spatial-app .su-horizon-heading h2{font-size:17px}.spatial-app .su-inspection-toolbar strong{font-size:21px}.spatial-app .su-inspection{grid-template-columns:1fr;gap:20px}.spatial-app .su-inspection>section,.spatial-app .su-inspection>section:first-child,.spatial-app .su-inspection>section:nth-child(3){padding:0 0 18px;border:0;border-bottom:1px solid var(--sa-line)}.spatial-app .su-inspection>section:nth-child(2){border-left:0}.spatial-app .su-inspection-temps{grid-template-columns:1fr 1fr;gap:15px}.spatial-app .su-inspection-temps>div{display:flex;flex-direction:column;gap:6px}.spatial-app .su-record-links{margin-top:0;border-top:0}.spatial-app .su-record-links dl{grid-template-columns:1fr}.spatial-app .su-time-form{gap:10px}.spatial-app .su-time-form label{width:100%}.spatial-app .su-time-form input{font-size:16px;width:100%}.spatial-app .su-time-form button{width:100%}.spatial-app .su-section-heading{align-items:flex-start;flex-direction:column;gap:10px}.spatial-app .su-duration-row{grid-template-columns:1fr 1fr;gap:26px 18px}.spatial-app .su-duration-row strong{font-size:29px}.spatial-app .su-statistics-bottom{grid-template-columns:1fr;gap:25px}.spatial-app .su-coverage{border-left:0;border-top:1px solid var(--sa-line);padding:20px 0 0}.spatial-app .su-section-heading h2{font-size:27px}.spatial-app .su-inspection-toolbar{gap:10px}.spatial-app .su-latest{padding-inline:10px}}
 @media(max-width:1050px){.spatial-app .su-track-labels{display:block;position:sticky;left:0;grid-area:1/1;width:116px;background:#f3f5ef;z-index:1;pointer-events:none;font-size:13px;border-right:1px solid #e0e5da}.spatial-app .su-track-labels span{position:absolute;left:0;white-space:nowrap}.spatial-app .su-track-labels small{position:absolute;right:9px;font:12px Consolas,monospace}.spatial-app .su-table-hint{display:block}.spatial-app .su-inline-node-legend{display:none}}
+
+/* Stock-chart-style navigation changes only the visible window, never the queried analysis period. */
+.spatial-app .su-chart-navigation{display:flex;justify-content:space-between;align-items:center;gap:16px;margin:0 0 20px;font-size:12px;color:var(--sa-muted)}
+.spatial-app .su-chart-navigation>div:first-child{display:grid;gap:4px;min-width:0}
+.spatial-app .su-chart-navigation strong{font-weight:500;color:var(--sa-ink);overflow-wrap:anywhere}
+.spatial-app .su-chart-navigation small{font-size:12px}
+.spatial-app .su-chart-navigation [role=group]{display:flex;gap:5px;flex-shrink:0}
+.spatial-app .su-chart-navigation button{border:1px solid #c9d5c0;border-radius:4px;min-width:44px;min-height:44px;padding:8px 12px;background:#fafbf6;font-size:16px;touch-action:manipulation}
+.spatial-app .su-chart-navigation button:hover:not(:disabled){background:#e3eadc}
+.spatial-app .su-chart-navigation button:disabled{opacity:.4;cursor:default}
+.spatial-app .su-chart-navigation .su-fit-period{font-size:12px}
+.spatial-app .su-chart-interactive .su-chart-scroll{grid-template-columns:minmax(0,1fr);overflow:hidden}
+.spatial-app .su-chart-interactive .su-track-labels{display:none}
+.spatial-app .su-chart-interactive .su-timeline{touch-action:pan-y;user-select:none}
+.spatial-app .su-chart-panning .su-timeline{cursor:grabbing}
+@media(max-width:650px){.spatial-app .su-chart-navigation{align-items:stretch;flex-direction:column;gap:12px}.spatial-app .su-chart-navigation [role=group]{align-self:flex-end}}
+
+/* Chart guide content; shown on request in a native modal dialog. */
+.spatial-app .su-interaction-guide{margin-top:18px;font-size:13px;line-height:1.6;color:var(--sa-muted)}
+.spatial-app .su-gesture-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 24px;list-style:none;margin:0;padding:0}
+.spatial-app .su-gesture-list li{display:flex;align-items:flex-start;gap:11px;min-width:0}
+.spatial-app .su-gesture-list svg{color:var(--sa-ink);flex-shrink:0;margin-top:2px;stroke-width:1.6}
+.spatial-app .su-gesture-list li>span{display:grid;gap:2px}
+.spatial-app .su-gesture-list strong{font-size:14px;font-weight:600;color:var(--sa-ink)}
+.spatial-app .su-chart-data-notes{display:grid;gap:6px;padding-top:10px}
+.spatial-app .su-chart-data-notes p{display:flex;align-items:baseline;gap:9px;margin:0}
+.spatial-app .su-chart-data-notes strong{font-weight:500;color:var(--sa-ink)}
+.spatial-app .su-chart-data-notes i{position:relative;display:inline-block;width:17px;height:10px;flex-shrink:0}
+.spatial-app .su-note-marker:before{content:"";position:absolute;width:6px;height:6px;border-radius:50%;background:#315f50;left:0;top:2px}
+.spatial-app .su-note-marker:after{content:"";position:absolute;width:2px;height:11px;background:#315f50;right:2px;top:-1px}
+.spatial-app .su-keyboard-help{flex-shrink:0;max-width:100%}
+.spatial-app .su-keyboard-help dl{margin:8px 0;display:grid;gap:10px}
+.spatial-app .su-keyboard-help dl>div{display:grid;grid-template-columns:135px minmax(0,1fr);gap:12px}
+.spatial-app .su-keyboard-help :is(dt,dd){margin:0}
+.spatial-app .su-keyboard-help kbd{font:12px 'Segoe UI',sans-serif;display:inline-block;border:1px solid #c9d5c0;border-bottom-width:2px;border-radius:3px;min-width:22px;padding:0 4px;text-align:center;color:var(--sa-ink);background:#fafbf6}
+.spatial-app .su-keyboard-help p{font-size:12px;margin:10px 0 0}
+@media(max-width:700px){.spatial-app .su-gesture-list{grid-template-columns:1fr;gap:16px}.spatial-app .su-keyboard-help{width:100%}}
+
+.spatial-app .su-guide-trigger{display:inline-flex;align-items:center;gap:8px;min-height:44px;margin-top:8px;font-size:13px;color:var(--sa-muted);text-decoration:underline;text-underline-offset:4px}
+.spatial-app .su-guide-trigger:hover{color:var(--sa-ink)}
+.spatial-app .su-guide-dialog{position:fixed;inset:0;margin:auto;width:min(760px,calc(100vw - 32px));max-width:calc(100vw - 32px);height:fit-content;max-height:calc(100dvh - 48px);padding:0;border:1px solid #becdb4;border-radius:10px;background:#fafbf6;color:var(--sa-ink);box-shadow:0 20px 70px #183e352b;overflow:auto;overscroll-behavior:contain}
+.spatial-app .su-guide-dialog::backdrop{background:#142d234d}
+.spatial-app .su-guide-dialog-header{position:sticky;top:0;z-index:1;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:20px 24px 16px;background:#fafbf6;border-bottom:1px solid var(--sa-line)}
+.spatial-app .su-guide-dialog-header h2{font:500 26px/1.2 Bahnschrift,'Segoe UI',sans-serif;letter-spacing:-.4px;margin:0}
+.spatial-app .su-guide-dialog-header p{font-size:13px;line-height:1.6;color:var(--sa-muted);margin-top:7px}
+.spatial-app .su-guide-dialog-header button{display:grid;place-items:center;min-width:44px;min-height:44px;border-radius:4px;flex-shrink:0}
+.spatial-app .su-guide-dialog-header button:hover{background:#e3eadc}
+.spatial-app .su-guide-body{padding:24px;margin:0}
+.spatial-app .su-guide-dialog .su-chart-data-notes,.spatial-app .su-guide-dialog .su-keyboard-help{padding-top:18px;border-top:1px solid var(--sa-line);margin-top:20px}
+.spatial-app .su-guide-dialog .su-keyboard-help h3{font-size:15px;font-weight:600;margin:0 0 14px;color:var(--sa-ink)}
+.spatial-app .su-guide-dialog .su-keyboard-help dl>div{grid-template-columns:190px minmax(0,1fr)}
+@media(max-width:700px){.spatial-app .su-guide-dialog{max-height:calc(100dvh - 24px)}.spatial-app .su-guide-dialog-header{padding:16px}.spatial-app .su-guide-body{padding:20px 16px}.spatial-app .su-guide-dialog .su-keyboard-help dl>div{grid-template-columns:115px minmax(0,1fr);gap:10px}}
+
+/* Record markers attach to their parent track without adding separate timeline rows. */
+.spatial-app .su-timeline :is(.su-forecast-marker,.su-decision-marker,.su-output-markers){cursor:pointer}
+.spatial-app .su-chart-data-notes .su-note-forecast{width:9px;height:9px;transform:rotate(45deg);border:1.5px solid #a78232;margin:0 4px;background:#fafbf6}
+.spatial-app .su-chart-data-notes .su-note-decision{width:8px;height:8px;margin:0 4px;border-radius:50%;background:#315f50}
+.spatial-app .su-chart-data-notes .su-note-report{width:3px;height:12px;margin:0 7px;background:#315f50}
+
+/* A persistent context column keeps selection changes from resizing the chart. */
+.spatial-app .su-analysis-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:20px;align-items:start}
+.spatial-app .su-timeline-column{min-width:0}
+.spatial-app .su-context-inspector{min-width:0;border:1px solid var(--sa-line);background:#fafbf6;border-radius:4px;display:flex;flex-direction:column}
+.spatial-app .su-context-inspector .su-inspection-toolbar{padding:16px 18px;margin:0;border-bottom:1px solid var(--sa-line);align-items:flex-start;gap:12px;flex-shrink:0}
+.spatial-app .su-context-inspector .su-inspection-toolbar>div{min-width:0}
+.spatial-app .su-context-inspector .su-inspection-toolbar strong{font-size:20px;line-height:1.35;letter-spacing:-.3px;font-variant-numeric:tabular-nums}
+.spatial-app .su-context-inspector .sa-kicker{font-size:12px;line-height:1.5}
+.spatial-app .su-context-inspector .su-latest{font-size:12px;padding:7px 9px;max-width:100px;flex-shrink:0}
+.spatial-app .su-inspector-content{padding:18px;min-height:0;scrollbar-gutter:stable}
+.spatial-app .su-inspector-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 18px;margin:0}
+.spatial-app .su-inspector-summary dt{font-size:13px;line-height:1.5;color:var(--sa-muted)}
+.spatial-app .su-inspector-summary dd{margin:3px 0 0;font:500 22px/1.25 Bahnschrift,'Segoe UI',sans-serif;letter-spacing:-.3px;text-transform:capitalize;overflow-wrap:anywhere}
+.spatial-app .su-inspector-summary>div:last-child{grid-column:1/-1;display:flex;align-items:baseline;gap:12px}
+.spatial-app .su-inspector-summary>div:last-child dd{font-size:18px}
+.spatial-app .su-context-inspector .su-inspection-temps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0 12px}
+.spatial-app .su-context-inspector .su-inspection-temps>div{display:flex;flex-direction:column;gap:5px;min-width:0}
+.spatial-app .su-context-inspector .su-inspection-temps strong{font-size:23px}
+.spatial-app .su-inspector-provenance{color:var(--sa-muted);font-size:12px;line-height:1.6;margin:0 0 16px}
+.spatial-app .su-context-inspector .su-selection-note{padding:0 0 12px;line-height:1.6}
+.spatial-app .su-inspection-details{border-top:1px solid var(--sa-line)}
+.spatial-app :is(.su-evidence-section,.su-exact-time){border-bottom:1px solid var(--sa-line);font-size:13px;padding:0 0 2px}
+.spatial-app :is(.su-evidence-section,.su-exact-time,.su-context-inspector .su-record-links)>summary{cursor:pointer;min-height:44px;padding:12px 0;line-height:1.6;font-weight:500}
+.spatial-app .su-evidence-section[open]{padding-bottom:15px}
+.spatial-app .su-context-inspector .su-record-links{border-top:0;margin:0;padding:0;border-bottom:1px solid var(--sa-line)}
+.spatial-app .su-context-inspector .su-record-links dl{grid-template-columns:minmax(0,1fr);padding-bottom:14px}
+.spatial-app .su-context-inspector .su-time-form{margin:0 0 14px;display:grid;grid-template-columns:minmax(0,1fr)}
+.spatial-app .su-context-inspector .su-time-form label{width:100%;line-height:1.6}
+.spatial-app .su-context-inspector .su-time-form input{font-size:16px;width:100%;min-width:0}
+.spatial-app .su-context-inspector .su-time-form button{width:100%}
+.spatial-app .su-inspector-expand{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:44px;font-size:13px;border-top:1px solid var(--sa-line);text-align:left}
+.spatial-app .su-inspector-expand span{font-size:18px}
+@media(min-width:1000px){
+  .spatial-app .su-analysis-layout{grid-template-columns:minmax(0,1fr) 336px;gap:28px}
+  .spatial-app .su-context-inspector{position:sticky;top:16px;height:var(--su-inspector-height, auto);max-height:calc(100dvh - 32px)}
+  .spatial-app .su-inspector-content{overflow-y:auto;overscroll-behavior:contain}
+  .spatial-app .su-inspector-expand{display:none}
+  .spatial-app .su-analysis-layout .su-chart-navigation{flex-wrap:wrap;align-items:flex-start}
+  .spatial-app .su-analysis-layout .su-chart-navigation [role=group]{margin-left:auto}
+}
+@media(max-width:999px){
+  .spatial-app .su-inspection-details:not(.is-expanded){display:none}
+  .spatial-app .su-inspection-details.is-expanded{max-height:55dvh;overflow-y:auto;overscroll-behavior:contain;padding-right:8px;scrollbar-gutter:stable}
+  .spatial-app .su-inspector-content{padding:16px}
+  .spatial-app .su-inspector-provenance{margin-bottom:10px}
+}
+
+@media(min-width:1000px){.spatial-app .su-context-inspector .su-inspection-toolbar{position:sticky;top:16px;z-index:1;background:#fafbf6}}

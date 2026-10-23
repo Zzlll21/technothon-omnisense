@@ -28,6 +28,25 @@ const nodes = await Promise.all(['sim-1', 'sim-2'].map(nodeId => fetchNodeHistor
 const utilization = await fetchUtilizationHistory(client, scope, signal);
 const inspect = (at, h = history, n = nodes) => model.inspectCooling(h, n, at, run.live_anchor, end);
 const labels = ['Left sensor', 'Right sensor'];
+const { CoolingTimeline } = await server.ssrLoadModule('/src/components/spatial/CoolingTimeline.tsx');
+
+test('merged timeline keeps issue-time records stable during hover and excludes later forecasts from pinned historical inspection', () => {
+  const forecasts = history.events.filter(e => e.event_type === 'ZONE_FORECAST');
+  assert.ok(forecasts.length > 1);
+  const earlier = Date.parse(forecasts[1].occurred_at) - 1;
+  const props = { history, nodes, labels, result: null, start: Date.parse(run.history_start), end,
+    anchor: run.live_anchor, snapshot: end, inspection: inspect(earlier), selectedAt: earlier,
+    onHover: () => {}, onPin: () => {}, onClear: () => {} };
+  const hover = renderToStaticMarkup(React.createElement(CoolingTimeline, { ...props, pinned: false }));
+  const pinned = renderToStaticMarkup(React.createElement(CoolingTimeline, { ...props, pinned: true }));
+  for (const event of forecasts.filter(e => Date.parse(e.occurred_at) >= props.start && Date.parse(e.occurred_at) <= end)) {
+    const marker = `class="su-forecast-marker" data-event-id="${event.event_id}"`;
+    assert.ok(hover.includes(marker), 'hover must not remove the record click target');
+    assert.equal(pinned.includes(marker), Date.parse(event.occurred_at) <= earlier, 'historical pin must respect issue time');
+  }
+  assert.ok(hover.includes('Room occupancy') && hover.includes('Cooling operation'));
+  assert.ok(!hover.includes('Forecasts as issued</text>') && !hover.includes('Key decisions</text>') && !hover.includes('Sim. reported</text>'));
+});
 
 test('24-hour and seven-day reads align both validated temperatures with exact frame sequences and committed boundaries', async () => {
   for (const hours of [24, 168]) {
@@ -141,4 +160,29 @@ test('latest inspector maps both stored sensor identities and preserves raw stor
   assert.deepEqual(detail.temperatures.map(t => t.value), data.zone.config.payload.required_nodes.map(n => data.samples.find(s => s.node_id === n.node_id).temperature_c));
   assert.equal(detail.decision.payload.reason_text, data.decision.payload.reason_text);
   assert.equal(detail.forecast.payload.planned_restart_at, data.forecast.payload.planned_restart_at);
+});
+
+test('contextual inspector summary and expandable evidence retain the same stored values and exact record links', async () => {
+  const data = await fetchOverview(fakeClient(tables), signal);
+  for (const [detail, historical] of [[model.latestCooling(data), false], [inspect(end - 300_000), true]]) {
+    const html = renderToStaticMarkup(React.createElement(CoolingInspectionPanel, { inspection: detail, labels, historical, onOpenRecord: () => {} }));
+    const summary = html.match(/<dl class="su-inspector-summary">([\s\S]*?)<\/dl>/)[1];
+    assert.ok(summary.includes(detail.decision.payload.occupancy.toLowerCase()));
+    assert.ok(summary.includes(model.spatialModeNames[detail.decision.payload.requested_mode]));
+    assert.ok(summary.includes(forecastStatus(detail.forecast, detail.at).toLowerCase()));
+    for (const reading of detail.temperatures) assert.ok(html.includes(reading.value.toFixed(1)));
+    assert.ok(html.includes(detail.decision.payload.reason_code === 'SHORT_GAP' && detail.decision.payload.requested_mode === 'SHORT_VACANCY'
+      ? 'Brief vacancy expected. Reduced cooling requested.'
+      : detail.decision.payload.reason_code === 'OCCUPIED_EVIDENCE' && detail.decision.payload.occupancy === 'OCCUPIED' && detail.decision.payload.requested_mode === 'OCCUPIED'
+        ? 'Room occupied. Normal cooling requested.'
+        : detail.decision.payload.reason_code === 'FORECAST_RESTART' && detail.decision.payload.requested_mode === 'PRECOOL'
+          ? 'Expected room use is approaching. Pre-cooling requested.'
+          : detail.decision.payload.reason_code === 'LONG_GAP' && detail.decision.payload.requested_mode === 'LONG_VACANCY'
+            ? 'Extended vacancy expected. Standby mode requested.' : detail.decision.payload.reason_text));
+    for (const label of ['Open decision record', 'Open output record', 'Open forecast record', 'Cooling reasoning', 'Forecast evidence']) assert.ok(html.includes(label));
+    assert.ok(!html.includes('<summary>Sensor evidence</summary>'));
+    assert.ok(!html.includes('<summary>Inspect correlated record references</summary>'));
+    assert.ok(html.includes(historical ? 'Historical records · as known at this time' : 'Latest committed records'));
+    assert.ok(!html.includes('<details open'), 'evidence must not expand when selection changes');
+  }
 });

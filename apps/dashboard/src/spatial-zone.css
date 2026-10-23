@@ -52,7 +52,7 @@
 .spatial-app .sz-mode[data-mode=OCCUPIED]{border-color:#315f50}
 .spatial-app .sz-mode[data-mode=LONG_VACANCY]{border-color:#9baba1}
 .spatial-app .sz-reason{font-size:14px;line-height:1.65;margin-bottom:17px}
-.spatial-app .sz-output{border-block:1px solid var(--sa-line);padding:13px 0;display:grid;gap:5px;font-size:13px}
+.spatial-app .sz-output{border-top:1px solid var(--sa-line);padding:13px 0;display:grid;gap:5px;font-size:13px}
 .spatial-app .sz-output>span,.spatial-app .sz-output small{color:var(--sa-muted);font-size:12px}
 .spatial-app .sz-output>strong{font-weight:500}
 .spatial-app .sz-plan-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;border-top:1px solid var(--sa-line);padding-top:15px;margin-top:25px}

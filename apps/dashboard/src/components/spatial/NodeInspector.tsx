@@ -32,8 +32,6 @@ export function NodeInspector({ data, model, nodeId, now, refreshToken, refreshE
       <p className="sz-history-context" role="status">{history.loading ? "Loading history…" : `${history.points.length.toLocaleString()} stored samples`} · {Intl.DateTimeFormat().resolvedOptions().timeZone}</p>
       {history.error && <div className="sz-health-note" role="alert"><strong>History unavailable</strong><p>{history.error}{history.points.length ? " Previously loaded records remain visible." : ""}</p><button onClick={() => setRetry(n => n + 1)}>Retry history</button></div>}
       {history.points.length ? <NodeHistoryCharts key={`${data.run.run_id}/${nodeId}/${hours}`} points={history.points} start={history.start} end={history.end} anchor={data.run.live_anchor} /> : history.loading ? <p className="sz-history-empty" aria-busy="true">Reading validated sensor records…</p> : !history.error && <p className="sz-history-empty">No samples in this range. Measurements remain unavailable.</p>}
-      <p className="sz-note">Gaps remain unavailable. Classifications are recorded node evidence; combined occupancy belongs to the shared zone. Use arrow keys to inspect chart samples; Escape clears a chart selection.</p>
-      <details className="sz-trace"><summary>Supporting snapshot references</summary><dl><div><dt>Run / frame</dt><dd>{model.runId} / {model.sequence}</dd></div><div><dt>Observation evidence</dt><dd>{node.evidenceId ?? "Unavailable"}</dd></div><div><dt>Configured location</dt><dd>x {number(node.x * 100, 0)}%, y {number(node.y * 100, 0)}% · schematic mapping</dd></div><div><dt>Snapshot</dt><dd><time dateTime={model.at}>{model.at}</time></dd></div></dl></details>
     </div>
   </dialog>;
 }

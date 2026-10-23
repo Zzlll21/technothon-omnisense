@@ -18,7 +18,9 @@ export function useOverview() {
     active.current = controller;
     setRefreshing(true);
     try {
-      const result = await fetchOverview(supabase, AbortSignal.any([controller.signal, AbortSignal.timeout(20_000)]));
+      if (hybridAccess.privateHybrid && !hybridAccess.expectedRunId) throw new Error('The approved Hybrid run is not configured.');
+      const result = await fetchOverview(supabase, AbortSignal.any([controller.signal, AbortSignal.timeout(20_000)]), hybridAccess.privateHybrid ? hybridAccess.expectedRunId : undefined);
+      if (hybridAccess.privateHybrid && !result) throw new Error('The approved run is unavailable to this account. Ask the project owner to confirm access.');
       if (hybridAccess.privateHybrid && result && (result.run.run_id !== hybridAccess.expectedRunId || result.run.model_version !== 'sdp-hybrid-v1')) throw new Error('The active run does not match the approved hybrid test run.');
       if (controller.signal.aborted) return;
       setData(result); setError(null); setRefreshedAt(new Date().toISOString());
